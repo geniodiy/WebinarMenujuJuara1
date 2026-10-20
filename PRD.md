@@ -78,8 +78,8 @@ Bila belum diputuskan, Claude Code memakai usulan default.
 
 | No | Hal | Usulan default | Dibutuhkan di | Status |
 |---|---|---|---|---|
-| K1 | Nama sesi orang tua dan guru (poster: "Sharing Session", form: "Ruang Sinergi") | "Ruang Sinergi" dengan keterangan "Sharing session orang tua & guru" | Fase 3 | |
-| K2 | Teks persetujuan "Genio Yogyakarta" padahal ada dua cabang | Diganti "Genio Institute" | Fase 2 | |
+| K1 | Nama sesi orang tua dan guru (poster: "Sharing Session", form: "Sharing Session") | "Sharing Session" dengan keterangan "Sharing session orang tua & guru" | Fase 3 | **Diputuskan: "Sharing Session"** (ikut poster). Teks PDF yang menyebut "Sharing Session" diganti |
+| K2 | Teks persetujuan "Genio Yogyakarta" padahal ada dua cabang | Diganti "Genio Institute" | Fase 2 | **Disetujui** |
 | K3 | Syarat bonus Materi Kelas OSN | Untuk peserta yang mengisi presensi; link materi muncul setelah presensi terkirim | Fase 3 dan 6 | |
 | K4 | Tanggal buka pendaftaran (draft: 19 Oktober, sudah lewat) | Langsung terbuka begitu Rilis 1 tayang | Fase 1 | |
 | K5 | Sudah ada pendaftar lewat form lain? | Bila ada, diimpor di Fase 2 | Fase 2 | |
@@ -310,7 +310,7 @@ Fokus utama adalah form pendaftaran, karena pendaftaran sudah harus berjalan dan
 | sumber_link | Parameter `ref` atau `utm_source` dari URL bila ada |
 | uji | YA bila data uji |
 
-**Lembar `Presensi`** (dibuat di Fase 6): waktu_isi, wa, nama_lengkap, nama_kunci, kategori, kelas_simulasi, nilai_strategi, nilai_kelas_simulasi, nilai_tutor, nilai_ruang_sinergi, nilai_teknis, bagian_bermanfaat, topik_berikutnya, kritik_saran, minat_program, status_cocok (cocok / tidak ditemukan), id_peserta, uji.
+**Lembar `Presensi`** (dibuat di Fase 6): waktu_isi, wa, nama_lengkap, nama_kunci, kategori, kelas_simulasi, nilai_strategi, nilai_kelas_simulasi, nilai_tutor, nilai_sharing_session, nilai_teknis, bagian_bermanfaat, topik_berikutnya, kritik_saran, minat_program, status_cocok (cocok / tidak ditemukan), id_peserta, uji.
 
 **Lembar `Pertanyaan`** (dibuat di Fase 7): id (T-001), waktu_kirim, nama_inisial, kategori_penanya, jenjang, pertanyaan, status (belum dibahas / sudah dibahas), waktu_dibahas, uji.
 
@@ -395,6 +395,8 @@ Aturan kontras (WCAG AA):
 - Item Color di atas putih (7,6:1) dan Indigo di atas putih (10,7:1) aman untuk teks isi. Indigo di atas Gold (6,4:1) aman untuk label medali.
 
 Halaman memakai latar terang seperti poster, dengan latar `body` ditetapkan eksplisit.
+
+**Gradien Cyan ke Teal** (`linear-gradient(90deg, #1399D8, #16C7B8)`) dipakai di beberapa tempat saja, seperti poster: sorotan judul (kotak "OSN 2027"), label "#MenujuJuara", strip tanggal pelaksanaan, pita bonus, dan latar bagian bawah halaman. Tombol, kartu isi, dan teks panjang tetap warna rata. Teks di atas gradien memakai putih tebal berukuran besar (lihat aturan kontras di atas).
 
 ### 7.2 Huruf dan tata letak
 
@@ -532,7 +534,7 @@ Label, pilihan, dan teks bantuan mengikuti **PDF Bagian 0 sampai 8** (kecuali te
 
 ## 12. Form pertanyaan
 
-- Isi mengikuti **PDF Form 3**. Judul: "Pertanyaan untuk Ruang Sinergi (khusus orang tua & guru)".
+- Isi mengikuti **PDF Form 3**. Judul: "Pertanyaan untuk Sharing Session (khusus orang tua & guru)".
 - Hanya bisa diisi saat form pertanyaan terbuka. Pertanyaan maksimal 1.000 karakter; nama boleh kosong.
 - Setelah terkirim: "Pertanyaan terkirim. Mas Indro akan membahasnya sesuai urutan." dan tombol "Kirim pertanyaan lain".
 
@@ -594,7 +596,7 @@ Pembagian pengerjaan:
 ### 13.5 Tab Feedback (admin)
 
 - Jumlah presensi, jumlah tidak cocok dengan data pendaftar.
-- Rata-rata nilai: materi strategi, kelas simulasi per room, kejelasan tutor per room, Ruang Sinergi, kelancaran teknis.
+- Rata-rata nilai: materi strategi, kelas simulasi per room, kejelasan tutor per room, Sharing Session, kelancaran teknis.
 - Daftar jawaban teks (bagian bermanfaat, topik berikutnya, kritik dan saran) dengan filter kategori.
 
 ### 13.6 Tab Pertanyaan (admin dan moderator)
@@ -663,8 +665,8 @@ Semua pengaturan dilakukan di panel admin, tab Pengaturan. Bila rundown sudah pa
 | Waktu | Tindakan | Lainnya |
 |---|---|---|
 | Pagi sebelum acara | Cek form pertanyaan dan presensi berstatus Tutup atau Terjadwal dengan jam yang benar | Moderator masuk ke panel admin dengan kata sandi moderator, tab Pertanyaan |
-| Ruang Sinergi dimulai | Form pertanyaan: Buka (bila tidak terjadwal) | Bagikan link `?form=tanya` di chat Zoom Ruang Sinergi |
-| Ruang Sinergi berakhir | Form pertanyaan: Tutup | |
+| Sharing Session dimulai | Form pertanyaan: Buka (bila tidak terjadwal) | Bagikan link `?form=tanya` di chat Zoom Sharing Session |
+| Sharing Session berakhir | Form pertanyaan: Tutup | |
 | Menjelang penutupan | Form presensi: Buka | Umumkan dan bagikan link `?form=presensi` di chat Zoom |
 | Sekitar 15 menit setelah penutupan | Form presensi: Tutup, tandai acara selesai | Unduh semua data |
 

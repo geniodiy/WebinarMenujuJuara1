@@ -29,10 +29,11 @@ Yang tidak diambil: latar gelap (halaman kita terang seperti poster, PRD 7.1), l
 | Teal Accent | #16C7B8 | Aksen pendukung |
 | Item Color | #54563B | Teks isi dan judul |
 
-## Perbedaan yang perlu dikonfirmasi
+## Keputusan atas perbedaan
 
 | No | Hal | Poster | PRD | Usulan |
 |---|---|---|---|---|
 | R1 | Nomor narahubung Lily | 0878-3886-2882 | 0821-3313-1916 | **Diputuskan: ikut poster.** PRD sudah diperbarui |
-| R2 | Nama sesi orang tua & guru | "Sharing Session" | "Ruang Sinergi" (K1) | Ikuti K1 |
-| R3 | Teks persetujuan | | PDF: "Genio Yogyakarta" | Ikuti K2 ("Genio Institute") bila disetujui |
+| R2 | Nama sesi orang tua & guru | "Sharing Session" | "Ruang Sinergi" (K1), PDF juga | **Diputuskan: "Sharing Session".** PRD sudah diperbarui; teks PDF yang menyebut Ruang Sinergi diganti saat membuat form |
+| R3 | Teks persetujuan | | PDF: "Genio Yogyakarta" | **Diputuskan: "Genio Institute"** (K2) |
+| R4 | Gradien | Poster memakai gradien Cyan ke Teal | | **Diputuskan: dipakai di beberapa tempat seperti poster** (PRD 7.1) |
