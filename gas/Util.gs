@@ -88,14 +88,14 @@ function properti_(nama) {
 }
 
 function bukaDb_() {
-  var id = properti_('DB_SHEET_ID');
-  if (!id) throw new Error('DB_SHEET_ID belum diisi. Jalankan menu Genio > Siapkan lembar.');
+  var id = ambilIdDariUrl_(properti_('DB_SHEET_ID'));
+  if (!id) throw new Error('DB_SHEET_ID belum diisi di Script Properties.');
   return SpreadsheetApp.openById(id);
 }
 
 function bukaKonten_() {
-  var id = properti_('KONTEN_SHEET_ID');
-  if (!id) throw new Error('KONTEN_SHEET_ID belum diisi. Jalankan menu Genio > Siapkan lembar.');
+  var id = ambilIdDariUrl_(properti_('KONTEN_SHEET_ID'));
+  if (!id) throw new Error('KONTEN_SHEET_ID belum diisi di Script Properties.');
   return SpreadsheetApp.openById(id);
 }
 

@@ -75,7 +75,7 @@
       var ul = el('ringkas-konten');
       ul.innerHTML = '';
       if (!konten) {
-        ul.appendChild(buat('li', 'Konten belum terbaca. Jalankan menu Genio > Siapkan lembar, lalu muat ulang.'));
+        ul.appendChild(buat('li', 'Konten belum terbaca. Jalankan siapkanLembar dari editor Apps Script, lalu muat ulang.'));
         return;
       }
       if (konten.pengaturan.tagline) el('tagline').textContent = konten.pengaturan.tagline;

@@ -65,8 +65,8 @@ function petaGambar_(ss) {
 
 /** Memindai folder Gambar Web dan menulis ulang lembar Gambar. Mengembalikan peta nama ke ID. */
 function perbaruiDaftarGambar_(ss) {
-  var idFolder = properti_('GAMBAR_FOLDER_ID');
-  if (!idFolder) throw new Error('GAMBAR_FOLDER_ID belum diisi. Jalankan menu Genio > Siapkan lembar.');
+  var idFolder = ambilIdDariUrl_(properti_('GAMBAR_FOLDER_ID'));
+  if (!idFolder) throw new Error('GAMBAR_FOLDER_ID belum diisi di Script Properties.');
   var file = DriveApp.getFolderById(idFolder).getFiles();
   var baris = [];
   var sekarang = Utilities.formatDate(new Date(), ZONA_WAKTU_, 'yyyy-MM-dd HH:mm');
@@ -109,7 +109,7 @@ function bangunKonten_() {
   else profil.contoh = profilContoh;
 
   // KEPUTUSAN: lembar Gambar dipindai ulang otomatis bila ada nama file yang belum terdaftar,
-  // karena menu spreadsheet hanya ada di Database (lihat docs/catatan-deploy.md).
+  // karena tidak ada menu di spreadsheet (lihat gas/Setup.gs).
   var peta = petaGambar_(ss);
   var butuh = [];
   daftar.Narasumber_Tutor.concat(daftar.Testimoni).forEach(function (b) { if (b.foto) butuh.push(b.foto); });

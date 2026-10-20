@@ -1,6 +1,6 @@
 # Catatan deploy
 
-## Data deployment (isi setelah langkah 9)
+## Data deployment (isi setelah langkah 6)
 
 | Hal | Nilai |
 |---|---|
@@ -8,90 +8,79 @@
 | ID deployment | |
 | URL web app `/exec` | |
 | URL halaman Blogger | |
-| Banner Google di atas halaman | (ada / tidak ada, dicek di langkah 11) |
+| Banner Google di atas halaman | (ada / tidak ada, dicek di langkah 8) |
 
 ID spreadsheet, ID folder, dan kata sandi **tidak** dicatat di sini. Semuanya tersimpan di Script Properties.
 
 ## Langkah pertama kali (Fase 1)
 
-### 1. Siapkan Google Drive
+Susunan yang dipakai: satu folder berisi folder `Gambar Web`, spreadsheet `Database Webinar`, spreadsheet `Konten Website`, dan proyek Apps Script terpisah. Kode dikirim dengan salin-tempel dari browser (bisa dari iPad). Bila kelak memakai laptop, `clasp` tetap bisa dipakai dengan ID Skrip proyek ini.
 
-1. Buat folder `Genio - MenujuJuara Eps1`. Folder ini **jangan** dibagikan.
-2. Di dalamnya buat:
-   - folder `Gambar Web`, lalu bagikan dengan setelan "Siapa saja yang memiliki link: Pelihat". Hanya folder ini yang dibagikan.
-   - Google Sheets kosong bernama `Database Webinar`.
-   - Google Sheets kosong bernama `Konten Website`. Boleh dibagikan sebagai editor ke tim Marketing.
-3. Masukkan foto ke `Gambar Web` bila sudah ada (misalnya `indro.jpg`). Bisa menyusul.
+### 1. Atur izin berbagi di Google Drive
 
-### 2. Buat proyek Apps Script di Database Webinar
+Hanya `Gambar Web` yang boleh dibuka siapa saja. Yang lain dibatasi.
 
-1. Buka `Database Webinar`, pilih menu **Ekstensi > Apps Script**.
-2. Ganti nama proyek menjadi `Genio MenujuJuara Eps1`.
-3. Klik ikon roda (**Setelan project**), salin **ID Skrip**.
+1. Folder induk: Bagikan > Akses umum > **Dibatasi**.
+2. `Database Webinar`, `Konten Website`, dan proyek Apps Script: periksa satu per satu, Akses umum harus **Dibatasi**. `Konten Website` boleh dibagikan sebagai editor ke email tim Marketing.
+3. Folder `Gambar Web`: Akses umum > **Siapa saja yang memiliki link**, peran **Pelihat**.
 
-Proyek sengaja diikat ke `Database Webinar`, bukan ke `Konten Website`. Alasannya: menu spreadsheet hanya bisa dibuat oleh skrip yang terikat, dan siapa pun yang bisa mengedit spreadsheet induknya bisa membuka Script Properties (termasuk kata sandi admin). Database hanya untuk tim Ticketing, jadi lebih aman.
+Web app tetap bisa membaca kedua spreadsheet walau dibatasi, karena berjalan dengan akun pemilik.
 
-Akibatnya menu **Genio** hanya muncul di `Database Webinar`. Perubahan di `Konten Website` tetap tampil sendiri paling lambat 5 menit, dan foto baru di `Gambar Web` terdaftar otomatis begitu namanya dipakai di lembar konten.
+### 2. Tempel kode ke proyek Apps Script
 
-### 3. Aktifkan Apps Script API
+1. Buka proyek Apps Script. Di iPad, ketuk **aA** di bilah alamat Safari, lalu **Minta Situs Web Desktop**.
+2. Setelan project (ikon roda): centang **Tampilkan file manifes "appsscript.json" di editor**.
+3. Untuk tiap file di folder `gas/` pada GitHub: buka file, ketuk ikon **Salin** (Copy raw file), lalu tempel ke file bernama sama di editor dan simpan. Buat file yang belum ada lewat **+** di samping "File", ketik nama **tanpa** akhiran.
 
-Buka https://script.google.com/home/usersettings lalu nyalakan **Google Apps Script API**.
+| File di GitHub | Nama di editor | Jenis |
+|---|---|---|
+| `appsscript.json` | `appsscript.json` (timpa isinya) | manifes |
+| `Code.gs` | `Code` (timpa isi bawaan) | Skrip |
+| `Config.gs`, `Util.gs`, `Konten.gs`, `Setup.gs`, `DataContoh.gs` | `Config`, `Util`, `Konten`, `Setup`, `DataContoh` | Skrip |
+| `Index.html`, `Css.html`, `JsApp.html` | `Index`, `Css`, `JsApp` | HTML |
 
-### 4. Pasang clasp dan login
+### 3. Isi Script Properties
 
-```bash
-npm i -g @google/clasp
-clasp login
-```
+Setelan project > **Properti skrip** > Tambahkan properti skrip. Nilainya boleh ID atau URL lengkap.
 
-### 5. Kirim kode
+| Properti | Nilai |
+|---|---|
+| `DB_SHEET_ID` | URL spreadsheet Database Webinar |
+| `KONTEN_SHEET_ID` | URL spreadsheet Konten Website |
+| `GAMBAR_FOLDER_ID` | URL folder Gambar Web |
 
-Dari root repo:
+Kata sandi admin (`ADMIN_PASSWORD`) baru ditambahkan di Fase 4.
 
-```bash
-cp .clasp.json.example .clasp.json   # lalu isi scriptId dengan ID Skrip dari langkah 2
-clasp push
-```
+### 4. Jalankan siapkanLembar
 
-Bila ditanya apakah manifest akan ditimpa, jawab ya.
+1. Di editor, buka file `Setup`. Di bilah atas, pilih fungsi **siapkanLembar**, lalu ketuk **Jalankan**.
+2. Pertama kali, Google meminta izin. Pilih akun pemilik, lalu **Lanjutan > Buka MenujuJuara#1 (tidak aman)** > **Izinkan**. Peringatan ini muncul karena skrip buatan sendiri belum diverifikasi Google.
+3. Log eksekusi di bawah menampilkan "Lembar siap". Bila muncul pesan Script Properties belum diisi, periksa langkah 3.
 
-### 6. Siapkan lembar
+Hasilnya: lembar Pendaftar, Pengaturan, Rekap, dan Log_Admin di Database, serta lembar konten di Konten Website. Fungsi ini aman dijalankan berulang kali karena tidak menghapus data.
 
-1. Muat ulang `Database Webinar`. Menu **Genio** muncul di bilah menu setelah beberapa detik.
-2. Pilih **Genio > Siapkan lembar**.
-3. Google meminta izin. Karena skrip ini milik Anda sendiri, pilih **Lanjutan > Buka Genio MenujuJuara Eps1 (tidak aman)**, lalu **Izinkan**.
-4. Jalankan **Genio > Siapkan lembar** sekali lagi bila menu tadi berhenti setelah pemberian izin.
-5. Tempel URL `Konten Website` lalu URL folder `Gambar Web` saat diminta.
+### 5. Jalankan isiDataContoh
 
-Hasilnya: lembar Pendaftar, Pengaturan, Rekap, dan Log_Admin di Database, serta lembar konten di Konten Website. Menu ini aman dijalankan berulang kali karena tidak menghapus data yang sudah ada.
-
-### 7. Isi data contoh
-
-Pilih **Genio > Isi data contoh (Konten Website)**. Lembar yang sudah berisi tidak disentuh.
+Pilih fungsi **isiDataContoh**, lalu **Jalankan**. Lembar yang sudah berisi tidak disentuh.
 
 - Agenda dan narasumber (Indro) diambil dari poster dan ditandai data asli.
 - Tutor, profil Genio, cabang, prestasi, testimoni, dan FAQ masih contoh (`data_contoh` = YA).
 - `tampilkan_data_contoh` diubah menjadi YA supaya contoh terlihat saat pratinjau. **Wajib** diubah menjadi TIDAK sebelum tayang.
 
-### 8. Perbarui daftar gambar (bila sudah ada foto)
+### 6. Deploy web app
 
-Pilih **Genio > Perbarui daftar gambar**. Lembar `Gambar` di Konten Website terisi nama dan ID tiap foto.
+1. Di editor, ketuk **Terapkan > Deployment baru**.
+2. Pilih jenis **Aplikasi web**. Deskripsi: `Rilis 1`. Jalankan sebagai: **Saya**. Yang memiliki akses: **Siapa saja**.
+3. Ketuk **Terapkan**, lalu salin URL yang berakhiran `/exec` dan ID deployment ke tabel di atas.
 
-### 9. Deploy web app
-
-1. Di editor Apps Script, klik **Terapkan > Deployment baru**.
-2. Pilih jenis **Aplikasi web**.
-3. Deskripsi: `Rilis 1`. Jalankan sebagai: **Saya**. Yang memiliki akses: **Siapa saja**.
-4. Klik **Terapkan**, lalu salin URL yang berakhiran `/exec` dan ID deployment ke tabel di atas.
-
-### 10. Buat halaman Blogger percobaan
+### 7. Buat halaman Blogger percobaan
 
 1. Di Blogger, buka **Halaman > Halaman baru** (bukan Postingan).
 2. Pindah ke **Tampilan HTML**, tempel isi `docs/embed-blogger.html`.
-3. Ganti `ID_DEPLOYMENT` di dua tempat dengan URL `/exec` dari langkah 9. Gambar pratinjau boleh menyusul.
-4. Simpan sebagai draf, lalu klik **Pratinjau**.
+3. Ganti `ID_DEPLOYMENT` di dua tempat dengan URL `/exec` dari langkah 6. Gambar pratinjau boleh menyusul.
+4. Simpan sebagai draf, lalu ketuk **Pratinjau**.
 
-### 11. Pengecekan "Selesai bila"
+### 8. Pengecekan "Selesai bila"
 
 - [ ] Halaman uji tampil di URL `/exec`.
 - [ ] Halaman uji tampil di halaman Blogger percobaan.
@@ -100,13 +89,25 @@ Pilih **Genio > Perbarui daftar gambar**. Lembar `Gambar` di Konten Website teri
 - [ ] **Cek ulang ke server** menampilkan "Berhasil diperbarui".
 - [ ] Ubah `form_pendaftaran` di lembar Pengaturan menjadi `TUTUP`, tunggu 20 detik, lalu muat ulang. Tombol berubah menjadi "Pendaftaran Ditutup". Kembalikan ke `OTOMATIS`.
 - [ ] Ada atau tidaknya banner Google di atas halaman dicatat di tabel atas. Banner ini dari Google untuk akun Gmail biasa dan tidak bisa dihapus lewat kode.
-- [ ] Menu **Genio** muncul di `Database Webinar`. (Di `Konten Website` memang tidak ada menu, lihat langkah 2.)
+- [ ] Fungsi panitia berjalan dari editor (`siapkanLembar`, `isiDataContoh`). Pengganti menu "Genio" di PRD 6.4.
+
+## Fungsi panitia (pengganti menu "Genio")
+
+Jalankan dari editor Apps Script: pilih nama fungsi, lalu **Jalankan**. Hasilnya tampil di log eksekusi.
+
+| Fungsi | Kegunaan |
+|---|---|
+| `siapkanLembar` | Membuat lembar dan kolom yang belum ada tanpa menghapus data |
+| `isiDataContoh` | Mengisi Konten Website dengan data contoh (lembar kosong saja) |
+| `perbaruiDaftarGambar` | Memindai folder Gambar Web dan mengisi lembar Gambar |
+| `hapusDataUji` | Menghapus semua baris `uji` = YA di lembar Pendaftar, langsung tanpa konfirmasi |
+| `bersihkanCache` | Memaksa halaman memakai data terbaru |
 
 ## Memperbarui web app (setiap ada perubahan kode)
 
 URL `/exec` harus tetap sama, jadi **perbarui deployment yang sama**, jangan membuat deployment baru.
 
-1. `clasp push`
+1. Tempel ulang file yang berubah (atau `clasp push` bila memakai laptop).
 2. Di editor Apps Script: **Terapkan > Kelola deployment**, klik ikon pensil pada deployment `Rilis 1`, pilih **Versi: Versi baru**, lalu **Terapkan**.
 
 Cara lewat terminal (cek dulu versi dengan `clasp --version`):

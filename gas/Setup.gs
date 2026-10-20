@@ -1,10 +1,10 @@
 /**
- * Menu panitia "Genio" di spreadsheet Database Webinar, pembuatan lembar, dan data contoh.
+ * Fungsi panitia (dijalankan dari editor Apps Script), pembuatan lembar, dan data contoh.
  *
- * KEPUTUSAN: proyek Apps Script terikat (bound) ke spreadsheet Database Webinar.
- * Menu spreadsheet hanya bisa dibuat oleh skrip yang terikat ke spreadsheet itu, dan
- * mengikat ke Konten Website akan membuka Script Properties (kata sandi admin) bagi tim
- * Marketing. Karena itu menu "Genio" hanya muncul di Database; perubahan di Konten Website
+ * KEPUTUSAN: proyek Apps Script berdiri sendiri (standalone), terpisah dari kedua spreadsheet,
+ * sesuai yang sudah dibuat pemilik. Akibatnya tidak ada menu "Genio" di spreadsheet: fungsi
+ * panitia dijalankan dari editor (pilih nama fungsi, lalu Jalankan) dan hasilnya tampil di log
+ * eksekusi. ID spreadsheet dan folder diisi di Script Properties. Perubahan di Konten Website
  * tampil sendiri paling lambat 5 menit, dan daftar gambar dipindai ulang otomatis.
  */
 
@@ -50,39 +50,52 @@ var PROFIL_AWAL_ = [
   ['program', '', 'Dipisah koma']
 ];
 
-function onOpen() {
-  SpreadsheetApp.getUi()
-    .createMenu('Genio')
-    .addItem('Siapkan lembar', 'siapkanLembar')
-    .addItem('Isi data contoh (Konten Website)', 'isiDataContoh')
-    .addItem('Perbarui daftar gambar', 'perbaruiDaftarGambar')
-    .addSeparator()
-    .addItem('Hapus data uji', 'hapusDataUji')
-    .addItem('Bersihkan cache', 'bersihkanCache')
-    .addToUi();
+/**
+ * Fungsi panitia bernama publik agar muncul di daftar Jalankan pada editor, sehingga bisa juga
+ * dipanggil lewat google.script.run. Pengunjung web app tidak punya akun aktif yang sama dengan
+ * pemilik skrip, jadi pemeriksaan ini menolak mereka.
+ */
+function penjagaPanitia_() {
+  var aktif = Session.getActiveUser().getEmail();
+  if (!aktif || aktif !== Session.getEffectiveUser().getEmail()) {
+    throw new Error('Fungsi ini hanya bisa dijalankan pemilik skrip dari editor Apps Script.');
+  }
 }
 
-/**
- * Fungsi menu bisa juga dipanggil lewat google.script.run karena namanya publik.
- * getUi() hanya berhasil saat dijalankan dari spreadsheet, jadi ini sekaligus penjaga.
- */
-function uiPanitia_() {
-  try {
-    return SpreadsheetApp.getUi();
-  } catch (err) {
-    throw new Error('Fungsi ini hanya bisa dijalankan dari menu Genio di spreadsheet.');
+function lapor_(pesan) {
+  console.log(pesan);
+  return pesan;
+}
+
+/** Memastikan Script Properties berisi ID yang bisa dibuka. */
+function periksaProperti_() {
+  var kurang = [];
+  var cek = [
+    ['DB_SHEET_ID', 'spreadsheet Database Webinar', function (id) { SpreadsheetApp.openById(id); }],
+    ['KONTEN_SHEET_ID', 'spreadsheet Konten Website', function (id) { SpreadsheetApp.openById(id); }],
+    ['GAMBAR_FOLDER_ID', 'folder Gambar Web', function (id) { DriveApp.getFolderById(id).getName(); }]
+  ];
+  cek.forEach(function (c) {
+    var id = ambilIdDariUrl_(properti_(c[0]));
+    try {
+      if (!id) throw new Error('kosong');
+      c[2](id);
+      if (id !== properti_(c[0])) PropertiesService.getScriptProperties().setProperty(c[0], id);
+    } catch (err) {
+      kurang.push(c[0] + ' (' + c[1] + ')');
+    }
+  });
+  if (kurang.length) {
+    throw new Error('Script Properties belum diisi atau tidak bisa dibuka: ' + kurang.join(', ') +
+      '. Isi di Setelan project > Properti skrip dengan ID atau URL-nya.');
   }
 }
 
 function siapkanLembar() {
-  var ui = uiPanitia_();
-  var props = PropertiesService.getScriptProperties();
-  var db = SpreadsheetApp.getActiveSpreadsheet();
-  props.setProperty('DB_SHEET_ID', db.getId());
+  penjagaPanitia_();
+  periksaProperti_();
 
-  if (!mintaProperti_(ui, 'KONTEN_SHEET_ID', 'Tempel URL spreadsheet "Konten Website":', function (id) { SpreadsheetApp.openById(id); })) return;
-  if (!mintaProperti_(ui, 'GAMBAR_FOLDER_ID', 'Tempel URL folder Drive "Gambar Web":', function (id) { DriveApp.getFolderById(id).getName(); })) return;
-
+  var db = bukaDb_();
   var pendaftar = pastikanLembar_(db, 'Pendaftar', KOLOM_PENDAFTAR_);
   formatTeks_(pendaftar, ['wa', 'wa_kunci', 'kelas']);
   var pengaturan = pastikanLembar_(db, 'Pengaturan', KOLOM_KUNCI_NILAI_);
@@ -107,26 +120,7 @@ function siapkanLembar() {
   hapusLembarKosongBawaan_(konten);
 
   bersihkanCache_();
-  ui.alert('Lembar siap', 'Lembar di Database Webinar dan Konten Website sudah dibuat atau dilengkapi. Data yang sudah ada tidak diubah.', ui.ButtonSet.OK);
-}
-
-/** Meminta ID lewat kotak isian bila properti belum ada. Mengembalikan false bila dibatalkan. */
-function mintaProperti_(ui, nama, pesan, uji) {
-  var props = PropertiesService.getScriptProperties();
-  if (props.getProperty(nama)) return true;
-  while (true) {
-    var jawab = ui.prompt('Pengaturan awal', pesan, ui.ButtonSet.OK_CANCEL);
-    if (jawab.getSelectedButton() !== ui.Button.OK) return false;
-    var id = ambilIdDariUrl_(jawab.getResponseText());
-    try {
-      if (!id) throw new Error('kosong');
-      uji(id);
-      props.setProperty(nama, id);
-      return true;
-    } catch (err) {
-      ui.alert('Alamat tidak bisa dibuka. Pastikan URL benar dan akun ini punya akses, lalu coba lagi.');
-    }
-  }
+  return lapor_('Lembar siap. Lembar di Database Webinar dan Konten Website sudah dibuat atau dilengkapi; data yang sudah ada tidak diubah.');
 }
 
 /** Membuat lembar bila belum ada dan menambahkan kolom yang belum ada di ujung, tanpa menghapus data. */
@@ -191,14 +185,14 @@ function hapusLembarKosongBawaan_(ss) {
 }
 
 function isiDataContoh() {
-  var ui = uiPanitia_();
+  penjagaPanitia_();
   var konten = bukaKonten_();
   var terisi = [];
   var dilewati = [];
 
   Object.keys(DATA_CONTOH_).forEach(function (nama) {
     var lembar = konten.getSheetByName(nama);
-    if (!lembar) throw new Error('Lembar ' + nama + ' belum ada. Jalankan Siapkan lembar dulu.');
+    if (!lembar) throw new Error('Lembar ' + nama + ' belum ada. Jalankan siapkanLembar dulu.');
     if (lembar.getLastRow() > 1) {
       dilewati.push(nama);
       return;
@@ -219,12 +213,10 @@ function isiDataContoh() {
   if (tambahKunci_(profil, PROFIL_CONTOH_, true) > 0) aturKunci_(profil, 'data_contoh', 'YA');
 
   bersihkanCache_();
-  ui.alert('Data contoh',
-    'Diisi: ' + (terisi.join(', ') || '-') +
-    '\nDilewati karena sudah berisi: ' + (dilewati.join(', ') || '-') +
-    '\nProfil dan Pengaturan_Konten: hanya kunci yang masih kosong yang diisi.' +
-    '\n\ntampilkan_data_contoh sekarang YA. Ubah menjadi TIDAK sebelum tayang.',
-    ui.ButtonSet.OK);
+  return lapor_('Data contoh. Diisi: ' + (terisi.join(', ') || '-') +
+    '. Dilewati karena sudah berisi: ' + (dilewati.join(', ') || '-') +
+    '. Profil dan Pengaturan_Konten: hanya kunci yang masih kosong yang diisi.' +
+    ' tampilkan_data_contoh sekarang YA; ubah menjadi TIDAK sebelum tayang.');
 }
 
 function aturKunci_(lembar, kunci, nilai) {
@@ -238,23 +230,20 @@ function aturKunci_(lembar, kunci, nilai) {
 }
 
 function perbaruiDaftarGambar() {
-  var ui = uiPanitia_();
+  penjagaPanitia_();
   var peta = perbaruiDaftarGambar_(bukaKonten_());
   bersihkanCache_();
-  ui.alert('Daftar gambar diperbarui: ' + Object.keys(peta).length + ' gambar ditemukan di folder Gambar Web.');
+  return lapor_('Daftar gambar diperbarui: ' + Object.keys(peta).length + ' gambar ditemukan di folder Gambar Web.');
 }
 
 /** Menghapus baris uji = YA. Mulai Fase 6 dan 7 ikut lembar Presensi dan Pertanyaan. */
 function hapusDataUji() {
-  var ui = uiPanitia_();
-  var lanjut = ui.alert('Hapus data uji?', 'Semua baris dengan uji = YA di lembar Pendaftar akan dihapus.', ui.ButtonSet.YES_NO);
-  if (lanjut !== ui.Button.YES) return;
-
+  penjagaPanitia_();
   var jumlah = denganKunci_(function () {
     return hapusBarisUji_(bukaDb_().getSheetByName('Pendaftar'));
   });
   bersihkanCache_();
-  ui.alert(jumlah + ' baris data uji dihapus.');
+  return lapor_(jumlah + ' baris data uji dihapus dari lembar Pendaftar.');
 }
 
 function hapusBarisUji_(lembar) {
@@ -274,7 +263,7 @@ function hapusBarisUji_(lembar) {
 }
 
 function bersihkanCache() {
-  var ui = uiPanitia_();
+  penjagaPanitia_();
   bersihkanCache_();
-  ui.alert('Cache dibersihkan. Halaman pengunjung memakai data terbaru saat dimuat ulang.');
+  return lapor_('Cache dibersihkan. Halaman pengunjung memakai data terbaru saat dimuat ulang.');
 }

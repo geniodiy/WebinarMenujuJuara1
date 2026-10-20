@@ -20,7 +20,7 @@ npm run pratinjau   # membuat pratinjau.html dari Index.html dengan data contoh
 
 | Fase | Isi | Status |
 |---|---|---|
-| 1 | Fondasi dan uji embed | Kode selesai, menunggu langkah manual di `docs/catatan-deploy.md` |
+| 1 | Fondasi dan uji embed | Kode selesai (mode standalone), menunggu langkah manual di `docs/catatan-deploy.md` |
 | 2 | Form pendaftaran | Belum |
 | 3 | Halaman utama Rilis 1 | Belum |
 | 4 | Panel admin pendaftaran | Belum |

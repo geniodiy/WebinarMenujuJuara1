@@ -15,8 +15,9 @@ Website webinar #MenujuJuara Eps. 1: Roadmap OSN 2027 (Genio Institute). Acuan u
 
 ## Catatan teknis (keputusan yang sudah diambil)
 
-- Proyek Apps Script **terikat ke spreadsheet Database Webinar**, sehingga menu "Genio" hanya ada di sana (alasan di `gas/Setup.gs` dan `docs/catatan-deploy.md`). Konten Website dibaca lewat `KONTEN_SHEET_ID`.
-- Fungsi menu bernama publik, jadi bisa dipanggil `google.script.run`. Setiap fungsi menu wajib memanggil `uiPanitia_()` di baris pertama sebagai penjaga.
+- Proyek Apps Script **berdiri sendiri (standalone)**, terpisah dari kedua spreadsheet. Tidak ada menu "Genio" di spreadsheet; fungsi panitia (PRD 6.4) dijalankan pemilik dari editor Apps Script dan hasilnya tampil di log eksekusi. ID spreadsheet dan folder ada di Script Properties (`DB_SHEET_ID`, `KONTEN_SHEET_ID`, `GAMBAR_FOLDER_ID`).
+- Fungsi panitia bernama publik, jadi bisa dipanggil `google.script.run`. Setiap fungsi panitia wajib memanggil `penjagaPanitia_()` di baris pertama.
+- Pemilik mengirim kode dengan salin-tempel dari iPad (tanpa clasp). Jaga jumlah file di `gas/` tetap sedikit dan sebutkan file yang berubah di setiap laporan.
 - Semua fungsi publik untuk browser mengembalikan `{ ok, data }` atau `{ ok: false, error: { code, message } }` lewat `jalankanAman_`.
 - Data contoh Konten Website ada di `gas/DataContoh.gs` (dipisah dari `Setup.gs` agar mudah dibaca).
 - Fungsi murni (tanpa layanan Apps Script) diuji dengan `npm test`. Pratinjau halaman tanpa Apps Script: `npm run pratinjau`.
