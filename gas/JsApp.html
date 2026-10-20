@@ -148,6 +148,18 @@
       if (peng('judul_acara')) $('judul-halaman').textContent = 'Webinar ' + peng('judul_acara');
     }
 
+    /** Mengecilkan tanggal pelaksanaan sampai muat satu baris di samping label Gratis. */
+    function pasTanggal() {
+      var t = $('tanggal-teks');
+      var ruang = t.parentNode.clientWidth;
+      t.style.fontSize = '';
+      var lebar = t.scrollWidth;
+      if (lebar > ruang && ruang > 0) {
+        var ukuran = parseFloat(getComputedStyle(t).fontSize) * ruang / lebar;
+        t.style.fontSize = Math.max(10, Math.floor(ukuran * 10) / 10) + 'px';
+      }
+    }
+
     function teksHitungMundur() {
       if (!config || config.fase !== 'daftar' || config.sisa_hari == null) return null;
       if (config.sisa_hari <= 0) return { awal: 'Pendaftaran ditutup ', tebal: 'hari ini', akhir: ' pukul ' + jamWib(config.pendaftaran_tutup) };
@@ -424,6 +436,9 @@
     }
 
     renderSemua();
+    pasTanggal();
+    window.addEventListener('resize', pasTanggal);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(pasTanggal);
     siapkanLapisan('lapisan-poster');
     siapkanLapisan('lapisan-detail');
     siapkanLapisan('lapisan-admin');

@@ -70,10 +70,10 @@
   .tagline { font-size: 15px; }
   .strip-tanggal {
     position: relative; overflow: hidden;
-    display: flex; flex-direction: column; gap: 6px;
-    padding: 14px 16px 16px 18px; border-radius: var(--radius); background: var(--gradien); color: #fff;
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    padding: 14px 16px 14px 18px; border-radius: var(--radius); background: var(--gradien); color: #fff;
   }
-  .strip-atas { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .strip-teks { flex: 1; min-width: 0; }
   /* Ikon kalender putih samar di latar, seperti strip Pelaksanaan pada poster. */
   .strip-tanggal::after {
     content: ""; position: absolute; right: 64px; top: 50%; width: 120px; height: 120px; transform: translateY(-46%) rotate(-8deg);
@@ -82,8 +82,9 @@
   }
   .strip-tanggal > * { position: relative; z-index: 1; }
   .strip-label { display: block; font-size: 13px; font-weight: 500; }
-  .strip-tanggal strong { display: block; font-size: clamp(15px, 4.7vw, 22px); font-weight: 700; line-height: 1.25; white-space: nowrap; }
-  .lencana-gratis { flex-shrink: 0; padding: 4px 12px; border-radius: 10px; background: linear-gradient(90deg, var(--coral), var(--gold)); color: #fff; font-size: 14px; font-weight: 700; letter-spacing: .3px; text-shadow: 0 1px 2px rgba(150, 60, 20, .35); }
+  /* Tanggal selalu satu baris di samping label Gratis; ukurannya mengecil di layar sempit. */
+  .strip-tanggal strong { display: block; font-size: clamp(14px, 4.6vw, 22px); font-weight: 700; line-height: 1.3; white-space: nowrap; }
+  .lencana-gratis { flex-shrink: 0; padding: 6px 14px; border-radius: 10px; background: linear-gradient(90deg, var(--coral), var(--gold)); color: #fff; font-size: 15px; font-weight: 700; letter-spacing: .3px; text-shadow: 0 1px 2px rgba(150, 60, 20, .35); }
   .info-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
   @media (max-width: 419px) { .info-grid { grid-template-columns: minmax(0, 1fr); } }
   /* Kartu Pukul dan Live di, mengikuti gaya poster: ikon bulat penuh dan garis tepi gelap tipis. */
