@@ -372,7 +372,7 @@
         var prestasi = (n.prestasi_binaan || [])[0];
         if (prestasi) teks.appendChild(sorotPrestasi(prestasi));
         else if (n.ringkasan) teks.appendChild(el('p', 'narasumber-ringkasan', n.ringkasan));
-        kartu.appendChild(teks);
+        if (teks.children.length) kartu.appendChild(teks);
         wadah.appendChild(kartu);
       });
     }
