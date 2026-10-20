@@ -18,6 +18,7 @@
 
     var S = null;
     var akar = null;
+    var latarFd = null;
     var pemicu = null;
     var tundaSimpan = null;
 
@@ -951,6 +952,11 @@
       akar.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') tutup();
       });
+      // Latar redup di belakang popup: halaman tetap terlihat, ketukan di luar popup menutup form.
+      latarFd = el('div', 'fd-latar');
+      latarFd.hidden = true;
+      latarFd.addEventListener('click', tutup);
+      document.body.appendChild(latarFd);
       document.body.appendChild(akar);
     }
 
@@ -965,6 +971,7 @@
       }
       S.mode = c && c.fase === 'daftar' ? 'form' : 'tertutup';
       akar.hidden = false;
+      latarFd.hidden = false;
       document.documentElement.classList.add('fd-terbuka');
       renderUlang();
       fokusJudul();
@@ -973,6 +980,7 @@
     function tutup() {
       if (!akar) return;
       akar.hidden = true;
+      latarFd.hidden = true;
       document.documentElement.classList.remove('fd-terbuka');
       if (S && S.mode === 'berhasil') S = null;
       if (pemicu && pemicu.focus) pemicu.focus();
