@@ -26,6 +26,8 @@ Hanya `Gambar Web` yang boleh dibuka siapa saja. Yang lain dibatasi.
 
 Web app tetap bisa membaca kedua spreadsheet walau dibatasi, karena berjalan dengan akun pemilik.
 
+> **Status 20 Oktober 2026:** atas keputusan pemilik, folder induk dan seluruh isinya (termasuk Database Webinar) masih "Siapa saja yang memiliki link: Pelihat". Selama berisi data uji, risikonya kecil. **Sebelum Rilis 1 (data peserta asli mulai masuk), Database Webinar wajib diubah menjadi Dibatasi** (lihat checklist tayang PRD Bagian 20).
+
 ### 2. Tempel kode ke proyek Apps Script
 
 1. Buka proyek Apps Script. Di iPad, ketuk **aA** di bilah alamat Safari, lalu **Minta Situs Web Desktop**.

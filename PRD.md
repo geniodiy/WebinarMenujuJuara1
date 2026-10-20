@@ -806,5 +806,5 @@ Jalankan sebelum Rilis 1 dan ulangi sebelum Rilis 3.
 - [ ] Halaman Blogger dipublikasikan; s.id/geniojuara1 diarahkan ke halaman itu.
 - [ ] Link dikirim ke chat WhatsApp sendiri dan pratinjaunya tampil dengan gambar.
 - [ ] Deployment yang dipakai iframe adalah versi terbaru (URL `/exec` sama seperti di `docs/catatan-deploy.md`).
-- [ ] Akses spreadsheet dan folder sudah dicek: hanya Gambar Web yang dibagikan lewat link.
+- [ ] Akses spreadsheet dan folder sudah dicek: hanya Gambar Web yang dibagikan lewat link. Database Webinar **wajib** Dibatasi (per 20 Oktober masih Pelihat lewat link).
 - [ ] Panitia sudah membaca `docs/panduan-panitia.md`.
