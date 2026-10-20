@@ -348,9 +348,9 @@
 
     function renderKaki() {
       var wa = peng('narahubung_wa');
-      var a = $('tautan-narahubung');
-      a.href = tautanWa(wa);
-      a.textContent = formatWa(wa) + ' (' + peng('narahubung_nama') + ')';
+      $('tautan-narahubung').href = tautanWa(wa);
+      $('narahubung-nomor').textContent = formatWa(wa);
+      $('narahubung-nama').textContent = '(' + peng('narahubung_nama') + ')';
       ['instagram_1', 'instagram_2'].forEach(function (k, i) {
         var akun = peng(k);
         var t = $('tautan-ig-' + (i + 1));
@@ -466,7 +466,7 @@
 
     /* ---------- Animasi muncul saat digulir ---------- */
 
-    var SASARAN_MUNCUL = '.strip-tanggal, .info-kartu, .hitung-mundur, .bagian > h2, .agenda li, .narasumber, .kaki > *';
+    var SASARAN_MUNCUL = '.strip-tanggal, .info-kartu, .hitung-mundur, .narahubung, .bagian > h2, .agenda li, .narasumber, .kaki';
 
     /** Hanya elemen yang awalnya di luar layar yang dianimasikan; yang sudah terlihat dibiarkan. */
     function siapkanMunculGulir() {

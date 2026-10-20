@@ -84,12 +84,20 @@
   .strip-label { display: block; font-size: 13px; font-weight: 500; }
   /* Tanggal selalu satu baris di samping label Gratis; ukurannya mengecil di layar sempit. */
   .strip-tanggal strong { display: block; font-size: clamp(14px, 4.6vw, 22px); font-weight: 700; line-height: 1.3; white-space: nowrap; }
-  /* Gaya oranye ke kuning dipakai label Gratis dan tombol Daftar: muncul membesar, lalu berdetak. */
+  /* Gaya oranye ke kuning dipakai label Gratis dan tombol Daftar. */
   .lencana-gratis, .tombol-detak { background: linear-gradient(90deg, var(--coral), var(--gold)); color: #fff; font-weight: 700; letter-spacing: .3px; text-shadow: 0 1px 2px rgba(150, 60, 20, .35); }
-  .lencana-gratis { flex-shrink: 0; padding: 6px 14px; border-radius: 10px; font-size: 15px; animation: zoomMasuk .6s cubic-bezier(.3, 1.6, .5, 1) both, detak 1.8s ease-in-out .8s infinite; }
-  .tombol-detak { border: 0; animation: zoomMasuk .6s cubic-bezier(.3, 1.6, .5, 1) both, detak 1.8s ease-in-out .8s infinite; }
+  /* Label Gratis: muncul membesar, lalu kilau putih menyapu sesekali. */
+  .lencana-gratis { position: relative; overflow: hidden; flex-shrink: 0; padding: 6px 14px; border-radius: 10px; font-size: 15px; animation: zoomMasuk .6s cubic-bezier(.3, 1.6, .5, 1) both; }
+  .lencana-gratis::after {
+    content: ""; position: absolute; top: 0; bottom: 0; left: -60%; width: 45%;
+    background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .55), transparent);
+    transform: skewX(-18deg); animation: kilau 3.5s ease-in-out 1s infinite;
+  }
+  @keyframes kilau { 0% { left: -60%; } 30%, 100% { left: 130%; } }
+  /* Tombol Daftar: muncul membesar, lalu berdetak halus dan jarang. */
+  .bilah .tombol.tombol-detak { border: 0; background-clip: padding-box; animation: zoomMasuk .6s cubic-bezier(.3, 1.6, .5, 1) both, detak 3.2s ease-in-out 1s infinite; }
   @keyframes zoomMasuk { 0% { transform: scale(.4); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-  @keyframes detak { 0%, 100% { transform: scale(1); } 14% { transform: scale(1.08); } 28% { transform: scale(1); } 42% { transform: scale(1.05); } 56% { transform: scale(1); } }
+  @keyframes detak { 0%, 24%, 100% { transform: scale(1); } 8% { transform: scale(1.035); } 16% { transform: scale(1.015); } }
   .info-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
   @media (max-width: 419px) { .info-grid { grid-template-columns: minmax(0, 1fr); } }
   /* Kartu Pukul dan Live di, mengikuti gaya poster: ikon bulat penuh dan garis tepi gelap tipis. */
@@ -100,6 +108,8 @@
   .info-ikon-jam { background: var(--coral); }
   .info-ikon-zoom { background: #2D8CFF; }
   /* Hitung mundur hari, jam, menit, detik. */
+  .bagian-penutup { display: flex; flex-direction: column; gap: 16px; align-items: center; }
+  .bagian-penutup .hitung-mundur { align-self: stretch; }
   .hitung-mundur { padding: 14px 12px 12px; border-radius: var(--radius); background: var(--item); color: #fff; text-align: center; display: flex; flex-direction: column; gap: 10px; }
   .hm-judul { font-size: 14px; font-weight: 500; color: #fff; }
   .hm-kotak-daftar { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
@@ -159,19 +169,23 @@
 
   .kotak-galat { margin-top: 24px; padding: 16px; border-radius: 14px; background: #FDECEA; border: 1px solid #E6A39C; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
 
-  /* Footer bergradien seperti bagian bawah poster, di dalam kolom halaman. */
+  /* Narahubung seperti poster: pil bergaris dengan label bergradien cyan, ikon WhatsApp, nama tebal. */
+  .narahubung { display: inline-flex; align-items: stretch; max-width: 100%; border: 1.5px solid rgba(84, 86, 59, .6); border-radius: 999px; background: #fff; font-size: clamp(11.5px, 3.45vw, 14px); }
+  .narahubung-label { display: flex; align-items: center; padding: 8px clamp(10px, 3vw, 16px); margin: -1.5px 0 -1.5px -1.5px; border-radius: 999px; background: var(--gradien); color: #fff; font-weight: 700; }
+  .narahubung-tautan { display: flex; align-items: center; gap: 5px; padding: 6px clamp(10px, 3vw, 16px) 6px 8px; min-height: 44px; color: var(--item); text-decoration: none; white-space: nowrap; }
+  .narahubung-tautan b { font-weight: 700; }
+  .narahubung-tautan svg { width: 1.35em; height: 1.35em; flex-shrink: 0; }
+
+  /* Footer ramping bergradien: ikon Instagram dan dua akun. */
   .kaki {
-    margin-top: 40px; border-radius: 0 0 23px 23px;
-    background: linear-gradient(160deg, var(--cyan), var(--teal)); color: #fff;
-    display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 14px 28px;
-    padding: 28px 16px; text-align: center;
+    margin-top: 28px; border-radius: 0 0 23px 23px;
+    background: linear-gradient(90deg, var(--cyan), var(--teal)); color: #fff;
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 4px 18px;
+    padding: 10px 16px;
   }
-  .narahubung { display: inline-flex; align-items: center; gap: 8px; padding: 5px; border-radius: 999px; background: #fff; font-size: 13px; }
-  .narahubung span { padding: 6px 12px; border-radius: 999px; background: var(--indigo); color: #fff; font-weight: 600; }
-  .narahubung a { padding-right: 10px; font-weight: 600; text-decoration: none; white-space: nowrap; }
-  .kaki-ig { display: flex; gap: 20px; font-size: 14px; font-weight: 600; }
-  .kaki-ig a { color: #fff; text-decoration: none; min-height: 44px; display: inline-flex; align-items: center; }
-  .hak-cipta { width: 100%; font-weight: 500; font-size: 13px; }
+  .ikon-ig { flex-shrink: 0; margin-right: -8px; }
+  .kaki a { color: #fff; text-decoration: none; font-size: 14px; font-weight: 600; min-height: 40px; display: inline-flex; align-items: center; }
+  .hak-cipta { margin: 12px 0 0; text-align: center; font-size: 12px; color: var(--item); }
   .halaman::after { content: ""; display: block; height: calc(var(--tinggi-bilah) + 12px + env(safe-area-inset-bottom)); }
 
   /* Bilah aksi melayang selebar kolom halaman. */
