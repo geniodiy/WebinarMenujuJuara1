@@ -304,15 +304,16 @@
 
   @media (min-width: 640px) {
     /* Desktop: foto di kiri, prestasi di kanan dengan isi bertumpuk ke bawah. */
-    /* Kolom foto tetap 300px; prestasi selebar isinya dan dirapatkan ke foto. */
-    .narasumber { --lebar-figur: 300px; width: auto; max-width: none; display: grid; grid-template-columns: var(--lebar-figur) auto; justify-content: center; column-gap: 14px; }
+    /* Kolom foto tetap 300px; prestasi selebar isinya, dirapatkan ke foto, dan rata kiri sejajar judul bagian. */
+    .narasumber { --lebar-figur: 300px; width: auto; max-width: none; display: grid; grid-template-columns: var(--lebar-figur) auto; justify-content: start; column-gap: 4px; }
     .narasumber-figur .narasumber-papan h3 { font-size: 19px; }
     .narasumber-figur .narasumber-papan .jabatan { font-size: 13px; }
     /* Tepi atas prestasi sejajar tepi atas kotak biru: 20% dari tinggi bingkai foto (rasio 449:520). */
     .narasumber-teks { margin: calc(var(--lebar-figur) * 104 / 449) 0 0; min-width: 210px; }
     .prestasi-sorot { flex: 1; justify-content: center; gap: 10px; padding: 16px 18px; }
     .prestasi-ikon { width: 64px; height: 72px; }
-    .prestasi-lencana { flex-direction: column; align-items: center; }
+    /* Lencana bertumpuk dibuat sama lebar supaya rapi. */
+    .prestasi-lencana { flex-direction: column; align-items: stretch; text-align: center; }
     .lencana-sorot { font-size: 13px; padding: 4px 14px; }
     .info-kartu > div { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 6px; }
     .info-label { font-size: 13px; }
