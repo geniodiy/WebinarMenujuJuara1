@@ -360,6 +360,11 @@
     animation: naikBawah .35s cubic-bezier(.2, .8, .3, 1);
   }
   .fd[hidden], .fd-latar[hidden] { display: none; }
+  /* Mode mengetik di ponsel: popup direntangkan dari atas agar isian aktif tetap di atas keyboard. */
+  .fd.fd-mengetik { top: 12px; max-height: none; }
+  .fd.fd-mengetik::before { display: none; }
+  /* Ruang ekstra di bawah agar isian paling akhir pun bisa digulir ke atas. */
+  .fd.fd-mengetik .fd-isi-dalam { padding-bottom: 60vh; }
   /* Pegangan kecil di atas sebagai tanda popup. */
   .fd::before { content: ""; display: block; flex-shrink: 0; width: 40px; height: 4px; margin: 8px auto 0; border-radius: 2px; background: #C9D3DC; }
   @keyframes naikBawah { from { transform: translateY(100%); } to { transform: none; } }

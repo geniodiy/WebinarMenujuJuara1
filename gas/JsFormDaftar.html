@@ -952,12 +952,47 @@
       akar.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') tutup();
       });
+      siapkanModeKetik(isi);
       // Latar redup di belakang popup: halaman tetap terlihat, ketukan di luar popup menutup form.
       latarFd = el('div', 'fd-latar');
       latarFd.hidden = true;
       latarFd.addEventListener('click', tutup);
       document.body.appendChild(latarFd);
       document.body.appendChild(akar);
+    }
+
+    /* Saat mengetik di ponsel, keyboard menutup bagian bawah layar. Halaman berjalan di dalam iframe Apps Script,
+       sehingga tinggi keyboard tidak bisa dibaca dengan andal. Jalan keluarnya: popup direntangkan dari atas layar
+       dan isian yang disentuh digulir ke bagian atas popup, yang selalu berada di atas keyboard. */
+    var ponsel = window.matchMedia ? window.matchMedia('(pointer: coarse)') : null;
+    var jedaKetik = null;
+
+    function bisaDiketik(t) {
+      if (!t || !t.tagName) return false;
+      if (t.tagName === 'TEXTAREA' || t.tagName === 'SELECT') return true;
+      return t.tagName === 'INPUT' && !/^(radio|checkbox|button|submit|hidden)$/i.test(t.type);
+    }
+
+    function gulirKeAtas(isi, t) {
+      var sasaran = t.closest('.fd-isian') || t;
+      isi.scrollTop += sasaran.getBoundingClientRect().top - isi.getBoundingClientRect().top - 12;
+    }
+
+    function siapkanModeKetik(isi) {
+      akar.addEventListener('focusin', function (e) {
+        if (!ponsel || !ponsel.matches || !bisaDiketik(e.target)) return;
+        clearTimeout(jedaKetik);
+        akar.classList.add('fd-mengetik');
+        // Gulir ulang setelah animasi keyboard selesai, karena sebagian browser ikut menggeser halaman.
+        window.requestAnimationFrame(function () { gulirKeAtas(isi, e.target); });
+        setTimeout(function () { if (document.activeElement === e.target) gulirKeAtas(isi, e.target); }, 350);
+      });
+      akar.addEventListener('focusout', function () {
+        // Jeda agar ketukan pada tombol (misalnya Lanjut) selesai sebelum ukuran popup kembali.
+        jedaKetik = setTimeout(function () {
+          if (!bisaDiketik(document.activeElement)) akar.classList.remove('fd-mengetik');
+        }, 300);
+      });
     }
 
     function buka() {
