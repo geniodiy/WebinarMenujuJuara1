@@ -3,6 +3,7 @@
 <head>
   <base target="_top">
   <meta charset="utf-8">
+  <?!= kepalaPoster ?>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -10,19 +11,19 @@
 </head>
 <body>
   <div class="halaman">
-    <div class="kertas">
-      <header class="kepala" id="kepala">
-        <div class="kepala-isi">
-          <div class="kepala-logo"><?!= include('Logo') ?></div>
-          <div class="lencana">
-            <!-- Ikon centang juga pintu masuk panel admin yang sengaja tidak ditandai. -->
-            <button type="button" class="tombol-lencana" id="tombol-admin" aria-label="Panel admin">
-              <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1.5l2.4 1.8 3-.2 1 2.8 2.6 1.6-.8 2.9 1.2 2.7-2.3 1.9-.4 3-2.9.7-1.7 2.5-2.8-1-2.8 1-1.7-2.5-2.9-.7-.4-3-2.3-1.9 1.2-2.7-.8-2.9 2.6-1.6 1-2.8 3 .2z" fill="#3B8EEA"></path><path d="M7.5 12.3l3 3 6-6.3" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-            </button>
-            <span>Terbuka untuk Siswa SD, SMP,<br>Guru &amp; Orang tua</span>
-          </div>
+    <header class="kepala" id="kepala">
+      <div class="kepala-isi">
+        <div class="kepala-logo"><?!= include('Logo') ?></div>
+        <div class="lencana">
+          <!-- Ikon centang juga pintu masuk panel admin yang sengaja tidak ditandai. -->
+          <button type="button" class="tombol-lencana" id="tombol-admin" aria-label="Panel admin">
+            <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1.5l2.4 1.8 3-.2 1 2.8 2.6 1.6-.8 2.9 1.2 2.7-2.3 1.9-.4 3-2.9.7-1.7 2.5-2.8-1-2.8 1-1.7-2.5-2.9-.7-.4-3-2.3-1.9 1.2-2.7-.8-2.9 2.6-1.6 1-2.8 3 .2z" fill="#3B8EEA"></path><path d="M7.5 12.3l3 3 6-6.3" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          </button>
+          <span>Terbuka untuk Siswa SD, SMP,<br>Guru &amp; Orang tua</span>
         </div>
-      </header>
+      </div>
+    </header>
+    <div class="kertas">
 
       <main class="isi" id="utama">
         <p id="pita-contoh" class="pita" hidden>Mode pratinjau: sebagian data adalah contoh.</p>
@@ -30,14 +31,14 @@
         <section class="pembuka" aria-label="Info acara">
           <h1 class="judul-tersembunyi" id="judul-halaman">Webinar #MenujuJuara Eps. 1: Roadmap OSN 2027</h1>
 
-          <div class="pembuka-poster" id="wadah-poster" hidden>
+          <div class="pembuka-poster" id="wadah-poster" <?!= wadahPoster ?>>
             <button type="button" class="tombol-poster" id="tombol-poster" aria-label="Perbesar poster">
-              <img id="poster" alt="Poster webinar #MenujuJuara Eps. 1: Roadmap OSN 2027" width="1080" height="1350">
+              <img id="poster" alt="Poster webinar #MenujuJuara Eps. 1: Roadmap OSN 2027" width="1080" height="1350" fetchpriority="high" decoding="async" <?!= atributPoster ?>>
             </button>
           </div>
 
           <!-- Dipakai hanya bila poster belum diunggah ke folder Gambar Web. -->
-          <div class="judul-cadangan" id="judul-cadangan" hidden>
+          <div class="judul-cadangan" id="judul-cadangan" <?!= judulCadangan ?>>
             <p class="sorot-label"><span id="label-acara">#MenujuJuara</span><b id="label-eps">Eps. 1</b></p>
             <p class="judul-besar"><span id="judul-awal">Roadmap</span> <span class="sorot-kotak" id="judul-sorot">OSN 2027</span></p>
             <p class="tagline" id="tagline">Pertajam <b>Strategi</b>, Kuatkan <b>Sinergi</b>, Genggam <b>Prestasi</b></p>

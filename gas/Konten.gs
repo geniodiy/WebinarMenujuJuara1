@@ -6,6 +6,8 @@ var KUNCI_CACHE_KONTEN_ = 'konten';
 var DETIK_CACHE_KONTEN_ = 300;
 var KOLOM_BERSAMA_ = ['urutan', 'tampil', 'data_contoh'];
 var URL_THUMBNAIL_ = 'https://drive.google.com/thumbnail?id=';
+// Alamat langsung tanpa pengalihan, lebih cepat dari thumbnail. Browser menambahkan =w<lebar>.
+var URL_GAMBAR_ = 'https://lh3.googleusercontent.com/d/';
 
 /** Lembar daftar: nama lembar ke kolom khusus (setelah kolom bersama). */
 var LEMBAR_DAFTAR_KONTEN_ = {
@@ -88,7 +90,7 @@ function perbaruiDaftarGambar_(ss) {
 
 function urlGambar_(peta, namaFile) {
   var id = namaFile ? peta[String(namaFile).toLowerCase()] : '';
-  return id ? URL_THUMBNAIL_ + id : '';
+  return id ? URL_GAMBAR_ + id : '';
 }
 
 function bangunKonten_() {

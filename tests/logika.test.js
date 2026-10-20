@@ -110,3 +110,18 @@ test('tidak ada link grup WA atau kunci rahasia di status publik', () => {
   assert.ok(!teks.includes('rahasia'));
   assert.ok(!teks.includes('kuota'));
 });
+
+test('atribut poster ditanam di HTML hanya untuk URL https yang aman', () => {
+  const c = muatGas(['Code.gs']);
+  const a = c.atributPoster_('https://lh3.googleusercontent.com/d/abc_DEF-123');
+  assert.ok(a.atribut.includes('src="https://lh3.googleusercontent.com/d/abc_DEF-123=w1080"'));
+  assert.ok(a.atribut.includes('=w600 600w'));
+  assert.ok(a.kepala.startsWith('<link rel="preload" as="image"'));
+  assert.strictEqual(a.wadah, '');
+  assert.strictEqual(a.cadangan, 'hidden');
+  for (const buruk of ['', 'http://x.y/z', 'https://x.y/"onerror="alert(1)', 'javascript:alert(1)']) {
+    const b = c.atributPoster_(buruk);
+    assert.strictEqual(b.atribut, '');
+    assert.strictEqual(b.wadah, 'hidden');
+  }
+});

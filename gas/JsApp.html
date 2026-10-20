@@ -44,7 +44,31 @@
     }
 
     function setTeks(id, teks) {
-      if (teks) $(id).textContent = teks;
+      var e = $(id);
+      if (e && teks) e.textContent = teks;
+    }
+
+    /* Gambar dari Drive: alamat lh3 (cepat) dengan thumbnail Drive sebagai cadangan. */
+    function urlGambar(dasar, lebar) {
+      return dasar + '=w' + lebar;
+    }
+
+    function pasangCadangan(img, dasar, lebar) {
+      var id = String(dasar).split('/d/')[1];
+      function ganti() {
+        img.onerror = null;
+        img.removeAttribute('srcset');
+        if (id) img.src = 'https://drive.google.com/thumbnail?id=' + id + '&sz=w' + lebar;
+      }
+      img.onerror = ganti;
+      if (img.complete && img.getAttribute('src') && img.naturalWidth === 0) ganti();
+    }
+
+    function aturGambar(img, dasar, lebarList, sizes) {
+      img.src = urlGambar(dasar, lebarList[lebarList.length - 1]);
+      img.srcset = lebarList.map(function (w) { return urlGambar(dasar, w) + ' ' + w + 'w'; }).join(', ');
+      img.sizes = sizes;
+      pasangCadangan(img, dasar, lebarList[lebarList.length - 1]);
     }
 
     function formatWa(nomor) {
@@ -115,7 +139,10 @@
       setTeks('jam-teks', peng('jam_teks'));
       setTeks('media-teks', peng('media_teks'));
       var adaPoster = !!(konten && konten.poster_url);
-      if (adaPoster) $('poster').src = konten.poster_url + '&sz=w1080';
+      var poster = $('poster');
+      // Biasanya src sudah ditanam server di HTML; diatur di sini hanya setelah Muat ulang.
+      if (adaPoster && !poster.getAttribute('src')) aturGambar(poster, konten.poster_url, [600, 1080], '(max-width: 760px) 100vw, 736px');
+      else if (adaPoster) pasangCadangan(poster, konten.poster_url, 1080);
       $('wadah-poster').hidden = !adaPoster;
       $('judul-cadangan').hidden = adaPoster;
       if (peng('judul_acara')) $('judul-halaman').textContent = 'Webinar ' + peng('judul_acara');
@@ -204,9 +231,12 @@
         var kartu = el('article', 'narasumber');
         if (n.foto_url) {
           var img = el('img', 'narasumber-foto');
-          img.src = n.foto_url + '&sz=w800';
           img.alt = 'Foto ' + n.nama_lengkap;
           img.loading = 'lazy';
+          img.decoding = 'async';
+          img.width = 800;
+          img.height = 1000;
+          aturGambar(img, n.foto_url, [400, 800], '(max-width: 640px) 100vw, 360px');
           kartu.appendChild(img);
         }
         var teks = el('div', 'narasumber-teks');
@@ -357,26 +387,15 @@
       google.script.run.withSuccessHandler(function (r) { if (r && r.ok) konten = r.data; selesai(); }).withFailureHandler(selesai).getContent();
     }
 
-    function siapkanKepala() {
-      var kepala = $('kepala');
-      var tipis = false;
-      window.addEventListener('scroll', function () {
-        var harus = window.scrollY > 24;
-        if (harus !== tipis) {
-          tipis = harus;
-          kepala.classList.toggle('menipis', tipis);
-        }
-      }, { passive: true });
-    }
-
     renderSemua();
-    siapkanKepala();
     siapkanLapisan('lapisan-poster');
     siapkanLapisan('lapisan-detail');
     siapkanLapisan('lapisan-admin');
     siapkanAdmin();
     $('tombol-poster').addEventListener('click', function () {
-      $('poster-besar').src = konten.poster_url + '&sz=w1600';
+      var besar = $('poster-besar');
+      besar.src = urlGambar(konten.poster_url, 1600);
+      pasangCadangan(besar, konten.poster_url, 1600);
       bukaLapisan('lapisan-poster', $('tombol-poster'));
     });
     $('tombol-muat-ulang').addEventListener('click', muatUlang);

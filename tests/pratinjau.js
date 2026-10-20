@@ -28,10 +28,11 @@ for (const nama of Object.keys(g.DATA_CONTOH_)) {
 }
 daftar.Narasumber_Tutor.forEach((b) => {
   b.prestasi_binaan = String(b.prestasi_binaan || '').split(/\r?\n/).filter(Boolean);
-  if (b.peran === 'Narasumber' && process.env.PRATINJAU_FOTO) b.foto_url = 'file://' + process.env.PRATINJAU_FOTO + '?';
+  // Akhiran # membuat =w<lebar> dari halaman jatuh ke fragmen URL dan diabaikan.
+  if (b.peran === 'Narasumber' && process.env.PRATINJAU_FOTO) b.foto_url = 'file://' + process.env.PRATINJAU_FOTO + '#';
 });
 const konten = {
-  poster_url: process.env.PRATINJAU_POSTER ? 'file://' + process.env.PRATINJAU_POSTER + '?' : '',
+  poster_url: process.env.PRATINJAU_POSTER ? 'file://' + process.env.PRATINJAU_POSTER + '#' : '',
   pengaturan: pengKonten,
   agenda: daftar.Agenda,
   narasumber: daftar.Narasumber_Tutor.filter((b) => b.peran === 'Narasumber'),
@@ -42,8 +43,18 @@ const konten = {
 };
 const dataAwal = fase === 'galat' ? { config: null, konten: null, param } : { config, konten, param };
 
+const poster = konten.poster_url && fase !== 'galat'
+  ? { kepala: '', atribut: 'src="' + konten.poster_url + '=w1080"', wadah: '', cadangan: 'hidden' }
+  : { kepala: '', atribut: '', wadah: 'hidden', cadangan: '' };
+const variabel = {
+  dataAwal: g.jsonAman_(dataAwal),
+  kepalaPoster: poster.kepala,
+  atributPoster: poster.atribut,
+  wadahPoster: poster.wadah,
+  judulCadangan: poster.cadangan
+};
 const html = baca('Index')
   .replace(/<\?!= include\('(\w+)'\) \?>/g, (_, n) => baca(n))
-  .replace('<?!= dataAwal ?>', g.jsonAman_(dataAwal))
+  .replace(/<\?!= (\w+) \?>/g, (_, n) => variabel[n] != null ? variabel[n] : '')
   .replace('<head>', '<head>\n  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">');
 process.stdout.write(html);

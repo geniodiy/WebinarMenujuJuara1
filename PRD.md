@@ -410,7 +410,7 @@ Halaman memakai latar terang seperti poster, dengan latar `body` ditetapkan eksp
 
 ## 8. Spesifikasi halaman utama (urutan dari atas)
 
-1. **Header.** Seperti poster: logo Genio dan OSN berukuran kecil di kiri, lencana centang dengan teks dua baris "Terbuka untuk Siswa SD, SMP," / "Guru & Orang tua" di kanan. Tidak ada ikon admin yang terlihat: **mengetuk ikon centang membuka layar masuk panel admin** (pintu tersembunyi; tetap dilindungi kata sandi). Header menempel di atas. Seluruh halaman, termasuk di desktop, berupa satu kolom di tengah (lebar maksimal sekitar 760 px) dengan jarak dari tepi layar, mengikuti referensi go.okegas.app.
+1. **Header.** Seperti poster: logo Genio dan OSN berukuran kecil di kiri, lencana centang dengan teks dua baris "Terbuka untuk Siswa SD, SMP," / "Guru & Orang tua" di kanan. Tidak ada ikon admin yang terlihat: **mengetuk ikon centang membuka layar masuk panel admin** (pintu tersembunyi; tetap dilindungi kata sandi). Header berada di luar kotak konten, di atas latar halaman, seperti logo pada referensi. Seluruh halaman, termasuk di desktop, berupa satu kolom di tengah (lebar maksimal sekitar 760 px) dengan jarak dari tepi layar, mengikuti referensi go.okegas.app.
 2. **Poster dan info acara.** Paling atas langsung poster penuh lebar kolom (bisa diketuk untuk diperbesar). Di bawahnya strip "Pelaksanaan" (tanggal dan label Gratis), lalu kartu "Pukul" dan "Live di", lalu hitung mundur "Pendaftaran ditutup dalam X hari" selama fase daftar, dari jam server. Bila poster belum diunggah, tampil judul acara sebagai gantinya.
 3. **Agenda.** Timeline vertikal bernomor 1 sampai 3, dengan label sasaran dan jam bila diisi.
 4. **Narasumber.** Kartu besar Indro: foto, nama, jabatan, ringkasan, 3 prestasi teratas, "Lihat selengkapnya" membuka panel dari bawah layar.
@@ -652,7 +652,7 @@ Semua fungsi mengembalikan `{ ok: true, data }` atau `{ ok: false, error: { code
 ## 16. Kebutuhan non-fungsional
 
 - Halaman tampil dalam sekitar 3 detik di jaringan 4G (termasuk waktu muat Apps Script).
-- Gambar dari Drive memakai ukuran sesuai tampilan (`sz=w400` untuk kartu, `sz=w1080` untuk poster) dan `loading="lazy"` kecuali poster.
+- Gambar dari Drive memakai alamat langsung `https://lh3.googleusercontent.com/d/ID=w<lebar>` (cadangan: `drive.google.com/thumbnail`) dengan ukuran sesuai layar (poster 600/1080 px, kartu 400/800 px) dan `loading="lazy"` kecuali poster. Alamat poster ditanam server di HTML beserta `preload` agar langsung diunduh.
 - Diuji di dalam embed Blogger dan di alamat `/exec` langsung, pada Chrome Android, Safari iOS, browser bawaan WhatsApp dan Instagram, serta Chrome desktop.
 - Tahan sekitar 300 kiriman presensi dalam 10 menit; browser mencoba ulang otomatis sekali bila server sibuk.
 
