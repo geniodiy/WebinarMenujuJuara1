@@ -181,6 +181,16 @@
   .prestasi-lencana { display: flex; flex-wrap: nowrap; justify-content: center; gap: 4px; }
   .lencana-sorot { padding: 3px clamp(6px, 2vw, 10px); border-radius: 999px; font-size: clamp(10px, 3vw, 12px); font-weight: 700; white-space: nowrap; color: #fff; background: linear-gradient(90deg, var(--coral), var(--gold)); }
   .lencana-sorot.lencana-2 { background: linear-gradient(90deg, var(--cyan), var(--teal)); }
+  /* Kesan premium: kartu prestasi melayang pelan, lencana disapu kilau seperti label Gratis secara bergantian. */
+  .narasumber-teks { animation: melayang 4.5s ease-in-out infinite; }
+  @keyframes melayang { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+  .lencana-sorot { position: relative; overflow: hidden; text-shadow: 0 1px 2px rgba(0, 0, 0, .18); }
+  .lencana-sorot::after {
+    content: ""; position: absolute; top: 0; bottom: 0; left: -60%; width: 45%;
+    background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .6), transparent);
+    transform: skewX(-18deg); animation: kilau 3.5s ease-in-out 1s infinite;
+  }
+  .lencana-sorot.lencana-2::after { animation-delay: 1.6s; }
   .prestasi-ajang { font-size: clamp(11.5px, 3.3vw, 14px); font-weight: 600; color: var(--indigo); }
   .daftar-prestasi { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
   .daftar-prestasi li { display: flex; gap: 8px; align-items: flex-start; }
