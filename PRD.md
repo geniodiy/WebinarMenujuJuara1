@@ -344,7 +344,7 @@ Kolom bersama: `urutan`, `tampil` (YA/TIDAK), `data_contoh` (YA/TIDAK).
 
 | Lembar | Kolom khusus |
 |---|---|
-| Pengaturan_Konten | kunci, nilai: tampilkan_data_contoh, judul_acara, tagline, tanggal_teks, jam_teks, media_teks, narahubung_nama, narahubung_wa, instagram_1, instagram_2, cta_judul, cta_kalimat, cta_teks_tombol, cta_pesan_wa |
+| Pengaturan_Konten | kunci, nilai: tampilkan_data_contoh, judul_acara, tagline, tanggal_teks, jam_teks, media_teks, poster, bonus_teks, bonus_syarat, narahubung_nama, narahubung_wa, instagram_1, instagram_2, cta_judul, cta_kalimat, cta_teks_tombol, cta_pesan_wa |
 | Agenda | judul, deskripsi, sasaran (Semua peserta / Siswa / Orang Tua & Guru), jam |
 | Narasumber_Tutor | peran (Narasumber / Tutor), nama_lengkap, jabatan, room, foto, ringkasan, prestasi_binaan (satu per baris di dalam sel) |
 | Profil | kunci, nilai: judul, paragraf_1, paragraf_2, angka_1 sampai angka_4, label_1 sampai label_4, program (dipisah koma) |

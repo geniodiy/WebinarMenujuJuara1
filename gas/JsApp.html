@@ -5,18 +5,20 @@
     var BULAN = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
     var HARI = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
     var SELISIH_WIB = 7 * 3600 * 1000;
-    var NARAHUBUNG_CADANGAN = { nama: 'Lily', wa: '6287838862882' };
+    var CADANGAN = { narahubung_nama: 'Lily', narahubung_wa: '6287838862882', instagram_1: 'genio_institute', instagram_2: 'genio.diy' };
 
     var data = window.DATA_AWAL || {};
     var config = data.config;
     var konten = data.konten;
+    var param = data.param || {};
+    window.APP_CONFIG = config;
 
-    function el(id) { return document.getElementById(id); }
+    function $(id) { return document.getElementById(id); }
 
-    function buat(tag, teks, kelas) {
+    function el(tag, kelas, teks) {
       var e = document.createElement(tag);
-      if (teks != null) e.textContent = teks;
       if (kelas) e.className = kelas;
+      if (teks != null) e.textContent = teks;
       return e;
     }
 
@@ -24,164 +26,363 @@
 
     /** Format waktu WIB tanpa bergantung pada zona waktu perangkat. */
     function formatWib(ms, denganJam) {
-      if (ms == null) return '-';
+      if (ms == null) return '';
       var d = new Date(ms + SELISIH_WIB);
       var teks = HARI[d.getUTCDay()] + ', ' + d.getUTCDate() + ' ' + BULAN[d.getUTCMonth()] + ' ' + d.getUTCFullYear();
       if (denganJam) teks += ' pukul ' + pad(d.getUTCHours()) + '.' + pad(d.getUTCMinutes()) + ' WIB';
       return teks;
     }
 
-    function narahubung() {
+    function jamWib(ms) {
+      var d = new Date(ms + SELISIH_WIB);
+      return pad(d.getUTCHours()) + '.' + pad(d.getUTCMinutes()) + ' WIB';
+    }
+
+    function peng(kunci) {
       var p = konten && konten.pengaturan ? konten.pengaturan : {};
-      return { nama: p.narahubung_nama || NARAHUBUNG_CADANGAN.nama, wa: p.narahubung_wa || NARAHUBUNG_CADANGAN.wa };
+      return p[kunci] || CADANGAN[kunci] || '';
+    }
+
+    function setTeks(id, teks) {
+      if (teks) $(id).textContent = teks;
+    }
+
+    function formatWa(nomor) {
+      var lokal = String(nomor).replace(/^62/, '0');
+      return lokal.replace(/^(\d{4})(\d{4})(\d+)$/, '$1-$2-$3');
     }
 
     function tautanWa(nomor, pesan) {
       return 'https://wa.me/' + encodeURIComponent(nomor) + (pesan ? '?text=' + encodeURIComponent(pesan) : '');
     }
 
-    function tautanLuar(teks, href) {
-      var a = buat('a', teks);
+    function tautanLuar(teks, href, kelas) {
+      var a = el('a', kelas, teks);
       a.href = href;
       a.target = '_blank';
       a.rel = 'noopener';
       return a;
     }
 
-    function teksSisaHari(sisa) {
-      if (sisa == null) return '';
-      if (sisa <= 0) return 'Pendaftaran ditutup hari ini';
-      return 'Pendaftaran ditutup dalam ' + sisa + ' hari';
-    }
+    /* ---------- Pembuka ---------- */
 
-    function renderStatus() {
-      var dl = el('status');
-      dl.innerHTML = '';
-      var baris = config ? [
-        ['Fase', config.fase],
-        ['Form pendaftaran', config.form.pendaftaran],
-        ['Jam server', formatWib(config.jam_server, true)],
-        ['Buka', formatWib(config.pendaftaran_buka, true)],
-        ['Tutup', formatWib(config.pendaftaran_tutup, true)],
-        ['Hitung mundur', teksSisaHari(config.sisa_hari) || '-']
-      ] : [['Status', 'Server belum bisa dihubungi atau lembar belum disiapkan.']];
-      baris.forEach(function (b) {
-        dl.appendChild(buat('dt', b[0]));
-        dl.appendChild(buat('dd', b[1]));
-      });
-    }
-
-    function renderKonten() {
-      var ul = el('ringkas-konten');
-      ul.innerHTML = '';
-      if (!konten) {
-        ul.appendChild(buat('li', 'Konten belum terbaca. Jalankan siapkanLembar dari editor Apps Script, lalu muat ulang.'));
-        return;
+    // KEPUTUSAN: judul_acara dipecah otomatis: sebelum ":" menjadi label (#MenujuJuara | Eps. 1),
+    // sesudahnya menjadi judul, dan dua kata terakhir judul diberi kotak gradien seperti poster.
+    function isiJudul() {
+      var judul = peng('judul_acara');
+      if (!judul) return;
+      var bagian = judul.split(':');
+      var label = bagian.length > 1 ? bagian.shift().trim() : '';
+      var utama = bagian.join(':').trim();
+      var m = label.match(/^(.*?)\s+(Eps\.?\s*\d+)$/i);
+      if (m) {
+        $('label-acara').textContent = m[1];
+        $('label-eps').textContent = m[2];
+        $('label-eps').hidden = false;
+      } else if (label) {
+        $('label-acara').textContent = label;
+        $('label-eps').hidden = true;
       }
-      if (konten.pengaturan.tagline) el('tagline').textContent = konten.pengaturan.tagline;
-      el('pita-contoh').hidden = !konten.ada_contoh;
-      [
-        ['Agenda', konten.agenda.length],
-        ['Narasumber', konten.narasumber.length],
-        ['Tutor', konten.tutor.length],
-        ['Profil Genio', konten.profil ? 'ada' : 'kosong'],
-        ['Cabang', konten.cabang.length],
-        ['Prestasi', konten.prestasi.length],
-        ['Testimoni', konten.testimoni.length],
-        ['FAQ', konten.faq.length],
-        ['Data contoh ikut tampil', konten.ada_contoh ? 'ya' : 'tidak']
-      ].forEach(function (b) {
-        ul.appendChild(buat('li', b[0] + ': ' + b[1]));
+      var kata = utama.split(/\s+/);
+      if (kata.length >= 3) {
+        $('judul-awal').textContent = kata.slice(0, -2).join(' ');
+        $('judul-sorot').textContent = kata.slice(-2).join(' ');
+      } else {
+        $('judul-awal').textContent = utama;
+        $('judul-sorot').hidden = true;
+      }
+    }
+
+    /** Kata terakhir tiap bagian tagline dicetak tebal, seperti poster. */
+    function isiTagline() {
+      var t = peng('tagline');
+      if (!t) return;
+      var wadah = $('tagline');
+      wadah.textContent = '';
+      t.split(',').forEach(function (bagian, i, semua) {
+        var kata = bagian.trim().split(/\s+/);
+        var akhir = kata.pop();
+        if (kata.length) wadah.appendChild(document.createTextNode(kata.join(' ') + ' '));
+        wadah.appendChild(el('b', null, akhir));
+        if (i < semua.length - 1) wadah.appendChild(document.createTextNode(', '));
       });
     }
 
-    function renderTautan() {
-      var n = narahubung();
-      el('tautan-wa').href = tautanWa(n.wa, 'Halo Kak ' + n.nama + ', ini pesan uji dari halaman webinar MenujuJuara.');
-      var ig = (konten && konten.pengaturan.instagram_1) || 'genio_institute';
-      el('tautan-ig').href = 'https://www.instagram.com/' + encodeURIComponent(ig) + '/';
+    function isiPembuka() {
+      isiJudul();
+      isiTagline();
+      setTeks('tanggal-teks', peng('tanggal_teks'));
+      setTeks('jam-teks', peng('jam_teks'));
+      setTeks('media-teks', peng('media_teks'));
+      setTeks('bonus-teks', peng('bonus_teks'));
+      setTeks('bonus-syarat', peng('bonus_syarat'));
+      if (konten && konten.poster_url) {
+        $('poster').src = konten.poster_url + '&sz=w1080';
+        $('wadah-poster').hidden = false;
+      }
     }
 
-    function renderPengisi() {
-      var ol = el('pengisi');
-      for (var i = 1; i <= 30; i++) ol.appendChild(buat('li', 'Baris pengisi ' + i));
+    function teksHitungMundur() {
+      if (!config || config.fase !== 'daftar' || config.sisa_hari == null) return null;
+      if (config.sisa_hari <= 0) return { awal: 'Pendaftaran ditutup ', tebal: 'hari ini', akhir: ' pukul ' + jamWib(config.pendaftaran_tutup) };
+      return { awal: 'Pendaftaran ditutup dalam ', tebal: config.sisa_hari + ' hari', akhir: '' };
     }
 
-    function tombol(teks, aktif) {
-      var b = buat('button', teks, 'tombol tombol-utama');
+    function isiHitungMundur() {
+      var t = teksHitungMundur();
+      var p = $('hitung-mundur');
+      p.hidden = !t;
+      if (!t) return;
+      p.textContent = t.awal;
+      p.appendChild(el('b', null, t.tebal));
+      p.appendChild(document.createTextNode(t.akhir));
+      if (config.pendaftaran_tutup) {
+        p.appendChild(el('br'));
+        p.appendChild(document.createTextNode(formatWib(config.pendaftaran_tutup, true)));
+      }
+    }
+
+    /* ---------- Agenda dan narasumber ---------- */
+
+    function labelContoh() {
+      return el('span', 'label-contoh', 'Contoh');
+    }
+
+    function kelasSasaran(s) {
+      if (/^siswa$/i.test(s)) return 'label-sasaran siswa';
+      if (/orang tua|guru/i.test(s)) return 'label-sasaran ortu';
+      return 'label-sasaran';
+    }
+
+    function renderAgenda() {
+      var daftar = konten ? konten.agenda : [];
+      $('bagian-agenda').hidden = !daftar.length;
+      var ol = $('daftar-agenda');
+      ol.textContent = '';
+      daftar.forEach(function (a, i) {
+        var li = el('li');
+        li.appendChild(el('span', 'agenda-nomor', String(i + 1)));
+        var isi = el('div', 'agenda-isi');
+        var meta = el('div', 'agenda-meta');
+        if (a.sasaran) meta.appendChild(el('span', kelasSasaran(a.sasaran), a.sasaran));
+        if (a.jam) meta.appendChild(el('span', 'label-jam', a.jam));
+        if (a.contoh) meta.appendChild(labelContoh());
+        if (meta.children.length) isi.appendChild(meta);
+        isi.appendChild(el('h3', null, a.judul));
+        if (a.deskripsi) isi.appendChild(el('p', null, a.deskripsi));
+        li.appendChild(isi);
+        ol.appendChild(li);
+      });
+    }
+
+    function daftarPrestasi(item, batas) {
+      var ul = el('ul', 'daftar-prestasi');
+      (item.prestasi_binaan || []).slice(0, batas).forEach(function (p) { ul.appendChild(el('li', null, p)); });
+      return ul;
+    }
+
+    function bukaDetail(item, pemicu) {
+      var isi = $('detail-isi');
+      isi.textContent = '';
+      var h = el('h2', null, item.nama_lengkap);
+      h.id = 'detail-nama';
+      isi.appendChild(h);
+      isi.appendChild(el('p', 'jabatan', [item.jabatan, item.room ? 'Room ' + item.room : ''].filter(Boolean).join(' · ')));
+      if (item.ringkasan) isi.appendChild(el('p', null, item.ringkasan));
+      if ((item.prestasi_binaan || []).length) {
+        isi.appendChild(el('h3', null, 'Prestasi siswa binaan'));
+        isi.appendChild(daftarPrestasi(item, 100));
+      }
+      bukaLapisan('lapisan-detail', pemicu);
+    }
+
+    function renderNarasumber() {
+      var daftar = konten ? konten.narasumber : [];
+      $('bagian-narasumber').hidden = !daftar.length;
+      var wadah = $('daftar-narasumber');
+      wadah.textContent = '';
+      daftar.forEach(function (n) {
+        var kartu = el('article', 'narasumber');
+        if (n.foto_url) {
+          var img = el('img', 'narasumber-foto');
+          img.src = n.foto_url + '&sz=w800';
+          img.alt = 'Foto ' + n.nama_lengkap;
+          img.loading = 'lazy';
+          kartu.appendChild(img);
+        }
+        var teks = el('div', 'narasumber-teks');
+        var h = el('h3', null, n.nama_lengkap);
+        if (n.contoh) { h.appendChild(document.createTextNode(' ')); h.appendChild(labelContoh()); }
+        teks.appendChild(h);
+        if (n.jabatan) teks.appendChild(el('p', 'jabatan', n.jabatan));
+        if (n.ringkasan) teks.appendChild(el('p', null, n.ringkasan));
+        if ((n.prestasi_binaan || []).length) teks.appendChild(daftarPrestasi(n, 3));
+        var tombol = el('button', 'tombol tombol-garis', 'Lihat selengkapnya');
+        tombol.type = 'button';
+        tombol.addEventListener('click', function () { bukaDetail(n, tombol); });
+        teks.appendChild(tombol);
+        kartu.appendChild(teks);
+        wadah.appendChild(kartu);
+      });
+    }
+
+    /* ---------- Footer ---------- */
+
+    function renderKaki() {
+      var wa = peng('narahubung_wa');
+      var a = $('tautan-narahubung');
+      a.href = tautanWa(wa);
+      a.textContent = formatWa(wa) + ' (' + peng('narahubung_nama') + ')';
+      ['instagram_1', 'instagram_2'].forEach(function (k, i) {
+        var akun = peng(k);
+        var t = $('tautan-ig-' + (i + 1));
+        t.hidden = !akun;
+        t.href = 'https://www.instagram.com/' + encodeURIComponent(akun) + '/';
+        t.textContent = '@' + akun;
+      });
+    }
+
+    /* ---------- Tombol floating ---------- */
+
+    function tombolBilah(teks, aktif) {
+      var b = el('button', 'tombol tombol-utama', teks);
       b.type = 'button';
       if (!aktif) b.disabled = true;
       return b;
     }
 
-    /** Tombol floating sesuai fase. Fase hari_h dan selesai dibuat di Fase 6. */
+    /** Fase belum_buka, daftar, dan tutup. Fase hari_h dan selesai dibuat di Fase 6. */
     function renderBilah() {
-      var wadah = el('bilah');
-      wadah.innerHTML = '';
-      var isi = buat('div', null, 'bilah-isi');
-      var info = buat('div', null, 'bilah-info');
-      var n = narahubung();
+      var wadah = $('bilah');
+      wadah.textContent = '';
+      var isi = el('div', 'bilah-isi');
+      var info = el('div', 'bilah-info');
+      var nama = peng('narahubung_nama');
       var aksi;
 
       if (!config) {
-        info.appendChild(buat('strong', 'Halaman belum bisa memuat status'));
-        info.appendChild(buat('span', 'Hubungi narahubung bila ada kendala.'));
-        aksi = tautanLuar('Hubungi narahubung', tautanWa(n.wa));
-        aksi.className = 'tombol tombol-utama';
+        info.appendChild(el('strong', null, 'Status pendaftaran belum terbaca'));
+        info.appendChild(el('span', null, 'Hubungi narahubung bila ada kendala.'));
+        aksi = tautanLuar('Hubungi narahubung', tautanWa(peng('narahubung_wa')), 'tombol tombol-utama');
       } else if (config.fase === 'belum_buka') {
-        info.appendChild(buat('strong', 'Gratis'));
-        info.appendChild(buat('span', 'Bonus Materi Kelas OSN'));
-        aksi = tombol('Pendaftaran dibuka ' + formatWib(config.pendaftaran_buka, false), false);
+        info.appendChild(el('strong', null, 'Gratis'));
+        info.appendChild(el('span', null, 'Bonus ' + peng('bonus_teks')));
+        aksi = tombolBilah('Pendaftaran dibuka ' + formatWib(config.pendaftaran_buka, false), false);
       } else if (config.fase === 'daftar') {
-        info.appendChild(buat('strong', 'Gratis'));
-        info.appendChild(buat('span', teksSisaHari(config.sisa_hari) || 'Bonus Materi Kelas OSN'));
-        aksi = tombol('Daftar Webinar Gratis', true);
+        var t = teksHitungMundur();
+        info.appendChild(el('strong', null, 'Gratis'));
+        info.appendChild(el('span', null, t ? t.awal + t.tebal + t.akhir : 'Bonus ' + peng('bonus_teks')));
+        aksi = tombolBilah('Daftar Webinar Gratis', true);
         aksi.addEventListener('click', function () { FormDaftar.buka(); });
       } else {
-        info.appendChild(buat('strong', 'Pendaftaran Ditutup'));
-        var kecil = buat('span', 'Sudah daftar tapi belum masuk grup? ');
-        kecil.appendChild(tautanLuar('Hubungi ' + n.nama, tautanWa(n.wa)));
+        info.appendChild(el('strong', null, 'Pendaftaran Ditutup'));
+        var kecil = el('span', null, 'Sudah daftar tapi belum masuk grup? ');
+        kecil.appendChild(tautanLuar('Hubungi ' + nama, tautanWa(peng('narahubung_wa'))));
         info.appendChild(kecil);
-        aksi = tombol('Pendaftaran Ditutup', false);
+        aksi = tombolBilah('Pendaftaran Ditutup', false);
       }
-
       isi.appendChild(info);
       isi.appendChild(aksi);
       wadah.appendChild(isi);
     }
 
-    function cekUlang() {
-      var hasil = el('hasil-cek');
-      if (!window.google || !google.script || !google.script.run) {
-        hasil.textContent = 'Panggilan server hanya tersedia saat halaman dibuka dari Apps Script.';
-        return;
-      }
-      hasil.textContent = 'Menghubungi server…';
-      google.script.run
-        .withSuccessHandler(function (res) {
-          if (res && res.ok) {
-            config = res.data;
-            window.APP_CONFIG = config;
-            renderStatus();
-            renderBilah();
-            hasil.textContent = 'Berhasil diperbarui pada ' + formatWib(config.jam_server, true) + '.';
-          } else {
-            hasil.textContent = (res && res.error && res.error.message) || 'Server mengembalikan galat.';
-          }
-        })
-        .withFailureHandler(function () {
-          hasil.textContent = 'Koneksi ke server gagal. Periksa internet lalu coba lagi.';
-        })
-        .getConfig();
+    /* ---------- Lapisan ---------- */
+
+    var pemicuLapisan = {};
+
+    function bukaLapisan(id, pemicu) {
+      var l = $(id);
+      pemicuLapisan[id] = pemicu || document.activeElement;
+      l.hidden = false;
+      document.documentElement.classList.add('fd-terbuka');
+      var fokus = l.querySelector('input, [data-tutup]');
+      if (fokus) fokus.focus();
     }
 
-    window.APP_CONFIG = config;
-    renderStatus();
-    renderKonten();
-    renderTautan();
-    renderPengisi();
-    renderBilah();
-    el('tombol-cek').addEventListener('click', cekUlang);
-    if (data.param && data.param.form === 'daftar') FormDaftar.buka();
+    function tutupLapisan(id) {
+      var l = $(id);
+      if (l.hidden) return;
+      l.hidden = true;
+      document.documentElement.classList.remove('fd-terbuka');
+      var p = pemicuLapisan[id];
+      if (p && p.focus) p.focus();
+    }
+
+    function siapkanLapisan(id) {
+      var l = $(id);
+      l.addEventListener('click', function (e) {
+        if (e.target === l || e.target.closest('[data-tutup]')) tutupLapisan(id);
+      });
+      l.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') tutupLapisan(id);
+      });
+    }
+
+    /* ---------- Admin (Fase 4) ---------- */
+
+    function siapkanAdmin() {
+      $('tombol-admin').addEventListener('click', function () { bukaLapisan('lapisan-admin', $('tombol-admin')); });
+      $('form-admin').addEventListener('submit', function (e) {
+        e.preventDefault();
+        $('pesan-admin').textContent = 'Panel admin sedang disiapkan.';
+      });
+    }
+
+    /* ---------- Muat ulang bila gagal ---------- */
+
+    function renderSemua() {
+      window.APP_CONFIG = config;
+      isiPembuka();
+      isiHitungMundur();
+      renderAgenda();
+      renderNarasumber();
+      renderKaki();
+      renderBilah();
+      $('pita-contoh').hidden = !(konten && konten.ada_contoh);
+      $('galat-konten').hidden = !!(konten && config);
+    }
+
+    function muatUlang() {
+      var tombol = $('tombol-muat-ulang');
+      if (!window.google || !google.script || !google.script.run) return;
+      tombol.disabled = true;
+      tombol.textContent = 'Memuat…';
+      var sisa = 2;
+      function selesai() {
+        if (--sisa > 0) return;
+        tombol.disabled = false;
+        tombol.textContent = 'Muat ulang';
+        renderSemua();
+      }
+      google.script.run.withSuccessHandler(function (r) { if (r && r.ok) config = r.data; selesai(); }).withFailureHandler(selesai).getConfig();
+      google.script.run.withSuccessHandler(function (r) { if (r && r.ok) konten = r.data; selesai(); }).withFailureHandler(selesai).getContent();
+    }
+
+    function siapkanKepala() {
+      var kepala = $('kepala');
+      var tipis = false;
+      window.addEventListener('scroll', function () {
+        var harus = window.scrollY > 24;
+        if (harus !== tipis) {
+          tipis = harus;
+          kepala.classList.toggle('menipis', tipis);
+        }
+      }, { passive: true });
+    }
+
+    renderSemua();
+    siapkanKepala();
+    siapkanLapisan('lapisan-poster');
+    siapkanLapisan('lapisan-detail');
+    siapkanLapisan('lapisan-admin');
+    siapkanAdmin();
+    $('tombol-poster').addEventListener('click', function () {
+      $('poster-besar').src = konten.poster_url + '&sz=w1600';
+      bukaLapisan('lapisan-poster', $('tombol-poster'));
+    });
+    $('tombol-muat-ulang').addEventListener('click', muatUlang);
+
+    if (param.form === 'daftar') FormDaftar.buka();
+    else if (param.admin === '1') bukaLapisan('lapisan-admin', $('tombol-admin'));
   })();
 </script>

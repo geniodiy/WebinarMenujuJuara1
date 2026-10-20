@@ -114,6 +114,7 @@ function bangunKonten_() {
   var butuh = [];
   daftar.Narasumber_Tutor.concat(daftar.Testimoni).forEach(function (b) { if (b.foto) butuh.push(b.foto); });
   daftar.Cabang.forEach(function (b) { if (b.logo) butuh.push(b.logo); });
+  if (pengaturan.poster) butuh.push(pengaturan.poster);
   var adaYangHilang = butuh.some(function (n) { return !peta[n.toLowerCase()]; });
   if (adaYangHilang && properti_('GAMBAR_FOLDER_ID')) {
     try {
@@ -136,6 +137,7 @@ function bangunKonten_() {
 
   return {
     pengaturan: pengaturan,
+    poster_url: urlGambar_(peta, pengaturan.poster),
     agenda: daftar.Agenda,
     narasumber: daftar.Narasumber_Tutor.filter(function (b) { return b.peran === 'Narasumber'; }),
     tutor: daftar.Narasumber_Tutor.filter(function (b) { return b.peran === 'Tutor'; }),

@@ -26,7 +26,12 @@ for (const nama of Object.keys(g.DATA_CONTOH_)) {
     return s;
   }), true);
 }
+daftar.Narasumber_Tutor.forEach((b) => {
+  b.prestasi_binaan = String(b.prestasi_binaan || '').split(/\r?\n/).filter(Boolean);
+  if (b.peran === 'Narasumber' && process.env.PRATINJAU_FOTO) b.foto_url = 'file://' + process.env.PRATINJAU_FOTO + '?';
+});
 const konten = {
+  poster_url: process.env.PRATINJAU_POSTER ? 'file://' + process.env.PRATINJAU_POSTER + '?' : '',
   pengaturan: pengKonten,
   agenda: daftar.Agenda,
   narasumber: daftar.Narasumber_Tutor.filter((b) => b.peran === 'Narasumber'),

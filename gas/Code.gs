@@ -23,11 +23,11 @@ function doGet(e) {
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
-/** Parameter URL yang dipakai halaman: ?form=daftar, ?ref=..., ?utm_source=... */
+/** Parameter URL yang dipakai halaman: ?form=daftar, ?admin=1, ?ref=..., ?utm_source=... */
 function paramAman_(p) {
   p = p || {};
   var hasil = {};
-  ['form', 'ref', 'utm_source'].forEach(function (k) {
+  ['form', 'ref', 'utm_source', 'admin'].forEach(function (k) {
     if (p[k]) hasil[k] = String(p[k]).replace(/[^\w.\-]/g, '').slice(0, 40);
   });
   return hasil;

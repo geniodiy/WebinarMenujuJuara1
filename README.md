@@ -23,7 +23,7 @@ npm run e2e         # form pendaftaran diisi di Chromium, submitDaftar asli deng
 |---|---|---|
 | 1 | Fondasi dan uji embed | Kode selesai (mode standalone), menunggu langkah manual di `docs/catatan-deploy.md` |
 | 2 | Form pendaftaran | Kode selesai, U1-U8 dan U27-U30 lolos di uji lokal; menunggu uji di ponsel |
-| 3 | Halaman utama Rilis 1 | Belum |
+| 3 | Halaman utama Rilis 1 | Kode selesai, dicek di 360 px dan 1280 px secara lokal; menunggu uji di ponsel |
 | 4 | Panel admin pendaftaran | Belum |
 | 5 | Konten Rilis 2 | Belum |
 | 6 | Presensi dan feedback | Belum |

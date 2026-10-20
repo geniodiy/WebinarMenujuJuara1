@@ -9,51 +9,120 @@
   <?!= include('Css') ?>
 </head>
 <body>
-  <header class="kepala">
+  <header class="kepala" id="kepala">
     <div class="wadah kepala-isi">
-      <strong class="merek">Genio Institute</strong>
-      <span class="label-uji">Halaman uji Fase 1</span>
+      <div class="kepala-logo"><?!= include('Logo') ?></div>
+      <p class="lencana">
+        <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#1399D8"></circle><path d="M7 12.5l3.2 3.2L17 9" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+        <span>Terbuka untuk Siswa SD, SMP, Guru &amp; Orang Tua</span>
+      </p>
+      <button type="button" class="tombol-admin" id="tombol-admin" aria-label="Masuk panel admin">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>
+      </button>
     </div>
   </header>
 
-  <main class="wadah">
-    <div id="pita-contoh" class="pita" hidden>Mode pratinjau: sebagian data adalah contoh.</div>
+  <main id="utama">
+    <div class="wadah"><p id="pita-contoh" class="pita" hidden>Mode pratinjau: sebagian data adalah contoh.</p></div>
 
-    <section class="pembuka">
-      <p class="sorot-label"><span>#MenujuJuara</span><b>Eps. 1</b></p>
-      <h1>Roadmap <span class="sorot-kotak">OSN 2027</span></h1>
-      <p id="tagline" class="tagline">Pertajam Strategi, Kuatkan Sinergi, Genggam Prestasi</p>
+    <section class="pembuka wadah" aria-labelledby="judul-acara">
+      <div class="pembuka-teks">
+        <p class="sorot-label"><span id="label-acara">#MenujuJuara</span><b id="label-eps">Eps. 1</b></p>
+        <h1 id="judul-acara"><span id="judul-awal">Roadmap</span> <span class="sorot-kotak" id="judul-sorot">OSN 2027</span></h1>
+        <p class="tagline" id="tagline">Pertajam <b>Strategi</b>, Kuatkan <b>Sinergi</b>, Genggam <b>Prestasi</b></p>
+
+        <div class="strip-tanggal">
+          <div>
+            <span class="strip-label">Pelaksanaan</span>
+            <strong id="tanggal-teks">Sabtu, 14 November 2026</strong>
+          </div>
+          <span class="lencana-gratis">Gratis</span>
+        </div>
+
+        <div class="info-grid">
+          <div class="info-kartu">
+            <span class="info-ikon info-ikon-coral"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg></span>
+            <div><span class="info-label">Pukul</span><strong id="jam-teks">08.00 WIB sampai selesai</strong></div>
+          </div>
+          <div class="info-kartu">
+            <span class="info-ikon info-ikon-cyan"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="13" height="12" rx="2"></rect><path d="M16 10l5-3v10l-5-3z"></path></svg></span>
+            <div><span class="info-label">Live di</span><strong id="media-teks">Zoom Meeting</strong></div>
+          </div>
+        </div>
+
+        <div class="bonus">
+          <span class="info-ikon info-ikon-gold"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"></path><path d="M4 19V5"></path><path d="M9 7h6"></path></svg></span>
+          <div><strong>Bonus <span id="bonus-teks">Materi Kelas OSN</span></strong><span id="bonus-syarat">Gratis untuk peserta yang mengisi presensi di hari H.</span></div>
+        </div>
+
+        <p class="hitung-mundur" id="hitung-mundur" hidden></p>
+      </div>
+
+      <div class="pembuka-poster" id="wadah-poster" hidden>
+        <button type="button" class="tombol-poster" id="tombol-poster" aria-label="Perbesar poster">
+          <img id="poster" alt="Poster webinar #MenujuJuara Eps. 1: Roadmap OSN 2027" width="1080" height="1350">
+        </button>
+        <p class="keterangan">Ketuk poster untuk memperbesar</p>
+      </div>
     </section>
 
-    <section class="kartu">
-      <h2>Status dari server</h2>
-      <dl id="status" class="daftar-status"></dl>
-      <button type="button" id="tombol-cek" class="tombol tombol-garis">Cek ulang ke server</button>
-      <p id="hasil-cek" class="kecil" role="status" aria-live="polite"></p>
+    <section class="bagian wadah" id="bagian-agenda" aria-labelledby="judul-agenda" hidden>
+      <h2 id="judul-agenda">Ada apa saja di webinar ini?</h2>
+      <ol class="agenda" id="daftar-agenda"></ol>
     </section>
 
-    <section class="kartu">
-      <h2>Konten yang terbaca</h2>
-      <ul id="ringkas-konten" class="daftar-konten"></ul>
+    <section class="bagian wadah" id="bagian-narasumber" aria-labelledby="judul-narasumber" hidden>
+      <h2 id="judul-narasumber">Narasumber</h2>
+      <div id="daftar-narasumber" class="daftar-narasumber"></div>
     </section>
 
-    <section class="kartu">
-      <h2>Uji tautan keluar</h2>
-      <p>Kedua tautan harus terbuka di tab atau aplikasi baru, termasuk saat halaman ini di-embed di Blogger.</p>
-      <p class="baris-tombol">
-        <a id="tautan-wa" class="tombol tombol-garis" target="_blank" rel="noopener" href="#">Uji WhatsApp narahubung</a>
-        <a id="tautan-ig" class="tombol tombol-garis" target="_blank" rel="noopener" href="#">Uji Instagram</a>
-      </p>
-    </section>
-
-    <section class="kartu">
-      <h2>Uji gulir</h2>
-      <p>Gulir sampai bawah. Tombol di bawah layar harus tetap melayang dan tidak ikut tergulir.</p>
-      <ol id="pengisi" class="pengisi"></ol>
-    </section>
+    <div class="wadah" id="galat-konten" hidden>
+      <div class="kotak-galat">
+        <p>Sebagian isi halaman belum bisa dimuat.</p>
+        <button type="button" class="tombol tombol-garis" id="tombol-muat-ulang">Muat ulang</button>
+      </div>
+    </div>
   </main>
 
-  <div id="bilah" class="bilah" aria-live="polite"></div>
+  <footer class="kaki">
+    <div class="wadah kaki-isi">
+      <p class="narahubung"><span>Narahubung</span><a id="tautan-narahubung" target="_blank" rel="noopener" href="https://wa.me/6287838862882">0878-3886-2882 (Lily)</a></p>
+      <p class="kaki-ig">
+        <a id="tautan-ig-1" target="_blank" rel="noopener" href="https://www.instagram.com/genio_institute/">@genio_institute</a>
+        <a id="tautan-ig-2" target="_blank" rel="noopener" href="https://www.instagram.com/genio.diy/">@genio.diy</a>
+      </p>
+      <p class="hak-cipta">© 2026 Genio Institute</p>
+    </div>
+  </footer>
+
+  <div id="bilah" class="bilah"></div>
+
+  <div class="lapisan" id="lapisan-poster" hidden>
+    <div class="lapisan-poster" role="dialog" aria-modal="true" aria-label="Poster webinar">
+      <button type="button" class="tombol-tutup-lapisan" data-tutup aria-label="Tutup poster"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+      <img id="poster-besar" alt="Poster webinar #MenujuJuara Eps. 1: Roadmap OSN 2027">
+    </div>
+  </div>
+
+  <div class="lapisan" id="lapisan-detail" hidden>
+    <div class="lembar" role="dialog" aria-modal="true" aria-labelledby="detail-nama">
+      <button type="button" class="tombol-tutup-lapisan" data-tutup aria-label="Tutup"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+      <div id="detail-isi"></div>
+    </div>
+  </div>
+
+  <div class="lapisan lapisan-penuh" id="lapisan-admin" hidden>
+    <div class="admin-masuk" role="dialog" aria-modal="true" aria-labelledby="judul-admin">
+      <button type="button" class="tombol-tutup-lapisan" data-tutup aria-label="Tutup panel admin"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+      <h2 id="judul-admin">Masuk panel admin</h2>
+      <form id="form-admin" class="admin-form" novalidate>
+        <label for="sandi-admin">Kata sandi</label>
+        <input id="sandi-admin" type="password" autocomplete="current-password" class="fd-input">
+        <button type="submit" class="tombol tombol-indigo">Masuk</button>
+        <p id="pesan-admin" class="pesan-admin" role="status" aria-live="polite"></p>
+      </form>
+    </div>
+  </div>
 
   <script>
     var DATA_AWAL = <?!= dataAwal ?>;
