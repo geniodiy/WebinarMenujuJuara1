@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <?!= include('Css') ?>
+</head>
+<body>
+  <header class="kepala">
+    <div class="wadah kepala-isi">
+      <strong class="merek">Genio Institute</strong>
+      <span class="label-uji">Halaman uji Fase 1</span>
+    </div>
+  </header>
+
+  <main class="wadah">
+    <div id="pita-contoh" class="pita" hidden>Mode pratinjau: sebagian data adalah contoh.</div>
+
+    <section class="pembuka">
+      <p class="sorot-label"><span>#MenujuJuara</span><b>Eps. 1</b></p>
+      <h1>Roadmap <span class="sorot-kotak">OSN 2027</span></h1>
+      <p id="tagline" class="tagline">Pertajam Strategi, Kuatkan Sinergi, Genggam Prestasi</p>
+    </section>
+
+    <section class="kartu">
+      <h2>Status dari server</h2>
+      <dl id="status" class="daftar-status"></dl>
+      <button type="button" id="tombol-cek" class="tombol tombol-garis">Cek ulang ke server</button>
+      <p id="hasil-cek" class="kecil" role="status" aria-live="polite"></p>
+    </section>
+
+    <section class="kartu">
+      <h2>Konten yang terbaca</h2>
+      <ul id="ringkas-konten" class="daftar-konten"></ul>
+    </section>
+
+    <section class="kartu">
+      <h2>Uji tautan keluar</h2>
+      <p>Kedua tautan harus terbuka di tab atau aplikasi baru, termasuk saat halaman ini di-embed di Blogger.</p>
+      <p class="baris-tombol">
+        <a id="tautan-wa" class="tombol tombol-garis" target="_blank" rel="noopener" href="#">Uji WhatsApp narahubung</a>
+        <a id="tautan-ig" class="tombol tombol-garis" target="_blank" rel="noopener" href="#">Uji Instagram</a>
+      </p>
+    </section>
+
+    <section class="kartu">
+      <h2>Uji gulir</h2>
+      <p>Gulir sampai bawah. Tombol di bawah layar harus tetap melayang dan tidak ikut tergulir.</p>
+      <ol id="pengisi" class="pengisi"></ol>
+    </section>
+  </main>
+
+  <div id="bilah" class="bilah" aria-live="polite"></div>
+
+  <script>
+    var DATA_AWAL = <?!= dataAwal ?>;
+  </script>
+  <?!= include('JsApp') ?>
+</body>
+</html>

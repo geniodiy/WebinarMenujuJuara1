@@ -1,0 +1,112 @@
+const test = require('node:test');
+const assert = require('node:assert');
+const muatGas = require('./muat-gas');
+
+const g = muatGas(['Util.gs', 'Config.gs', 'Konten.gs', 'Setup.gs', 'DataContoh.gs']);
+const wib = (s) => g.parseWaktuWib_(s);
+
+test('normalisasi nomor WA (U5)', () => {
+  for (const masukan of ['+62 812-3456-7890', '0812 3456 7890', '6281234567890']) {
+    assert.strictEqual(g.normalisasiWa_(masukan), '6281234567890');
+  }
+  assert.ok(g.waValid_('6281234567890'));
+  assert.ok(!g.waValid_('62812'));
+  assert.ok(!g.waValid_('6221234567'));
+});
+
+test('nama kunci dan sanitasi sel', () => {
+  assert.strictEqual(g.namaKunci_('  Budi   SANTOSO '), 'budi santoso');
+  assert.strictEqual(g.sanitasiSel_('=SUM(A1)'), "'=SUM(A1)");
+  assert.strictEqual(g.sanitasiSel_('-1'), "'-1");
+  assert.strictEqual(g.sanitasiSel_('Budi'), 'Budi');
+  assert.strictEqual(g.sanitasiSel_(5), 5);
+});
+
+test('ambil ID dari URL', () => {
+  const id = '1AbCdEfGhIjKlMnOpQrStUvWxYz012345';
+  assert.strictEqual(g.ambilIdDariUrl_('https://docs.google.com/spreadsheets/d/' + id + '/edit#gid=0'), id);
+  assert.strictEqual(g.ambilIdDariUrl_('https://drive.google.com/drive/folders/' + id + '?usp=sharing'), id);
+  assert.strictEqual(g.ambilIdDariUrl_(id), id);
+  assert.strictEqual(g.ambilIdDariUrl_('bukan url'), '');
+});
+
+test('jsonAman_ tidak bisa menutup tag script', () => {
+  const s = g.jsonAman_({ a: '</script><b>' });
+  assert.ok(!s.includes('<'));
+  assert.deepStrictEqual(JSON.parse(s), { a: '</script><b>' });
+});
+
+test('waktu WIB', () => {
+  assert.strictEqual(wib('2026-11-14 08:00'), Date.UTC(2026, 10, 14, 1, 0));
+  assert.strictEqual(wib('2026-11-14'), Date.UTC(2026, 10, 13, 17, 0));
+  assert.ok(Number.isNaN(wib('14/11/2026')));
+  assert.ok(Number.isNaN(wib('')));
+});
+
+const peng = { form_pendaftaran: 'OTOMATIS', pendaftaran_buka: '2026-10-19 00:00', pendaftaran_tutup: '2026-11-07 23:59', tanggal_hari_h: '2026-11-14' };
+
+test('fase OTOMATIS mengikuti tanggal', () => {
+  assert.strictEqual(g.hitungStatus_(peng, wib('2026-10-18 23:59')).fase, 'belum_buka');
+  assert.strictEqual(g.hitungStatus_(peng, wib('2026-10-19 00:00')).fase, 'daftar');
+  const akhir = g.hitungStatus_(peng, wib('2026-11-07 23:59') + 59000);
+  assert.strictEqual(akhir.fase, 'daftar');
+  assert.strictEqual(akhir.sisa_hari, 0);
+  assert.strictEqual(g.hitungStatus_(peng, wib('2026-11-08 00:00')).fase, 'tutup');
+  assert.strictEqual(g.hitungStatus_(peng, wib('2026-11-08 00:00')).form.pendaftaran, 'TUTUP');
+});
+
+test('sisa hari dihitung per hari kalender WIB', () => {
+  assert.strictEqual(g.hitungStatus_(peng, wib('2026-10-20 17:00')).sisa_hari, 18);
+  assert.strictEqual(g.hitungStatus_(peng, wib('2026-11-06 23:30')).sisa_hari, 1);
+});
+
+test('mode paksa BUKA dan TUTUP', () => {
+  const buka = g.hitungStatus_({ ...peng, form_pendaftaran: 'buka' }, wib('2026-12-01 10:00'));
+  assert.strictEqual(buka.fase, 'daftar');
+  assert.strictEqual(buka.sisa_hari, null);
+  const tutup = g.hitungStatus_({ ...peng, form_pendaftaran: 'TUTUP' }, wib('2026-10-01 10:00'));
+  assert.strictEqual(tutup.fase, 'tutup');
+});
+
+test('tanggal tidak sah membuat pendaftaran tertutup', () => {
+  const s = g.hitungStatus_({ ...peng, pendaftaran_buka: 'besok' }, wib('2026-10-20 10:00'));
+  assert.strictEqual(s.fase, 'tutup');
+  assert.strictEqual(s.pendaftaran_buka, null);
+});
+
+test('saring baris konten', () => {
+  const baris = [
+    { urutan: '2', tampil: 'YA', data_contoh: 'TIDAK', judul: 'B' },
+    { urutan: '1', tampil: 'ya', data_contoh: 'YA', judul: 'A contoh' },
+    { urutan: '', tampil: 'YA', data_contoh: 'TIDAK', judul: 'C tanpa urutan' },
+    { urutan: '0', tampil: 'TIDAK', data_contoh: 'TIDAK', judul: 'Disembunyikan' },
+    { urutan: '0', tampil: '', data_contoh: 'TIDAK', judul: 'Tampil kosong' },
+    { urutan: '3', tampil: 'YA', data_contoh: 'TIDAK', judul: '' }
+  ];
+  const tanpaContoh = g.saringBaris_(baris, false);
+  assert.deepStrictEqual(tanpaContoh.map((b) => b.judul), ['B', 'C tanpa urutan']);
+  assert.deepStrictEqual(Object.keys(tanpaContoh[0]).sort(), ['contoh', 'judul']);
+  const denganContoh = g.saringBaris_(baris, true);
+  assert.deepStrictEqual(denganContoh.map((b) => b.judul), ['A contoh', 'B', 'C tanpa urutan']);
+  assert.strictEqual(denganContoh[0].contoh, true);
+});
+
+test('data contoh cocok dengan kolom lembar', () => {
+  for (const nama of Object.keys(g.DATA_CONTOH_)) {
+    const kolom = g.KOLOM_BERSAMA_.concat(g.LEMBAR_DAFTAR_KONTEN_[nama]);
+    for (const baris of g.DATA_CONTOH_[nama]) {
+      for (const k of Object.keys(baris)) assert.ok(kolom.includes(k), nama + ': kolom ' + k + ' tidak dikenal');
+    }
+  }
+  const kunciProfil = g.PROFIL_AWAL_.map((p) => p[0]);
+  for (const p of g.PROFIL_CONTOH_) assert.ok(kunciProfil.includes(p[0]), 'Profil: kunci ' + p[0] + ' tidak dikenal');
+  const tutor = g.DATA_CONTOH_.Narasumber_Tutor.filter((b) => b.peran === 'Tutor');
+  assert.strictEqual(new Set(tutor.map((t) => t.room)).size, 6);
+});
+
+test('tidak ada link grup WA atau kunci rahasia di status publik', () => {
+  const s = g.hitungStatus_({ ...peng, link_grup_wa: 'https://chat.whatsapp.com/rahasia', kuota_sd_ipa: '10' }, wib('2026-10-20 10:00'));
+  const teks = JSON.stringify(s);
+  assert.ok(!teks.includes('rahasia'));
+  assert.ok(!teks.includes('kuota'));
+});

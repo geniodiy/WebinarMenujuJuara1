@@ -1,0 +1,187 @@
+<script>
+  (function () {
+    'use strict';
+
+    var BULAN = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+    var HARI = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+    var SELISIH_WIB = 7 * 3600 * 1000;
+    var NARAHUBUNG_CADANGAN = { nama: 'Lily', wa: '6287838862882' };
+
+    var data = window.DATA_AWAL || {};
+    var config = data.config;
+    var konten = data.konten;
+
+    function el(id) { return document.getElementById(id); }
+
+    function buat(tag, teks, kelas) {
+      var e = document.createElement(tag);
+      if (teks != null) e.textContent = teks;
+      if (kelas) e.className = kelas;
+      return e;
+    }
+
+    function pad(n) { return (n < 10 ? '0' : '') + n; }
+
+    /** Format waktu WIB tanpa bergantung pada zona waktu perangkat. */
+    function formatWib(ms, denganJam) {
+      if (ms == null) return '-';
+      var d = new Date(ms + SELISIH_WIB);
+      var teks = HARI[d.getUTCDay()] + ', ' + d.getUTCDate() + ' ' + BULAN[d.getUTCMonth()] + ' ' + d.getUTCFullYear();
+      if (denganJam) teks += ' pukul ' + pad(d.getUTCHours()) + '.' + pad(d.getUTCMinutes()) + ' WIB';
+      return teks;
+    }
+
+    function narahubung() {
+      var p = konten && konten.pengaturan ? konten.pengaturan : {};
+      return { nama: p.narahubung_nama || NARAHUBUNG_CADANGAN.nama, wa: p.narahubung_wa || NARAHUBUNG_CADANGAN.wa };
+    }
+
+    function tautanWa(nomor, pesan) {
+      return 'https://wa.me/' + encodeURIComponent(nomor) + (pesan ? '?text=' + encodeURIComponent(pesan) : '');
+    }
+
+    function tautanLuar(teks, href) {
+      var a = buat('a', teks);
+      a.href = href;
+      a.target = '_blank';
+      a.rel = 'noopener';
+      return a;
+    }
+
+    function teksSisaHari(sisa) {
+      if (sisa == null) return '';
+      if (sisa <= 0) return 'Pendaftaran ditutup hari ini';
+      return 'Pendaftaran ditutup dalam ' + sisa + ' hari';
+    }
+
+    function renderStatus() {
+      var dl = el('status');
+      dl.innerHTML = '';
+      var baris = config ? [
+        ['Fase', config.fase],
+        ['Form pendaftaran', config.form.pendaftaran],
+        ['Jam server', formatWib(config.jam_server, true)],
+        ['Buka', formatWib(config.pendaftaran_buka, true)],
+        ['Tutup', formatWib(config.pendaftaran_tutup, true)],
+        ['Hitung mundur', teksSisaHari(config.sisa_hari) || '-']
+      ] : [['Status', 'Server belum bisa dihubungi atau lembar belum disiapkan.']];
+      baris.forEach(function (b) {
+        dl.appendChild(buat('dt', b[0]));
+        dl.appendChild(buat('dd', b[1]));
+      });
+    }
+
+    function renderKonten() {
+      var ul = el('ringkas-konten');
+      ul.innerHTML = '';
+      if (!konten) {
+        ul.appendChild(buat('li', 'Konten belum terbaca. Jalankan menu Genio > Siapkan lembar, lalu muat ulang.'));
+        return;
+      }
+      if (konten.pengaturan.tagline) el('tagline').textContent = konten.pengaturan.tagline;
+      el('pita-contoh').hidden = !konten.ada_contoh;
+      [
+        ['Agenda', konten.agenda.length],
+        ['Narasumber', konten.narasumber.length],
+        ['Tutor', konten.tutor.length],
+        ['Profil Genio', konten.profil ? 'ada' : 'kosong'],
+        ['Cabang', konten.cabang.length],
+        ['Prestasi', konten.prestasi.length],
+        ['Testimoni', konten.testimoni.length],
+        ['FAQ', konten.faq.length],
+        ['Data contoh ikut tampil', konten.ada_contoh ? 'ya' : 'tidak']
+      ].forEach(function (b) {
+        ul.appendChild(buat('li', b[0] + ': ' + b[1]));
+      });
+    }
+
+    function renderTautan() {
+      var n = narahubung();
+      el('tautan-wa').href = tautanWa(n.wa, 'Halo Kak ' + n.nama + ', ini pesan uji dari halaman webinar MenujuJuara.');
+      var ig = (konten && konten.pengaturan.instagram_1) || 'genio_institute';
+      el('tautan-ig').href = 'https://www.instagram.com/' + encodeURIComponent(ig) + '/';
+    }
+
+    function renderPengisi() {
+      var ol = el('pengisi');
+      for (var i = 1; i <= 30; i++) ol.appendChild(buat('li', 'Baris pengisi ' + i));
+    }
+
+    function tombol(teks, aktif) {
+      var b = buat('button', teks, 'tombol tombol-utama');
+      b.type = 'button';
+      if (!aktif) b.disabled = true;
+      return b;
+    }
+
+    /** Tombol floating sesuai fase. Fase hari_h dan selesai dibuat di Fase 6. */
+    function renderBilah() {
+      var wadah = el('bilah');
+      wadah.innerHTML = '';
+      var isi = buat('div', null, 'bilah-isi');
+      var info = buat('div', null, 'bilah-info');
+      var n = narahubung();
+      var aksi;
+
+      if (!config) {
+        info.appendChild(buat('strong', 'Halaman belum bisa memuat status'));
+        info.appendChild(buat('span', 'Hubungi narahubung bila ada kendala.'));
+        aksi = tautanLuar('Hubungi narahubung', tautanWa(n.wa));
+        aksi.className = 'tombol tombol-utama';
+      } else if (config.fase === 'belum_buka') {
+        info.appendChild(buat('strong', 'Gratis'));
+        info.appendChild(buat('span', 'Bonus Materi Kelas OSN'));
+        aksi = tombol('Pendaftaran dibuka ' + formatWib(config.pendaftaran_buka, false), false);
+      } else if (config.fase === 'daftar') {
+        info.appendChild(buat('strong', 'Gratis'));
+        info.appendChild(buat('span', teksSisaHari(config.sisa_hari) || 'Bonus Materi Kelas OSN'));
+        aksi = tombol('Daftar Webinar Gratis', true);
+        aksi.addEventListener('click', function () {
+          el('hasil-cek').textContent = 'Form pendaftaran dibuat di Fase 2.';
+          el('hasil-cek').scrollIntoView({ block: 'center' });
+        });
+      } else {
+        info.appendChild(buat('strong', 'Pendaftaran Ditutup'));
+        var kecil = buat('span', 'Sudah daftar tapi belum masuk grup? ');
+        kecil.appendChild(tautanLuar('Hubungi ' + n.nama, tautanWa(n.wa)));
+        info.appendChild(kecil);
+        aksi = tombol('Pendaftaran Ditutup', false);
+      }
+
+      isi.appendChild(info);
+      isi.appendChild(aksi);
+      wadah.appendChild(isi);
+    }
+
+    function cekUlang() {
+      var hasil = el('hasil-cek');
+      if (!window.google || !google.script || !google.script.run) {
+        hasil.textContent = 'Panggilan server hanya tersedia saat halaman dibuka dari Apps Script.';
+        return;
+      }
+      hasil.textContent = 'Menghubungi server…';
+      google.script.run
+        .withSuccessHandler(function (res) {
+          if (res && res.ok) {
+            config = res.data;
+            renderStatus();
+            renderBilah();
+            hasil.textContent = 'Berhasil diperbarui pada ' + formatWib(config.jam_server, true) + '.';
+          } else {
+            hasil.textContent = (res && res.error && res.error.message) || 'Server mengembalikan galat.';
+          }
+        })
+        .withFailureHandler(function () {
+          hasil.textContent = 'Koneksi ke server gagal. Periksa internet lalu coba lagi.';
+        })
+        .getConfig();
+    }
+
+    renderStatus();
+    renderKonten();
+    renderTautan();
+    renderPengisi();
+    renderBilah();
+    el('tombol-cek').addEventListener('click', cekUlang);
+  })();
+</script>

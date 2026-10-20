@@ -1,0 +1,9 @@
+{
+  "name": "genio-menuju-juara",
+  "private": true,
+  "description": "Alat pengembangan saja (uji logika dan pratinjau). Tidak dipakai saat runtime Apps Script.",
+  "scripts": {
+    "test": "node --test tests/*.test.js",
+    "pratinjau": "node tests/pratinjau.js daftar > pratinjau.html"
+  }
+}

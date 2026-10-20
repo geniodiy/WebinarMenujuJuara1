@@ -1,0 +1,36 @@
+<!--
+  Potongan kode untuk halaman Blogger (Page), ditempel di mode "Tampilan HTML".
+  Ganti dua nilai berikut:
+    1. URL_GAMBAR_PRATINJAU  : alamat gambar poster-pratinjau.jpg yang diunggah lewat editor Blogger
+    2. URL_WEB_APP           : alamat /exec dari docs/catatan-deploy.md
+  Gambar dipakai Blogger sebagai pratinjau link (WhatsApp, Instagram). Di layar, gambar tertutup iframe.
+-->
+<img src="URL_GAMBAR_PRATINJAU" alt="Webinar #MenujuJuara Eps. 1: Roadmap OSN 2027" />
+
+<div id="genio-webinar"></div>
+<script>
+  (function () {
+    var URL_WEB_APP = 'https://script.google.com/macros/s/ID_DEPLOYMENT/exec';
+    // Hanya parameter ini yang diteruskan ke web app (misalnya ?form=daftar atau ?ref=wa).
+    var DITERUSKAN = ['form', 'ref', 'utm_source', 'admin'];
+
+    var asal = new URLSearchParams(window.location.search);
+    var tujuan = new URLSearchParams();
+    DITERUSKAN.forEach(function (k) {
+      if (asal.has(k)) tujuan.set(k, asal.get(k));
+    });
+    var qs = tujuan.toString();
+
+    var f = document.createElement('iframe');
+    f.src = URL_WEB_APP + (qs ? '?' + qs : '');
+    f.title = 'Webinar #MenujuJuara Eps. 1';
+    f.setAttribute('allow', 'clipboard-write');
+    f.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;border:0;z-index:2147483647;background:#ffffff;';
+    document.getElementById('genio-webinar').appendChild(f);
+  })();
+</script>
+<noscript>
+  <iframe src="https://script.google.com/macros/s/ID_DEPLOYMENT/exec"
+          title="Webinar #MenujuJuara Eps. 1"
+          style="position:fixed;top:0;left:0;width:100%;height:100%;border:0;z-index:2147483647;background:#ffffff;"></iframe>
+</noscript>
