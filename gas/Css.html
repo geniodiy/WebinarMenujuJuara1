@@ -70,9 +70,10 @@
   .tagline { font-size: 15px; }
   .strip-tanggal {
     position: relative; overflow: hidden;
-    display: flex; align-items: center; justify-content: space-between; gap: 12px;
-    padding: 14px 18px; border-radius: var(--radius); background: var(--gradien); color: #fff;
+    display: flex; flex-direction: column; gap: 6px;
+    padding: 14px 16px 16px 18px; border-radius: var(--radius); background: var(--gradien); color: #fff;
   }
+  .strip-atas { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
   /* Ikon kalender putih samar di latar, seperti strip Pelaksanaan pada poster. */
   .strip-tanggal::after {
     content: ""; position: absolute; right: 64px; top: 50%; width: 120px; height: 120px; transform: translateY(-46%) rotate(-8deg);
@@ -81,8 +82,8 @@
   }
   .strip-tanggal > * { position: relative; z-index: 1; }
   .strip-label { display: block; font-size: 13px; font-weight: 500; }
-  .strip-tanggal strong { display: block; font-size: 18px; font-weight: 700; line-height: 1.25; }
-  .lencana-gratis { flex-shrink: 0; padding: 6px 14px; border-radius: 10px; background: linear-gradient(90deg, var(--coral), var(--gold)); color: #fff; font-size: 15px; font-weight: 700; letter-spacing: .3px; text-shadow: 0 1px 2px rgba(150, 60, 20, .35); }
+  .strip-tanggal strong { display: block; font-size: clamp(15px, 4.7vw, 22px); font-weight: 700; line-height: 1.25; white-space: nowrap; }
+  .lencana-gratis { flex-shrink: 0; padding: 4px 12px; border-radius: 10px; background: linear-gradient(90deg, var(--coral), var(--gold)); color: #fff; font-size: 14px; font-weight: 700; letter-spacing: .3px; text-shadow: 0 1px 2px rgba(150, 60, 20, .35); }
   .info-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
   @media (max-width: 419px) { .info-grid { grid-template-columns: minmax(0, 1fr); } }
   /* Kartu Pukul dan Live di, mengikuti gaya poster: ikon bulat penuh dan garis tepi gelap tipis. */
@@ -93,13 +94,13 @@
   .info-ikon-jam { background: var(--coral); }
   .info-ikon-zoom { background: #2D8CFF; }
   /* Hitung mundur hari, jam, menit, detik. */
-  .hitung-mundur { padding: 14px 12px 12px; border-radius: var(--radius); background: var(--latar-lembut); text-align: center; display: flex; flex-direction: column; gap: 10px; }
-  .hm-judul { font-size: 14px; font-weight: 500; color: var(--item); }
+  .hitung-mundur { padding: 14px 12px 12px; border-radius: var(--radius); background: var(--item); color: #fff; text-align: center; display: flex; flex-direction: column; gap: 10px; }
+  .hm-judul { font-size: 14px; font-weight: 500; color: #fff; }
   .hm-kotak-daftar { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
-  .hm-kotak { padding: 10px 4px 8px; border-radius: 12px; background: var(--indigo); color: #fff; display: flex; flex-direction: column; line-height: 1.15; }
+  .hm-kotak { padding: 10px 4px 8px; border-radius: 12px; background: rgba(255, 255, 255, .12); color: #fff; display: flex; flex-direction: column; line-height: 1.15; }
   .hm-kotak strong { font-size: clamp(20px, 5.6vw, 26px); font-weight: 700; font-variant-numeric: tabular-nums; }
   .hm-kotak span { font-size: 11px; font-weight: 500; opacity: .85; }
-  .hm-tanggal { font-size: 13px; color: var(--redup); }
+  .hm-tanggal { font-size: 13px; color: rgba(255, 255, 255, .8); }
 
   /* Bagian */
   .bagian { padding-top: 40px; }
@@ -242,10 +243,11 @@
   }
 
   @media (min-width: 640px) {
+    .info-kartu > div { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 6px; }
+    .info-label { font-size: 13px; }
     .halaman { padding-top: 24px; }
     .isi { padding: 28px 28px 0; }
     .kepala-isi { padding: 4px 28px 20px; }
-    .strip-tanggal strong { font-size: 20px; }
     .bagian h2 { font-size: 22px; }
     .narasumber-teks { padding: 24px; }
     .lapisan { align-items: center; }
