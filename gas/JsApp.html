@@ -302,7 +302,7 @@
         info.appendChild(el('strong', null, 'Gratis'));
         info.appendChild(el('span', null, t ? t.awal + t.tebal + t.akhir : 'Bonus ' + peng('bonus_teks')));
         aksi = tombolBilah('Daftar Webinar Gratis', true);
-        aksi.addEventListener('click', function () { FormDaftar.buka(); });
+        aksi.addEventListener('click', bukaForm);
       } else {
         info.appendChild(el('strong', null, 'Pendaftaran Ditutup'));
         var kecil = el('span', null, 'Sudah daftar tapi belum masuk grup? ');
@@ -313,6 +313,19 @@
       isi.appendChild(info);
       isi.appendChild(aksi);
       wadah.appendChild(isi);
+    }
+
+    /** Bila berkas form tidak termuat (misalnya tertempel tidak utuh), tampilkan pesan, jangan diam. */
+    function bukaForm() {
+      try {
+        FormDaftar.buka();
+      } catch (err) {
+        var info = document.querySelector('.bilah-info span');
+        if (info) {
+          info.textContent = 'Form belum bisa dibuka. Muat ulang halaman, atau hubungi ' + peng('narahubung_nama') + '. (' + (err && err.message ? err.message : err) + ')';
+        }
+        if (window.console) console.error(err);
+      }
     }
 
     /* ---------- Lapisan ---------- */
@@ -403,7 +416,7 @@
     });
     $('tombol-muat-ulang').addEventListener('click', muatUlang);
 
-    if (param.form === 'daftar') FormDaftar.buka();
+    if (param.form === 'daftar') bukaForm();
     else if (param.admin === '1') bukaAdmin();
   })();
 </script>
