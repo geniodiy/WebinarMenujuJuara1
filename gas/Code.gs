@@ -13,13 +13,24 @@ function doGet(e) {
   var templat = HtmlService.createTemplateFromFile('Index');
   templat.dataAwal = jsonAman_({
     config: config.ok ? config.data : null,
-    konten: konten.ok ? konten.data : null
+    konten: konten.ok ? konten.data : null,
+    param: paramAman_(e && e.parameter)
   });
 
   return templat.evaluate()
     .setTitle(judul + ' | Genio Institute')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1, viewport-fit=cover')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
+
+/** Parameter URL yang dipakai halaman: ?form=daftar, ?ref=..., ?utm_source=... */
+function paramAman_(p) {
+  p = p || {};
+  var hasil = {};
+  ['form', 'ref', 'utm_source'].forEach(function (k) {
+    if (p[k]) hasil[k] = String(p[k]).replace(/[^\w.\-]/g, '').slice(0, 40);
+  });
+  return hasil;
 }
 
 /** Dipakai di template: <?!= include('Css') ?> */

@@ -20,4 +20,6 @@ Website webinar #MenujuJuara Eps. 1: Roadmap OSN 2027 (Genio Institute). Acuan u
 - Pemilik mengirim kode dengan salin-tempel dari iPad (tanpa clasp). Jaga jumlah file di `gas/` tetap sedikit dan sebutkan file yang berubah di setiap laporan.
 - Semua fungsi publik untuk browser mengembalikan `{ ok, data }` atau `{ ok: false, error: { code, message } }` lewat `jalankanAman_`.
 - Data contoh Konten Website ada di `gas/DataContoh.gs` (dipisah dari `Setup.gs` agar mudah dibaca).
-- Fungsi murni (tanpa layanan Apps Script) diuji dengan `npm test`. Pratinjau halaman tanpa Apps Script: `npm run pratinjau`.
+- Fungsi murni (tanpa layanan Apps Script) diuji dengan `npm test`. Pratinjau halaman tanpa Apps Script: `npm run pratinjau`. Form pendaftaran diuji ujung-ke-ujung dengan `npm run e2e`.
+- Aturan form (jalur, validasi, perapian isian) hanya ada di `gas/LogikaDaftar.html`, dipakai browser lewat include dan server lewat `logikaDaftar_()`. Jangan menduplikasi aturan itu di tempat lain.
+- Jangan memakai `window.confirm`/`alert` di halaman: bisa diblokir di iframe Apps Script. Pakai konfirmasi di halaman (lihat `duaKetukan` di `JsFormDaftar.html`).

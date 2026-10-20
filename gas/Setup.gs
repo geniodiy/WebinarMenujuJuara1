@@ -240,7 +240,10 @@ function perbaruiDaftarGambar() {
 function hapusDataUji() {
   penjagaPanitia_();
   var jumlah = denganKunci_(function () {
-    return hapusBarisUji_(bukaDb_().getSheetByName('Pendaftar'));
+    var lembar = bukaDb_().getSheetByName('Pendaftar');
+    var n = hapusBarisUji_(lembar);
+    tulisRekap_(bacaLembar_(lembar), bacaPengaturan_());
+    return n;
   });
   bersihkanCache_();
   return lapor_(jumlah + ' baris data uji dihapus dari lembar Pendaftar.');

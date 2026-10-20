@@ -1,0 +1,306 @@
+<script>
+/**
+ * Aturan form pendaftaran yang dipakai bersama oleh browser dan server
+ * (server membacanya lewat logikaDaftar_ di Pendaftaran.gs), agar jalur,
+ * validasi, dan perapian isian tidak pernah berbeda di kedua sisi.
+ * Label, pilihan, dan teks bantuan mengikuti docs/Rancangan_Form_Webinar.pdf.
+ */
+var LogikaDaftar = (function () {
+  'use strict';
+
+  var OPSI = {
+    daftar_sebagai: ['Siswa', 'Pendamping'],
+    peran: ['Orang Tua', 'Guru Pembina'],
+    kelas: ['1', '2', '3', '4', '5', '6', '7', '8', '9'],
+    bidang: ['Matematika', 'IPA', 'IPS'],
+    bidang_minat: ['Matematika', 'IPA', 'IPS', 'Belum menentukan'],
+    jenjang: ['SD', 'SMP'],
+    pengalaman_osn: ['Belum pernah', 'Tingkat sekolah', 'Tingkat kabupaten atau kota', 'Tingkat provinsi', 'Tingkat nasional'],
+    ya_tidak: ['Ya', 'Tidak'],
+    perangkat: ['Perangkat sendiri', 'Satu perangkat dengan pendamping', 'Satu perangkat bersama siswa lain'],
+    sumber_info: ['Instagram Genio', 'Grup WhatsApp', 'Sekolah', 'Teman atau keluarga', 'Lainnya']
+  };
+
+  var PESAN = {
+    wajib: 'Bagian ini perlu diisi.',
+    wa: 'Nomor WhatsApp belum sesuai. Contoh: 081234567890.',
+    email: 'Alamat email belum sesuai. Contoh: nama@gmail.com.',
+    jumlah: 'Isi minimal 1 siswa.',
+    setuju: 'Centang persetujuan ini untuk melanjutkan.',
+    // KEPUTUSAN: pesan untuk siswa ganda di dalam satu kiriman belum ada di PRD 10.6.
+    ganda: 'Siswa dengan nama dan nomor yang sama sudah ada di daftar ini.',
+    panjang: 'Pertanyaan maksimal 1.000 karakter.'
+  };
+
+  var BATAS = { pendek: 120, pertanyaan: 1000, siswa: 200 };
+
+  var JUDUL_LANGKAH = {
+    sebagai: 'Daftar sebagai',
+    diri: 'Data diri',
+    siswa: 'Data siswa',
+    peran: 'Peran Anda',
+    guru: 'Data guru pembina',
+    jumlah: 'Pendaftaran siswa',
+    minat: 'Minat anak',
+    anak: 'Data siswa',
+    penutup: 'Penutup',
+    ringkasan: 'Periksa data'
+  };
+
+  function teks(v) {
+    return String(v == null ? '' : v).replace(/\s+/g, ' ').trim();
+  }
+
+  function normalisasiWa(v) {
+    var angka = String(v == null ? '' : v).replace(/[^\d]/g, '');
+    if (angka.indexOf('0') === 0) angka = '62' + angka.slice(1);
+    return angka;
+  }
+
+  function waValid(v) {
+    return /^628\d{7,11}$/.test(normalisasiWa(v));
+  }
+
+  function emailValid(v) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(teks(v));
+  }
+
+  function namaKunci(v) {
+    return teks(v).toLowerCase();
+  }
+
+  function jenjangDariKelas(kelas) {
+    var k = parseInt(kelas, 10);
+    if (k >= 1 && k <= 6) return 'SD';
+    if (k >= 7 && k <= 9) return 'SMP';
+    return '';
+  }
+
+  function kategoriDariKelas(kelas) {
+    var j = jenjangDariKelas(kelas);
+    return j ? 'Siswa ' + j : '';
+  }
+
+  function room(kelas, bidang) {
+    var j = jenjangDariKelas(kelas);
+    return j && bidang ? j + ' ' + bidang : '';
+  }
+
+  /** siswa, ortu_daftar, ortu_tidak, guru_daftar, guru_tidak, atau '' bila belum jelas. */
+  function jalur(d) {
+    if (d.daftar_sebagai === 'Siswa') return 'siswa';
+    if (d.daftar_sebagai !== 'Pendamping') return '';
+    var awal = d.peran === 'Guru Pembina' ? 'guru' : d.peran === 'Orang Tua' ? 'ortu' : '';
+    if (!awal) return '';
+    if (d.daftarkan === 'Ya') return awal + '_daftar';
+    if (d.daftarkan === 'Tidak') return awal + '_tidak';
+    return '';
+  }
+
+  /** Urutan langkah sesuai jawaban saat ini (PRD 10.2). Seluruh blok siswa dihitung satu langkah. */
+  function langkah(d) {
+    var l = ['sebagai', 'diri'];
+    if (d.daftar_sebagai === 'Pendamping') {
+      l.push('peran');
+      if (d.peran === 'Guru Pembina') l.push('guru');
+      l.push('jumlah');
+      if (d.daftarkan === 'Ya') l.push('anak');
+      else if (d.daftarkan === 'Tidak' && d.peran === 'Orang Tua') l.push('minat');
+    } else {
+      l.push('siswa');
+    }
+    l.push('penutup', 'ringkasan');
+    return l;
+  }
+
+  function wajib(galat, kunci, nilai) {
+    if (teks(nilai) === '') galat[kunci] = PESAN.wajib;
+  }
+
+  function salahSatu(galat, kunci, nilai, opsi) {
+    if (opsi.indexOf(nilai) < 0) galat[kunci] = PESAN.wajib;
+  }
+
+  function beberapa(galat, kunci, nilai, opsi) {
+    var ok = Array.isArray(nilai) && nilai.length > 0 && nilai.every(function (v) { return opsi.indexOf(v) >= 0; });
+    if (!ok) galat[kunci] = PESAN.wajib;
+  }
+
+  function kunciOrang(nama, wa) {
+    return normalisasiWa(wa) + '|' + namaKunci(nama);
+  }
+
+  function validasiAnak(d, galat) {
+    var anak = d.anak || [];
+    if (!anak.length) galat.anak = PESAN.jumlah;
+    var terlihat = {};
+    terlihat[kunciOrang(d.nama, d.wa)] = true;
+    anak.forEach(function (a, i) {
+      var p = 'anak.' + i + '.';
+      wajib(galat, p + 'nama', a.nama);
+      if (teks(a.wa) !== '' && !waValid(a.wa)) galat[p + 'wa'] = PESAN.wa;
+      salahSatu(galat, p + 'kelas', String(a.kelas || ''), OPSI.kelas);
+      wajib(galat, p + 'asal_sekolah', a.asal_sekolah);
+      salahSatu(galat, p + 'bidang', a.bidang, OPSI.bidang);
+      salahSatu(galat, p + 'pengalaman_osn', a.pengalaman_osn, OPSI.pengalaman_osn);
+      salahSatu(galat, p + 'siswa_genio', a.siswa_genio, OPSI.ya_tidak);
+      salahSatu(galat, p + 'perangkat', a.perangkat, OPSI.perangkat);
+      if (teks(a.nama) !== '' && !galat[p + 'wa']) {
+        var k = kunciOrang(a.nama, teks(a.wa) !== '' ? a.wa : d.wa);
+        if (terlihat[k]) galat[p + 'nama'] = PESAN.ganda;
+        terlihat[k] = true;
+      }
+    });
+  }
+
+  /** Galat untuk satu langkah, sebagai peta nama isian ke pesan. */
+  function validasiLangkah(d, id) {
+    var g = {};
+    switch (id) {
+      case 'sebagai':
+        salahSatu(g, 'daftar_sebagai', d.daftar_sebagai, OPSI.daftar_sebagai);
+        break;
+      case 'diri':
+        wajib(g, 'nama', d.nama);
+        if (teks(d.wa) === '') g.wa = PESAN.wajib;
+        else if (!waValid(d.wa)) g.wa = PESAN.wa;
+        if (teks(d.email) === '') g.email = PESAN.wajib;
+        else if (!emailValid(d.email)) g.email = PESAN.email;
+        wajib(g, 'kota', d.kota);
+        break;
+      case 'siswa':
+        salahSatu(g, 'kelas', String(d.kelas || ''), OPSI.kelas);
+        wajib(g, 'asal_sekolah', d.asal_sekolah);
+        salahSatu(g, 'bidang', d.bidang, OPSI.bidang);
+        salahSatu(g, 'pengalaman_osn', d.pengalaman_osn, OPSI.pengalaman_osn);
+        salahSatu(g, 'siswa_genio', d.siswa_genio, OPSI.ya_tidak);
+        break;
+      case 'peran':
+        salahSatu(g, 'peran', d.peran, OPSI.peran);
+        break;
+      case 'guru':
+        wajib(g, 'sekolah_mengajar', d.sekolah_mengajar);
+        beberapa(g, 'jenjang_dibina', d.jenjang_dibina, OPSI.jenjang);
+        beberapa(g, 'bidang_dibina', d.bidang_dibina, OPSI.bidang);
+        break;
+      case 'jumlah':
+        salahSatu(g, 'daftarkan', d.daftarkan, OPSI.ya_tidak);
+        if (d.daftarkan === 'Ya') {
+          var n = Number(d.jumlah);
+          if (!(n >= 1 && Math.floor(n) === n)) g.jumlah = PESAN.jumlah;
+          else if (n > BATAS.siswa) g.jumlah = 'Maksimal ' + BATAS.siswa + ' siswa dalam satu pendaftaran.';
+        }
+        break;
+      case 'minat':
+        beberapa(g, 'minat_jenjang_anak', d.minat_jenjang_anak, OPSI.jenjang);
+        beberapa(g, 'minat_bidang_anak', d.minat_bidang_anak, OPSI.bidang_minat);
+        salahSatu(g, 'anak_siswa_genio', d.anak_siswa_genio, OPSI.ya_tidak);
+        break;
+      case 'anak':
+        validasiAnak(d, g);
+        if ((d.anak || []).length > BATAS.siswa) g.anak = 'Maksimal ' + BATAS.siswa + ' siswa dalam satu pendaftaran.';
+        break;
+      case 'penutup':
+        beberapa(g, 'sumber_info', d.sumber_info, OPSI.sumber_info);
+        if (String(d.pertanyaan_narsum || '').trim().length > BATAS.pertanyaan) g.pertanyaan_narsum = PESAN.panjang;
+        if (d.setuju_kehadiran !== true) g.setuju_kehadiran = PESAN.setuju;
+        if (jalur(d) === 'guru_daftar' && d.setuju_siswa_binaan !== true) g.setuju_siswa_binaan = PESAN.setuju;
+        break;
+    }
+    return g;
+  }
+
+  function validasiSemua(d) {
+    var g = {};
+    langkah(d).forEach(function (id) {
+      var gl = validasiLangkah(d, id);
+      Object.keys(gl).forEach(function (k) { g[k] = gl[k]; });
+    });
+    if (!jalur(d) && !g.daftar_sebagai && !g.peran && !g.daftarkan) g.daftar_sebagai = PESAN.wajib;
+    return g;
+  }
+
+  function potong(v, n) {
+    return teks(v).slice(0, n);
+  }
+
+  function pilihDari(nilai, opsi) {
+    return Array.isArray(nilai) ? opsi.filter(function (o) { return nilai.indexOf(o) >= 0; }) : [];
+  }
+
+  /**
+   * Hanya isian yang relevan untuk jalur saat ini, sudah dirapikan.
+   * Isian dari jalur lain (misalnya setelah pengguna mengganti pilihan) dibuang di sini.
+   */
+  function rapikan(d) {
+    var j = jalur(d);
+    var r = {
+      daftar_sebagai: d.daftar_sebagai,
+      nama: potong(d.nama, BATAS.pendek),
+      wa: normalisasiWa(d.wa),
+      email: potong(d.email, BATAS.pendek).toLowerCase(),
+      kota: potong(d.kota, BATAS.pendek),
+      sumber_info: pilihDari(d.sumber_info, OPSI.sumber_info),
+      pertanyaan_narsum: String(d.pertanyaan_narsum == null ? '' : d.pertanyaan_narsum).trim().slice(0, BATAS.pertanyaan + 1),
+      setuju_kehadiran: d.setuju_kehadiran === true,
+      setuju_info_program: d.setuju_info_program === true
+    };
+    if (d.daftar_sebagai === 'Siswa') {
+      r.kelas = String(d.kelas || '');
+      r.asal_sekolah = potong(d.asal_sekolah, BATAS.pendek);
+      r.bidang = d.bidang;
+      r.pengalaman_osn = d.pengalaman_osn;
+      r.siswa_genio = d.siswa_genio;
+      return r;
+    }
+    if (d.daftar_sebagai !== 'Pendamping') return r;
+    r.peran = d.peran;
+    r.daftarkan = d.daftarkan;
+    if (d.peran === 'Guru Pembina') {
+      r.sekolah_mengajar = potong(d.sekolah_mengajar, BATAS.pendek);
+      r.jenjang_dibina = pilihDari(d.jenjang_dibina, OPSI.jenjang);
+      r.bidang_dibina = pilihDari(d.bidang_dibina, OPSI.bidang);
+    }
+    if (j === 'ortu_tidak') {
+      r.minat_jenjang_anak = pilihDari(d.minat_jenjang_anak, OPSI.jenjang);
+      r.minat_bidang_anak = pilihDari(d.minat_bidang_anak, OPSI.bidang_minat);
+      r.anak_siswa_genio = d.anak_siswa_genio;
+    }
+    if (j === 'guru_daftar') r.setuju_siswa_binaan = d.setuju_siswa_binaan === true;
+    if (d.daftarkan === 'Ya') {
+      r.anak = (d.anak || []).slice(0, BATAS.siswa + 1).map(function (a) {
+        return {
+          nama: potong(a.nama, BATAS.pendek),
+          wa: normalisasiWa(a.wa),
+          kelas: String(a.kelas || ''),
+          asal_sekolah: potong(a.asal_sekolah, BATAS.pendek),
+          bidang: a.bidang,
+          pengalaman_osn: a.pengalaman_osn,
+          siswa_genio: a.siswa_genio,
+          perangkat: a.perangkat
+        };
+      });
+      r.jumlah = r.anak.length;
+    }
+    return r;
+  }
+
+  return {
+    OPSI: OPSI,
+    PESAN: PESAN,
+    BATAS: BATAS,
+    JUDUL_LANGKAH: JUDUL_LANGKAH,
+    normalisasiWa: normalisasiWa,
+    waValid: waValid,
+    namaKunci: namaKunci,
+    jenjangDariKelas: jenjangDariKelas,
+    kategoriDariKelas: kategoriDariKelas,
+    room: room,
+    jalur: jalur,
+    langkah: langkah,
+    validasiLangkah: validasiLangkah,
+    validasiSemua: validasiSemua,
+    rapikan: rapikan
+  };
+})();
+</script>

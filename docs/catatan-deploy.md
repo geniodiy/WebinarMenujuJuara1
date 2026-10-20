@@ -105,6 +105,7 @@ Jalankan dari editor Apps Script: pilih nama fungsi, lalu **Jalankan**. Hasilnya
 | `isiDataContoh` | Mengisi Konten Website dengan data contoh (lembar kosong saja) |
 | `perbaruiDaftarGambar` | Memindai folder Gambar Web dan mengisi lembar Gambar |
 | `hapusDataUji` | Menghapus semua baris `uji` = YA di lembar Pendaftar, langsung tanpa konfirmasi |
+| `perbaruiRekap` | Menghitung ulang lembar Rekap dari lembar Pendaftar |
 | `bersihkanCache` | Memaksa halaman memakai data terbaru |
 
 ## Memperbarui web app (setiap ada perubahan kode)

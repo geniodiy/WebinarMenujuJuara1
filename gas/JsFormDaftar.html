@@ -1,0 +1,983 @@
+<script>
+  /**
+   * Form pendaftaran bertahap layar penuh (PRD Bagian 10).
+   * Aturan jalur dan validasi diambil dari LogikaDaftar agar sama persis dengan server.
+   */
+  var FormDaftar = (function () {
+    'use strict';
+
+    var L = window.LogikaDaftar;
+    var KUNCI_DRAF = 'mj1_draf_daftar';
+    var NARAHUBUNG = { nama: 'Lily', wa: '6287838862882', teks: '0878-3886-2882' };
+    var PESAN_PUTUS = 'Pendaftaran belum terkirim karena koneksi terputus. Isian Anda masih ada, silakan coba kirim lagi.';
+    var URL_KALENDER = 'https://calendar.google.com/calendar/render?action=TEMPLATE' +
+      '&text=' + encodeURIComponent('Webinar #MenujuJuara Eps. 1: Roadmap OSN 2027') +
+      '&dates=20261114T010000Z/20261114T050000Z' +
+      '&details=' + encodeURIComponent('Link Zoom dibagikan di grup WhatsApp peserta. Narahubung: Lily 0878-3886-2882.') +
+      '&location=' + encodeURIComponent('Zoom Meeting');
+
+    var S = null;
+    var akar = null;
+    var pemicu = null;
+    var tundaSimpan = null;
+
+    function el(tag, kelas, teks) {
+      var e = document.createElement(tag);
+      if (kelas) e.className = kelas;
+      if (teks != null) e.textContent = teks;
+      return e;
+    }
+
+    function idAman(path) {
+      return 'fd-' + path.replace(/[^\w]/g, '-');
+    }
+
+    function buatKode() {
+      var hex = '';
+      try {
+        var b = new Uint8Array(12);
+        window.crypto.getRandomValues(b);
+        for (var i = 0; i < b.length; i++) hex += ('0' + b[i].toString(16)).slice(-2);
+      } catch (err) {
+        for (var j = 0; j < 24; j++) hex += Math.floor(Math.random() * 16).toString(16);
+      }
+      return 'k-' + hex;
+    }
+
+    function dataKosong() {
+      return {
+        kode_kiriman: buatKode(), mulai: Date.now(),
+        daftar_sebagai: '', nama: '', wa: '', email: '', kota: '',
+        kelas: '', asal_sekolah: '', bidang: '', pengalaman_osn: '', siswa_genio: '',
+        peran: '', sekolah_mengajar: '', jenjang_dibina: [], bidang_dibina: [],
+        daftarkan: '', jumlah: '',
+        minat_jenjang_anak: [], minat_bidang_anak: [], anak_siswa_genio: '',
+        anak: [],
+        sumber_info: [], pertanyaan_narsum: '',
+        setuju_kehadiran: false, setuju_siswa_binaan: false, setuju_info_program: false
+      };
+    }
+
+    function anakKosong() {
+      return {
+        nama: '', wa: '', kelas: '',
+        asal_sekolah: S.d.peran === 'Guru Pembina' ? S.d.sekolah_mengajar : '',
+        bidang: '', pengalaman_osn: '', siswa_genio: '', perangkat: ''
+      };
+    }
+
+    function stateBaru(d, langkah) {
+      return { d: d, langkah: langkah || 'sebagai', bukaAnak: 0, galat: {}, mode: 'form', sedangKirim: false, galatKirim: '', dupNama: [], hasil: null };
+    }
+
+    // Penyimpanan browser bisa ditolak di dalam iframe; form tetap berjalan tanpa draf.
+    function simpanDraf() {
+      clearTimeout(tundaSimpan);
+      tundaSimpan = setTimeout(function () {
+        try { localStorage.setItem(KUNCI_DRAF, JSON.stringify({ d: S.d, langkah: S.langkah })); } catch (err) { /* tanpa draf */ }
+      }, 300);
+    }
+
+    function muatDraf() {
+      try {
+        var x = JSON.parse(localStorage.getItem(KUNCI_DRAF) || 'null');
+        if (x && x.d && x.d.kode_kiriman) {
+          var d = dataKosong();
+          Object.keys(d).forEach(function (k) { if (x.d[k] !== undefined) d[k] = x.d[k]; });
+          return { d: d, langkah: x.langkah };
+        }
+      } catch (err) { /* tanpa draf */ }
+      return null;
+    }
+
+    function hapusDraf() {
+      clearTimeout(tundaSimpan);
+      try { localStorage.removeItem(KUNCI_DRAF); } catch (err) { /* tanpa draf */ }
+    }
+
+    function ambil(path) {
+      return path.split('.').reduce(function (o, k) { return o == null ? undefined : o[k]; }, S.d);
+    }
+
+    function atur(path, nilai) {
+      var p = path.split('.');
+      var o = S.d;
+      for (var i = 0; i < p.length - 1; i++) o = o[p[i]];
+      o[p[p.length - 1]] = nilai;
+      simpanDraf();
+    }
+
+    function config() {
+      return window.APP_CONFIG || (window.DATA_AWAL && window.DATA_AWAL.config) || null;
+    }
+
+    function narahubung() {
+      var k = window.DATA_AWAL && window.DATA_AWAL.konten;
+      if (k && k.pengaturan && k.pengaturan.narahubung_wa) {
+        return { nama: k.pengaturan.narahubung_nama || NARAHUBUNG.nama, wa: k.pengaturan.narahubung_wa, teks: NARAHUBUNG.teks };
+      }
+      return NARAHUBUNG;
+    }
+
+    function tautanLuar(teks, href, kelas) {
+      var a = el('a', kelas, teks);
+      a.href = href;
+      a.target = '_blank';
+      a.rel = 'noopener';
+      return a;
+    }
+
+    /**
+     * Konfirmasi dua ketukan di tombol itu sendiri. window.confirm tidak dipakai karena bisa
+     * diblokir di dalam iframe Apps Script dan browser bawaan aplikasi.
+     */
+    function duaKetukan(tombol, teksKonfirmasi, aksi) {
+      var teksAsli = tombol.textContent;
+      var waktu = null;
+      tombol.addEventListener('click', function () {
+        if (tombol.getAttribute('data-siap') === '1') {
+          clearTimeout(waktu);
+          aksi();
+          return;
+        }
+        tombol.setAttribute('data-siap', '1');
+        tombol.textContent = teksKonfirmasi;
+        waktu = setTimeout(function () {
+          tombol.removeAttribute('data-siap');
+          tombol.textContent = teksAsli;
+        }, 4000);
+      });
+    }
+
+    function tautanNarahubung() {
+      var n = narahubung();
+      return tautanLuar('Hubungi ' + n.nama + ' (' + n.teks + ')', 'https://wa.me/' + n.wa);
+    }
+
+    /* ---------- Isian ---------- */
+
+    function bungkus(path, label, opsi) {
+      opsi = opsi || {};
+      var w = el('div', 'fd-isian');
+      w.id = idAman(path) + '-w';
+      var lab = el(opsi.legend ? 'legend' : 'label', 'fd-label', label);
+      if (opsi.opsional) lab.appendChild(el('span', 'fd-opsional', ' (tidak wajib)'));
+      if (!opsi.legend) lab.htmlFor = idAman(path);
+      var bantu = null;
+      if (opsi.bantuan) {
+        bantu = el('p', 'fd-bantuan', opsi.bantuan);
+        bantu.id = idAman(path) + '-b';
+      }
+      var galat = el('p', 'fd-galat');
+      galat.id = idAman(path) + '-e';
+      galat.setAttribute('aria-live', 'polite');
+      return { w: w, lab: lab, bantu: bantu, galat: galat };
+    }
+
+    function terangkan(input, path, b) {
+      var ids = [];
+      if (b.bantu) ids.push(b.bantu.id);
+      ids.push(b.galat.id);
+      input.setAttribute('aria-describedby', ids.join(' '));
+    }
+
+    function fTeks(path, label, opsi) {
+      opsi = opsi || {};
+      var b = bungkus(path, label, opsi);
+      var input = el(opsi.area ? 'textarea' : 'input', 'fd-input');
+      input.id = idAman(path);
+      if (!opsi.area) input.type = opsi.type || 'text';
+      if (opsi.autocomplete) input.autocomplete = opsi.autocomplete;
+      if (opsi.inputmode) input.setAttribute('inputmode', opsi.inputmode);
+      if (opsi.maxlength) input.maxLength = opsi.maxlength;
+      if (opsi.min != null) input.min = opsi.min;
+      if (opsi.area) input.rows = 4;
+      input.value = ambil(path) == null ? '' : ambil(path);
+      input.addEventListener('input', function () {
+        atur(path, input.value);
+        if (S.galat[path]) periksaIsian(path);
+      });
+      input.addEventListener('blur', function () { periksaIsian(path); });
+      terangkan(input, path, b);
+      b.w.appendChild(b.lab);
+      if (b.bantu) b.w.appendChild(b.bantu);
+      b.w.appendChild(input);
+      b.w.appendChild(b.galat);
+      return b.w;
+    }
+
+    function fKelas(path, label) {
+      var b = bungkus(path, label);
+      var s = el('select', 'fd-input');
+      s.id = idAman(path);
+      var kosong = el('option', null, 'Pilih kelas');
+      kosong.value = '';
+      s.appendChild(kosong);
+      L.OPSI.kelas.forEach(function (k) {
+        var o = el('option', null, 'Kelas ' + k);
+        o.value = k;
+        s.appendChild(o);
+      });
+      s.value = ambil(path) || '';
+      s.addEventListener('change', function () {
+        atur(path, s.value);
+        periksaIsian(path);
+        perbaruiKepalaBlok();
+      });
+      terangkan(s, path, b);
+      b.w.appendChild(b.lab);
+      b.w.appendChild(s);
+      b.w.appendChild(b.galat);
+      return b.w;
+    }
+
+    /** Pilihan sebagai kartu sentuh. ganda = kotak centang (beberapa jawaban). */
+    function fPilihan(path, label, opsiList, opsi) {
+      opsi = opsi || {};
+      var b = bungkus(path, label, { legend: true, bantuan: opsi.bantuan, opsional: opsi.opsional });
+      var fs = el('fieldset', 'fd-pilihan' + (opsi.besar ? ' fd-pilihan-besar' : ''));
+      fs.id = idAman(path);
+      fs.tabIndex = -1;
+      terangkan(fs, path, b);
+      fs.appendChild(b.lab);
+      if (b.bantu) fs.appendChild(b.bantu);
+      var daftar = el('div', 'fd-kartu-daftar');
+      opsiList.forEach(function (o, i) {
+        var nilai = typeof o === 'string' ? o : o.nilai;
+        var kartu = el('label', 'fd-kartu');
+        var input = el('input');
+        input.type = opsi.ganda ? 'checkbox' : 'radio';
+        input.name = idAman(path);
+        input.value = nilai;
+        input.id = idAman(path) + '-' + i;
+        var terpilih = opsi.ganda ? (ambil(path) || []).indexOf(nilai) >= 0 : ambil(path) === nilai;
+        input.checked = terpilih;
+        if (terpilih) kartu.classList.add('terpilih');
+        input.addEventListener('change', function () {
+          if (opsi.ganda) {
+            var sekarang = (ambil(path) || []).filter(function (v) { return v !== nilai; });
+            if (input.checked) sekarang.push(nilai);
+            atur(path, sekarang);
+            kartu.classList.toggle('terpilih', input.checked);
+          } else {
+            atur(path, nilai);
+            Array.prototype.forEach.call(daftar.children, function (k) { k.classList.remove('terpilih'); });
+            kartu.classList.add('terpilih');
+          }
+          periksaIsian(path);
+          if (opsi.saatBerubah) opsi.saatBerubah();
+        });
+        var teks = el('span', 'fd-kartu-teks');
+        teks.appendChild(el('span', 'fd-kartu-judul', typeof o === 'string' ? o : o.label));
+        if (o.ket) teks.appendChild(el('span', 'fd-kartu-ket', o.ket));
+        kartu.appendChild(input);
+        kartu.appendChild(teks);
+        daftar.appendChild(kartu);
+      });
+      fs.appendChild(daftar);
+      fs.appendChild(b.galat);
+      b.w.appendChild(fs);
+      return b.w;
+    }
+
+    function fSetuju(path, teks, opsi) {
+      opsi = opsi || {};
+      var b = bungkus(path, '');
+      var kartu = el('label', 'fd-kartu fd-setuju' + (ambil(path) ? ' terpilih' : ''));
+      var input = el('input');
+      input.type = 'checkbox';
+      input.id = idAman(path);
+      input.checked = ambil(path) === true;
+      input.addEventListener('change', function () {
+        atur(path, input.checked);
+        kartu.classList.toggle('terpilih', input.checked);
+        periksaIsian(path);
+      });
+      terangkan(input, path, b);
+      var t = el('span', 'fd-kartu-teks');
+      t.appendChild(el('span', null, teks));
+      if (opsi.opsional) t.appendChild(el('span', 'fd-kartu-ket', 'Tidak wajib'));
+      kartu.appendChild(input);
+      kartu.appendChild(t);
+      b.w.appendChild(kartu);
+      b.w.appendChild(b.galat);
+      return b.w;
+    }
+
+    /* ---------- Validasi tampil ---------- */
+
+    function tampilkanGalat(path, pesan) {
+      var e = document.getElementById(idAman(path) + '-e');
+      var input = document.getElementById(idAman(path));
+      if (e) e.textContent = pesan || '';
+      if (input) {
+        if (pesan) input.setAttribute('aria-invalid', 'true');
+        else input.removeAttribute('aria-invalid');
+      }
+      var w = document.getElementById(idAman(path) + '-w');
+      if (w) w.classList.toggle('ada-galat', !!pesan);
+    }
+
+    function periksaIsian(path) {
+      var g = L.validasiLangkah(S.d, S.langkah);
+      if (g[path]) S.galat[path] = g[path];
+      else delete S.galat[path];
+      tampilkanGalat(path, g[path]);
+      if (path.indexOf('anak.') === 0) perbaruiKepalaBlok();
+    }
+
+    function tampilkanSemuaGalat() {
+      Object.keys(S.galat).forEach(function (k) { tampilkanGalat(k, S.galat[k]); });
+    }
+
+    function fokusGalatPertama(g) {
+      var urutan = Array.prototype.map.call(akar.querySelectorAll('[id$="-e"]'), function (e) { return e.id; });
+      for (var i = 0; i < urutan.length; i++) {
+        var key = Object.keys(g).filter(function (k) { return idAman(k) + '-e' === urutan[i]; })[0];
+        if (key) {
+          var input = document.getElementById(idAman(key));
+          if (input) {
+            input.focus();
+            if (input.scrollIntoView) input.scrollIntoView({ block: 'center' });
+          }
+          return;
+        }
+      }
+    }
+
+    /* ---------- Langkah ---------- */
+
+    function daftarLangkah() {
+      return L.langkah(S.d);
+    }
+
+    function isiLangkah(id) {
+      var d = S.d;
+      var f = el('div', 'fd-langkah-isi');
+      var siswaSendiri = d.daftar_sebagai === 'Siswa';
+      switch (id) {
+        case 'sebagai':
+          f.appendChild(fPilihan('daftar_sebagai', 'Saya mendaftar sebagai', [
+            { nilai: 'Siswa', label: 'Siswa', ket: 'Mendaftar untuk diri sendiri.' },
+            { nilai: 'Pendamping', label: 'Pendamping', ket: 'Orang tua atau guru pembina. Bisa sekaligus mendaftarkan anak atau siswa binaan.' }
+          ], { besar: true, saatBerubah: perbaruiKemajuan }));
+          break;
+        case 'diri':
+          f.appendChild(fTeks('nama', 'Nama Lengkap', { autocomplete: 'name', bantuan: 'Nama peserta yang akan hadir.', maxlength: L.BATAS.pendek }));
+          f.appendChild(fTeks('wa', 'Nomor WhatsApp', { type: 'tel', inputmode: 'tel', autocomplete: 'tel', bantuan: 'Contoh: 081234567890. Dipakai sebagai acuan data presensi.' }));
+          f.appendChild(fTeks('email', 'Alamat Email', { type: 'email', autocomplete: 'email', bantuan: 'Untuk pengiriman link Zoom dan informasi webinar.', maxlength: L.BATAS.pendek }));
+          f.appendChild(fTeks('kota', 'Asal Kota/Kabupaten', { autocomplete: 'address-level2', maxlength: L.BATAS.pendek }));
+          break;
+        case 'siswa':
+          f.appendChild(fKelas('kelas', 'Kelas'));
+          f.appendChild(fTeks('asal_sekolah', 'Asal Sekolah', { maxlength: L.BATAS.pendek }));
+          f.appendChild(fPilihan('bidang', 'Bidang OSN yang Dipersiapkan', L.OPSI.bidang, { bantuan: 'Bidang ini menentukan kelas simulasi yang kamu ikuti. Pilih satu saja.' }));
+          f.appendChild(fPilihan('pengalaman_osn', 'Pengalaman OSN Sebelumnya', L.OPSI.pengalaman_osn));
+          f.appendChild(fPilihan('siswa_genio', 'Apakah saat ini kamu siswa Genio?', L.OPSI.ya_tidak));
+          break;
+        case 'peran':
+          f.appendChild(fPilihan('peran', 'Peran Anda', L.OPSI.peran, { besar: true, saatBerubah: perbaruiKemajuan }));
+          break;
+        case 'guru':
+          f.appendChild(fTeks('sekolah_mengajar', 'Sekolah Tempat Mengajar', { maxlength: L.BATAS.pendek }));
+          f.appendChild(fPilihan('jenjang_dibina', 'Jenjang yang Dibina', L.OPSI.jenjang, { ganda: true, bantuan: 'Boleh pilih lebih dari satu.' }));
+          f.appendChild(fPilihan('bidang_dibina', 'Bidang OSN yang Dibina', L.OPSI.bidang, { ganda: true, bantuan: 'Boleh pilih lebih dari satu.' }));
+          break;
+        case 'jumlah':
+          f.appendChild(fPilihan('daftarkan', 'Apakah Anda ingin mendaftarkan putra/putri atau siswa binaan Anda?', L.OPSI.ya_tidak, {
+            bantuan: 'Tidak perlu mendaftarkan anak atau siswa yang sudah mendaftar sendiri.',
+            saatBerubah: function () { perbaruiKemajuan(); renderUlang(true); }
+          }));
+          if (d.daftarkan === 'Ya') {
+            f.appendChild(fTeks('jumlah', 'Jumlah yang didaftarkan', { type: 'number', inputmode: 'numeric', min: 1, bantuan: 'Jumlah ini bisa diubah lagi di langkah berikutnya.' }));
+          }
+          break;
+        case 'minat':
+          f.appendChild(fPilihan('minat_jenjang_anak', 'Jenjang Anak', L.OPSI.jenjang, { ganda: true, bantuan: 'Boleh pilih lebih dari satu.' }));
+          f.appendChild(fPilihan('minat_bidang_anak', 'Bidang OSN yang Dipersiapkan Anak', L.OPSI.bidang_minat, { ganda: true, bantuan: 'Boleh pilih lebih dari satu.' }));
+          f.appendChild(fPilihan('anak_siswa_genio', 'Apakah anak Anda saat ini siswa Genio?', L.OPSI.ya_tidak));
+          break;
+        case 'anak':
+          isiLangkahAnak(f);
+          break;
+        case 'penutup':
+          f.appendChild(fPilihan('sumber_info', 'Dari mana Anda mengetahui webinar ini?', L.OPSI.sumber_info, { ganda: true, bantuan: 'Boleh pilih lebih dari satu.' }));
+          f.appendChild(fTeks('pertanyaan_narsum', 'Pertanyaan untuk Mas Indro', { area: true, opsional: true, maxlength: L.BATAS.pertanyaan, bantuan: 'Pertanyaan yang masuk dibahas di sesi tanya jawab atau Sharing Session.' }));
+          f.appendChild(fSetuju('setuju_kehadiran', siswaSendiri
+            ? 'Saya mendaftar dengan sepengetahuan orang tua/wali, berkomitmen hadir dan mengikuti rangkaian webinar ini, serta bersedia nomor WhatsApp saya dimasukkan ke grup informasi peserta.'
+            : 'Saya berkomitmen hadir dan mengikuti rangkaian webinar ini, serta bersedia nomor WhatsApp saya dimasukkan ke grup informasi peserta.'));
+          if (L.jalur(d) === 'guru_daftar') {
+            f.appendChild(fSetuju('setuju_siswa_binaan', 'Saya menyatakan pendaftaran siswa binaan dilakukan dengan sepengetahuan orang tua/wali siswa.'));
+          }
+          f.appendChild(fSetuju('setuju_info_program', 'Saya bersedia menerima informasi program dari Genio Institute.', { opsional: true }));
+          break;
+        case 'ringkasan':
+          isiRingkasan(f);
+          break;
+      }
+      return f;
+    }
+
+    function sesuaikanJumlahAnak() {
+      var n = parseInt(S.d.jumlah, 10) || 0;
+      while (S.d.anak.length < n) S.d.anak.push(anakKosong());
+      if (S.d.anak.length > n) S.d.anak = S.d.anak.slice(0, n);
+      S.bukaAnak = 0;
+      simpanDraf();
+    }
+
+    function ringkasAnak(a) {
+      var bagian = [];
+      if (a.nama) bagian.push(a.nama);
+      var r = L.room(a.kelas, a.bidang);
+      if (r) bagian.push('Room ' + r);
+      return bagian.join(' · ') || 'Belum diisi';
+    }
+
+    function blokAdaGalat(i) {
+      var awal = 'anak.' + i + '.';
+      return Object.keys(S.galat).some(function (k) { return k.indexOf(awal) === 0; });
+    }
+
+    function perbaruiKepalaBlok() {
+      if (!akar || S.langkah !== 'anak') return;
+      S.d.anak.forEach(function (a, i) {
+        var sub = document.getElementById('fd-blok-sub-' + i);
+        if (sub) sub.textContent = ringkasAnak(a);
+        var tanda = document.getElementById('fd-blok-tanda-' + i);
+        if (tanda) tanda.hidden = !blokAdaGalat(i);
+      });
+    }
+
+    function isiLangkahAnak(f) {
+      var d = S.d;
+      var n = d.anak.length;
+      var galatUmum = el('p', 'fd-galat');
+      galatUmum.id = idAman('anak') + '-e';
+      galatUmum.textContent = S.galat.anak || '';
+      f.appendChild(galatUmum);
+
+      d.anak.forEach(function (a, i) {
+        var blok = el('section', 'fd-blok' + (S.bukaAnak === i ? ' terbuka' : ''));
+        var kepala = el('button', 'fd-blok-kepala');
+        kepala.type = 'button';
+        kepala.setAttribute('aria-expanded', S.bukaAnak === i ? 'true' : 'false');
+        var judul = el('span', 'fd-blok-judul', 'Siswa ' + (i + 1) + ' dari ' + n);
+        var sub = el('span', 'fd-blok-sub', ringkasAnak(a));
+        sub.id = 'fd-blok-sub-' + i;
+        var tanda = el('span', 'fd-blok-tanda', 'Perlu diperiksa');
+        tanda.id = 'fd-blok-tanda-' + i;
+        tanda.hidden = !blokAdaGalat(i);
+        var teks = el('span', 'fd-blok-teks');
+        teks.appendChild(judul);
+        teks.appendChild(sub);
+        kepala.appendChild(teks);
+        kepala.appendChild(tanda);
+        kepala.addEventListener('click', function () {
+          S.bukaAnak = S.bukaAnak === i ? -1 : i;
+          renderUlang();
+          var k = akar.querySelectorAll('.fd-blok-kepala')[i];
+          if (k) k.focus();
+        });
+        blok.appendChild(kepala);
+
+        if (S.bukaAnak === i) {
+          var isi = el('div', 'fd-blok-isi');
+          var p = 'anak.' + i + '.';
+          isi.appendChild(fTeks(p + 'nama', 'Nama Lengkap Siswa', { maxlength: L.BATAS.pendek }));
+          isi.appendChild(fTeks(p + 'wa', 'Nomor WhatsApp Siswa', { type: 'tel', inputmode: 'tel', opsional: true, bantuan: 'Kosongkan bila siswa tidak punya; informasi dikirim ke nomor pendamping.' }));
+          isi.appendChild(fKelas(p + 'kelas', 'Kelas'));
+          isi.appendChild(fTeks(p + 'asal_sekolah', 'Asal Sekolah', { maxlength: L.BATAS.pendek }));
+          isi.appendChild(fPilihan(p + 'bidang', 'Bidang OSN yang Dipersiapkan', L.OPSI.bidang, { bantuan: 'Bidang ini menentukan kelas simulasi yang diikuti siswa. Pilih satu saja.', saatBerubah: perbaruiKepalaBlok }));
+          isi.appendChild(fPilihan(p + 'pengalaman_osn', 'Pengalaman OSN Sebelumnya', L.OPSI.pengalaman_osn));
+          isi.appendChild(fPilihan(p + 'siswa_genio', 'Apakah siswa saat ini siswa Genio?', L.OPSI.ya_tidak));
+          isi.appendChild(fPilihan(p + 'perangkat', 'Perangkat yang dipakai siswa saat webinar', L.OPSI.perangkat, { bantuan: 'Sangat disarankan memakai perangkat sendiri, karena satu perangkat hanya bisa berada di satu room.' }));
+
+          var aksi = el('div', 'fd-blok-aksi');
+          if (i > 0) {
+            var salin = el('button', 'fd-tombol fd-tombol-teks', 'Salin sekolah dan bidang dari siswa sebelumnya');
+            salin.type = 'button';
+            salin.addEventListener('click', function () {
+              var sebelum = d.anak[i - 1];
+              a.asal_sekolah = sebelum.asal_sekolah;
+              a.bidang = sebelum.bidang;
+              simpanDraf();
+              renderUlang();
+            });
+            aksi.appendChild(salin);
+          }
+          if (n > 1) {
+            var hapus = el('button', 'fd-tombol fd-tombol-teks fd-tombol-hapus', 'Hapus siswa ini');
+            hapus.type = 'button';
+            duaKetukan(hapus, 'Ketuk lagi untuk menghapus ' + (a.nama || 'siswa ' + (i + 1)), function () {
+              d.anak.splice(i, 1);
+              d.jumlah = String(d.anak.length);
+              S.galat = {};
+              S.bukaAnak = Math.min(i, d.anak.length - 1);
+              simpanDraf();
+              renderUlang();
+            });
+            aksi.appendChild(hapus);
+          }
+          if (aksi.children.length) isi.appendChild(aksi);
+          blok.appendChild(isi);
+        }
+        f.appendChild(blok);
+      });
+
+      var tambah = el('button', 'fd-tombol fd-tombol-garis fd-tambah', 'Tambah siswa');
+      tambah.type = 'button';
+      tambah.addEventListener('click', function () {
+        d.anak.push(anakKosong());
+        d.jumlah = String(d.anak.length);
+        S.bukaAnak = d.anak.length - 1;
+        delete S.galat.anak;
+        simpanDraf();
+        renderUlang();
+        var baru = document.getElementById(idAman('anak.' + S.bukaAnak + '.nama'));
+        if (baru) baru.focus();
+      });
+      f.appendChild(tambah);
+    }
+
+    function baris(dl, label, nilai) {
+      dl.appendChild(el('dt', null, label));
+      dl.appendChild(el('dd', null, nilai == null || nilai === '' ? '-' : String(nilai)));
+    }
+
+    function teksDaftar(v) {
+      return Array.isArray(v) && v.length ? v.join(', ') : '-';
+    }
+
+    function grupRingkasan(f, judul, ke, isiFn) {
+      var g = el('section', 'fd-ringkas-grup');
+      var kepala = el('div', 'fd-ringkas-kepala');
+      kepala.appendChild(el('h3', null, judul));
+      var ubah = el('button', 'fd-tombol fd-tombol-teks', 'Ubah');
+      ubah.type = 'button';
+      ubah.setAttribute('aria-label', 'Ubah ' + judul.toLowerCase());
+      ubah.addEventListener('click', function () { keLangkah(ke); });
+      kepala.appendChild(ubah);
+      g.appendChild(kepala);
+      var dl = el('dl', 'fd-ringkas-dl');
+      isiFn(dl, g);
+      g.appendChild(dl);
+      f.appendChild(g);
+    }
+
+    function isiRingkasan(f) {
+      var d = S.d;
+      var r = L.rapikan(d);
+      f.appendChild(el('p', 'fd-bantuan', 'Periksa kembali data berikut. Ketuk "Ubah" untuk memperbaiki.'));
+
+      if (S.dupNama.length) {
+        var kotak = el('div', 'fd-kotak fd-kotak-peringatan');
+        kotak.setAttribute('role', 'alert');
+        kotak.appendChild(el('p', null, 'Siswa berikut sudah terdaftar: ' + S.dupNama.join(', ') + '. Hapus siswa tersebut dari daftar, lalu kirim lagi.'));
+        var ke = el('button', 'fd-tombol fd-tombol-garis', 'Buka data siswa');
+        ke.type = 'button';
+        ke.addEventListener('click', function () { keLangkah('anak'); });
+        kotak.appendChild(ke);
+        f.appendChild(kotak);
+      }
+
+      grupRingkasan(f, 'Data diri', 'diri', function (dl) {
+        baris(dl, 'Daftar sebagai', d.daftar_sebagai === 'Pendamping' ? 'Pendamping (' + (d.peran || '-') + ')' : 'Siswa');
+        baris(dl, 'Nama', r.nama);
+        baris(dl, 'WhatsApp', d.wa);
+        baris(dl, 'Email', r.email);
+        baris(dl, 'Kota', r.kota);
+      });
+      if (d.daftar_sebagai === 'Siswa') {
+        grupRingkasan(f, 'Data siswa', 'siswa', function (dl) {
+          baris(dl, 'Kelas', r.kelas ? 'Kelas ' + r.kelas + ' (' + L.kategoriDariKelas(r.kelas) + ')' : '');
+          baris(dl, 'Asal sekolah', r.asal_sekolah);
+          baris(dl, 'Bidang', r.bidang);
+          baris(dl, 'Room simulasi', L.room(r.kelas, r.bidang));
+          baris(dl, 'Pengalaman OSN', r.pengalaman_osn);
+          baris(dl, 'Siswa Genio', r.siswa_genio);
+        });
+      }
+      if (d.peran === 'Guru Pembina' && d.daftar_sebagai === 'Pendamping') {
+        grupRingkasan(f, 'Data guru pembina', 'guru', function (dl) {
+          baris(dl, 'Sekolah', r.sekolah_mengajar);
+          baris(dl, 'Jenjang dibina', teksDaftar(r.jenjang_dibina));
+          baris(dl, 'Bidang dibina', teksDaftar(r.bidang_dibina));
+        });
+      }
+      if (L.jalur(d) === 'ortu_tidak') {
+        grupRingkasan(f, 'Minat anak', 'minat', function (dl) {
+          baris(dl, 'Jenjang', teksDaftar(r.minat_jenjang_anak));
+          baris(dl, 'Bidang', teksDaftar(r.minat_bidang_anak));
+          baris(dl, 'Siswa Genio', r.anak_siswa_genio);
+        });
+      }
+      if (r.anak) {
+        grupRingkasan(f, 'Data siswa (' + r.anak.length + ')', 'anak', function (dl, g) {
+          var ol = el('ol', 'fd-ringkas-anak');
+          r.anak.forEach(function (a) {
+            var li = el('li');
+            li.appendChild(el('strong', null, a.nama || '-'));
+            li.appendChild(el('span', null, 'Kelas ' + (a.kelas || '-') + ' · Room ' + (L.room(a.kelas, a.bidang) || '-') + ' · ' + (a.perangkat || '-')));
+            if (S.dupNama.indexOf(a.nama) >= 0) li.appendChild(el('span', 'fd-tanda-dup', 'Sudah terdaftar'));
+            ol.appendChild(li);
+          });
+          g.appendChild(ol);
+        });
+      }
+      grupRingkasan(f, 'Penutup', 'penutup', function (dl) {
+        baris(dl, 'Sumber informasi', teksDaftar(r.sumber_info));
+        baris(dl, 'Pertanyaan', r.pertanyaan_narsum);
+        baris(dl, 'Persetujuan informasi program', r.setuju_info_program ? 'Ya' : 'Tidak');
+      });
+
+      // Isian jebakan untuk bot: tersembunyi dari pengguna dan pembaca layar.
+      var hp = el('div', 'fd-hp');
+      hp.setAttribute('aria-hidden', 'true');
+      var hpInput = el('input');
+      hpInput.type = 'text';
+      hpInput.id = 'fd-hp';
+      hpInput.tabIndex = -1;
+      hpInput.autocomplete = 'off';
+      hp.appendChild(hpInput);
+      f.appendChild(hp);
+
+      if (S.galatKirim) {
+        var kotakGalat = el('div', 'fd-kotak fd-kotak-galat');
+        kotakGalat.setAttribute('role', 'alert');
+        kotakGalat.appendChild(el('p', null, S.galatKirim));
+        var p = el('p');
+        p.appendChild(tautanNarahubung());
+        kotakGalat.appendChild(p);
+        f.appendChild(kotakGalat);
+      }
+    }
+
+    /* ---------- Navigasi ---------- */
+
+    function keLangkah(id) {
+      S.langkah = id;
+      S.galatKirim = '';
+      simpanDraf();
+      renderUlang();
+      fokusJudul();
+    }
+
+    function fokusJudul() {
+      var h = document.getElementById('fd-judul-langkah');
+      if (h) h.focus();
+      var isi = akar.querySelector('.fd-isi');
+      if (isi) isi.scrollTop = 0;
+    }
+
+    function lanjut() {
+      var id = S.langkah;
+      if (id === 'ringkasan') return kirim();
+      var g = L.validasiLangkah(S.d, id);
+      S.galat = g;
+      if (Object.keys(g).length) {
+        if (id === 'anak') {
+          var blok = Object.keys(g).map(function (k) { var m = k.match(/^anak\.(\d+)\./); return m ? +m[1] : -1; }).filter(function (x) { return x >= 0; });
+          if (blok.length) S.bukaAnak = Math.min.apply(null, blok);
+          renderUlang();
+        }
+        tampilkanSemuaGalat();
+        fokusGalatPertama(g);
+        return;
+      }
+      if (id === 'jumlah' && S.d.daftarkan === 'Ya') sesuaikanJumlahAnak();
+      var l = daftarLangkah();
+      keLangkah(l[Math.min(l.indexOf(id) + 1, l.length - 1)]);
+    }
+
+    function kembali() {
+      var l = daftarLangkah();
+      var i = l.indexOf(S.langkah);
+      S.galat = {};
+      if (i > 0) keLangkah(l[i - 1]);
+    }
+
+    function langkahDenganGalat(g) {
+      var l = daftarLangkah();
+      for (var i = 0; i < l.length; i++) {
+        var gl = L.validasiLangkah(S.d, l[i]);
+        if (Object.keys(gl).some(function (k) { return g[k]; })) return l[i];
+      }
+      return null;
+    }
+
+    function kirim() {
+      if (S.sedangKirim) return;
+      var g = L.validasiSemua(S.d);
+      if (Object.keys(g).length) {
+        var ke = langkahDenganGalat(g) || 'sebagai';
+        keLangkah(ke);
+        S.galat = L.validasiLangkah(S.d, ke);
+        tampilkanSemuaGalat();
+        fokusGalatPertama(S.galat);
+        return;
+      }
+      if (!window.google || !google.script || !google.script.run) {
+        S.galatKirim = 'Pengiriman hanya bisa dilakukan dari halaman webinar yang dibuka lewat Apps Script.';
+        renderUlang();
+        return;
+      }
+      var hpInput = document.getElementById('fd-hp');
+      var param = (window.DATA_AWAL && window.DATA_AWAL.param) || {};
+      var kiriman = L.rapikan(S.d);
+      kiriman.kode_kiriman = S.d.kode_kiriman;
+      kiriman.durasi_ms = Date.now() - S.d.mulai;
+      kiriman.hp = hpInput ? hpInput.value : '';
+      kiriman.sumber_link = param.ref || param.utm_source || '';
+
+      S.sedangKirim = true;
+      S.galatKirim = '';
+      perbaruiKaki();
+      google.script.run
+        .withSuccessHandler(terimaHasil)
+        .withFailureHandler(function () {
+          S.sedangKirim = false;
+          S.galatKirim = PESAN_PUTUS;
+          renderUlang();
+        })
+        .submitDaftar(kiriman);
+    }
+
+    function terimaHasil(res) {
+      S.sedangKirim = false;
+      if (res && res.ok) {
+        S.hasil = res.data;
+        S.mode = 'berhasil';
+        hapusDraf();
+        renderUlang();
+        fokusJudul();
+        return;
+      }
+      var e = (res && res.error) || {};
+      S.dupNama = e.nama || [];
+      if (e.code === 'VALIDASI' && e.kolom) {
+        var ke = langkahDenganGalat(e.kolom);
+        if (ke) {
+          keLangkah(ke);
+          S.galat = e.kolom;
+          tampilkanSemuaGalat();
+          fokusGalatPertama(e.kolom);
+          return;
+        }
+      }
+      S.galatKirim = e.message || PESAN_PUTUS;
+      renderUlang();
+      var kotak = akar.querySelector('.fd-kotak');
+      if (kotak && kotak.scrollIntoView) kotak.scrollIntoView({ block: 'center' });
+    }
+
+    function mulaiUlang() {
+      hapusDraf();
+      S = stateBaru(dataKosong());
+      renderUlang();
+      fokusJudul();
+    }
+
+    /* ---------- Render ---------- */
+
+    function perbaruiKemajuan() {
+      var l = daftarLangkah();
+      var i = Math.max(0, l.indexOf(S.langkah));
+      var label = document.getElementById('fd-penanda');
+      var bar = document.getElementById('fd-bar');
+      if (label) label.textContent = 'Langkah ' + (i + 1) + ' dari ' + l.length;
+      if (bar) bar.style.width = Math.round(((i + 1) / l.length) * 100) + '%';
+    }
+
+    function perbaruiKaki() {
+      var kaki = akar.querySelector('.fd-kaki');
+      kaki.innerHTML = '';
+      if (S.mode !== 'form') {
+        var tutupBtn = el('button', 'fd-tombol fd-tombol-garis fd-lebar', 'Tutup');
+        tutupBtn.type = 'button';
+        tutupBtn.addEventListener('click', tutup);
+        kaki.appendChild(tutupBtn);
+        return;
+      }
+      var l = daftarLangkah();
+      var i = l.indexOf(S.langkah);
+      if (i > 0) {
+        var kembaliBtn = el('button', 'fd-tombol fd-tombol-garis', 'Kembali');
+        kembaliBtn.type = 'button';
+        kembaliBtn.disabled = S.sedangKirim;
+        kembaliBtn.addEventListener('click', kembali);
+        kaki.appendChild(kembaliBtn);
+      }
+      var akhir = S.langkah === 'ringkasan';
+      var teks = akhir ? (S.sedangKirim ? 'Menyimpan pendaftaran…' : S.galatKirim ? 'Coba kirim lagi' : 'Kirim Pendaftaran') : 'Lanjut';
+      var lanjutBtn = el('button', 'fd-tombol fd-tombol-utama', teks);
+      lanjutBtn.type = 'button';
+      lanjutBtn.disabled = S.sedangKirim;
+      lanjutBtn.addEventListener('click', lanjut);
+      kaki.appendChild(lanjutBtn);
+    }
+
+    function renderTertutup(isi) {
+      var c = config();
+      var belum = c && c.fase === 'belum_buka';
+      var judul = !c ? 'Form belum bisa dimuat' : belum ? 'Form ini belum dibuka' : 'Form ini sudah ditutup';
+      var h = el('h2', 'fd-judul-langkah', judul);
+      h.id = 'fd-judul-langkah';
+      h.tabIndex = -1;
+      isi.appendChild(h);
+      isi.appendChild(el('p', null, !c
+        ? 'Status pendaftaran belum terbaca. Muat ulang halaman, atau hubungi narahubung bila masih gagal.'
+        : belum
+          ? 'Pendaftaran dibuka sesuai jadwal. Silakan kembali lagi nanti.'
+          : 'Pendaftaran webinar sudah ditutup. Sudah daftar tapi belum masuk grup?'));
+      var p = el('p');
+      p.appendChild(tautanNarahubung());
+      isi.appendChild(p);
+    }
+
+    function renderBerhasil(isi) {
+      var h = S.hasil;
+      var judul = el('h2', 'fd-judul-langkah', 'Pendaftaran berhasil');
+      judul.id = 'fd-judul-langkah';
+      judul.tabIndex = -1;
+      isi.appendChild(judul);
+      if (h.tambahan) isi.appendChild(el('p', null, 'Siswa baru sudah ditambahkan ke pendaftaran Anda sebelumnya.'));
+
+      var kotakId = el('div', 'fd-kotak-id');
+      kotakId.appendChild(el('span', null, 'ID Pendaftaran'));
+      kotakId.appendChild(el('strong', null, h.id_pendaftaran));
+      isi.appendChild(kotakId);
+
+      var ul = el('ul', 'fd-daftar-peserta');
+      (h.peserta || []).forEach(function (p) {
+        var li = el('li');
+        li.appendChild(el('strong', null, p.nama));
+        li.appendChild(el('span', null, p.kategori + (p.room ? ' · Room ' + p.room : '')));
+        ul.appendChild(li);
+      });
+      isi.appendChild(ul);
+
+      var berbagi = (h.peserta || []).some(function (p) { return p.perangkat && p.perangkat !== 'Perangkat sendiri'; });
+      if (berbagi) {
+        isi.appendChild(el('p', 'fd-kotak fd-kotak-peringatan', 'Ada siswa yang berbagi perangkat. Satu perangkat hanya bisa masuk satu room, jadi siapkan perangkat terpisah bila room-nya berbeda.'));
+      }
+
+      var aksi = el('div', 'fd-aksi-berhasil');
+      if (h.link_grup_wa) {
+        aksi.appendChild(tautanLuar('Gabung Grup WhatsApp Peserta', h.link_grup_wa, 'fd-tombol fd-tombol-utama fd-lebar'));
+      } else {
+        var p = el('p', 'fd-bantuan', 'Link grup WhatsApp peserta akan dikirim panitia. ');
+        p.appendChild(tautanNarahubung());
+        aksi.appendChild(p);
+      }
+      aksi.appendChild(tautanLuar('Tambahkan ke Google Calendar', URL_KALENDER, 'fd-tombol fd-tombol-garis fd-lebar'));
+      isi.appendChild(aksi);
+      isi.appendChild(el('p', 'fd-bantuan', 'Simpan tangkapan layar halaman ini sebagai bukti pendaftaran.'));
+    }
+
+    function renderUlang(jagaFokus) {
+      var idFokus = jagaFokus && document.activeElement ? document.activeElement.id : null;
+      var isi = akar.querySelector('.fd-isi-dalam');
+      isi.innerHTML = '';
+      var kemajuan = akar.querySelector('.fd-kemajuan-wadah');
+      var mulaiUlangBtn = akar.querySelector('.fd-mulai-ulang');
+      kemajuan.hidden = S.mode !== 'form';
+      mulaiUlangBtn.hidden = S.mode !== 'form';
+
+      if (S.mode === 'tertutup') renderTertutup(isi);
+      else if (S.mode === 'berhasil') renderBerhasil(isi);
+      else {
+        var h = el('h2', 'fd-judul-langkah', L.JUDUL_LANGKAH[S.langkah]);
+        h.id = 'fd-judul-langkah';
+        h.tabIndex = -1;
+        isi.appendChild(h);
+        isi.appendChild(isiLangkah(S.langkah));
+        perbaruiKemajuan();
+        tampilkanSemuaGalat();
+      }
+      perbaruiKaki();
+      if (idFokus) {
+        var f = document.getElementById(idFokus);
+        if (f) f.focus();
+      }
+    }
+
+    function bangunKerangka() {
+      akar = el('div', 'fd');
+      akar.setAttribute('role', 'dialog');
+      akar.setAttribute('aria-modal', 'true');
+      akar.setAttribute('aria-label', 'Form pendaftaran webinar');
+      akar.hidden = true;
+
+      var kepala = el('div', 'fd-kepala');
+      var baris1 = el('div', 'fd-wadah fd-kepala-baris');
+      var tutupBtn = el('button', 'fd-tutup');
+      tutupBtn.type = 'button';
+      tutupBtn.setAttribute('aria-label', 'Tutup form');
+      tutupBtn.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>';
+      tutupBtn.addEventListener('click', tutup);
+      var judul = el('div', 'fd-kepala-judul', 'Pendaftaran');
+      var mulaiUlangBtn = el('button', 'fd-tombol fd-tombol-teks fd-mulai-ulang', 'Mulai ulang');
+      mulaiUlangBtn.type = 'button';
+      duaKetukan(mulaiUlangBtn, 'Ketuk lagi untuk menghapus isian', mulaiUlang);
+      baris1.appendChild(tutupBtn);
+      baris1.appendChild(judul);
+      baris1.appendChild(mulaiUlangBtn);
+      kepala.appendChild(baris1);
+
+      var kemajuan = el('div', 'fd-wadah fd-kemajuan-wadah');
+      var penanda = el('p', 'fd-penanda');
+      penanda.id = 'fd-penanda';
+      penanda.setAttribute('aria-live', 'polite');
+      var jalur = el('div', 'fd-kemajuan');
+      var bar = el('span');
+      bar.id = 'fd-bar';
+      jalur.appendChild(bar);
+      kemajuan.appendChild(penanda);
+      kemajuan.appendChild(jalur);
+      kepala.appendChild(kemajuan);
+
+      var isi = el('div', 'fd-isi');
+      var dalam = el('div', 'fd-wadah fd-isi-dalam');
+      isi.appendChild(dalam);
+
+      var kakiLuar = el('div', 'fd-kaki-luar');
+      var kaki = el('div', 'fd-wadah fd-kaki');
+      kakiLuar.appendChild(kaki);
+
+      akar.appendChild(kepala);
+      akar.appendChild(isi);
+      akar.appendChild(kakiLuar);
+      akar.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') tutup();
+      });
+      document.body.appendChild(akar);
+    }
+
+    function buka() {
+      if (!akar) bangunKerangka();
+      pemicu = document.activeElement;
+      var c = config();
+      if (!S || S.mode === 'berhasil') {
+        var draf = muatDraf();
+        S = draf ? stateBaru(draf.d, draf.langkah) : stateBaru(dataKosong());
+        if (L.langkah(S.d).indexOf(S.langkah) < 0) S.langkah = 'sebagai';
+      }
+      S.mode = c && c.fase === 'daftar' ? 'form' : 'tertutup';
+      akar.hidden = false;
+      document.documentElement.classList.add('fd-terbuka');
+      renderUlang();
+      fokusJudul();
+    }
+
+    function tutup() {
+      if (!akar) return;
+      akar.hidden = true;
+      document.documentElement.classList.remove('fd-terbuka');
+      if (S && S.mode === 'berhasil') S = null;
+      if (pemicu && pemicu.focus) pemicu.focus();
+    }
+
+    return { buka: buka, tutup: tutup };
+  })();
+</script>

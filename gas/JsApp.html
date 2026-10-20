@@ -136,10 +136,7 @@
         info.appendChild(buat('strong', 'Gratis'));
         info.appendChild(buat('span', teksSisaHari(config.sisa_hari) || 'Bonus Materi Kelas OSN'));
         aksi = tombol('Daftar Webinar Gratis', true);
-        aksi.addEventListener('click', function () {
-          el('hasil-cek').textContent = 'Form pendaftaran dibuat di Fase 2.';
-          el('hasil-cek').scrollIntoView({ block: 'center' });
-        });
+        aksi.addEventListener('click', function () { FormDaftar.buka(); });
       } else {
         info.appendChild(buat('strong', 'Pendaftaran Ditutup'));
         var kecil = buat('span', 'Sudah daftar tapi belum masuk grup? ');
@@ -164,6 +161,7 @@
         .withSuccessHandler(function (res) {
           if (res && res.ok) {
             config = res.data;
+            window.APP_CONFIG = config;
             renderStatus();
             renderBilah();
             hasil.textContent = 'Berhasil diperbarui pada ' + formatWib(config.jam_server, true) + '.';
@@ -177,11 +175,13 @@
         .getConfig();
     }
 
+    window.APP_CONFIG = config;
     renderStatus();
     renderKonten();
     renderTautan();
     renderPengisi();
     renderBilah();
     el('tombol-cek').addEventListener('click', cekUlang);
+    if (data.param && data.param.form === 'daftar') FormDaftar.buka();
   })();
 </script>

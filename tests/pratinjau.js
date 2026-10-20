@@ -1,10 +1,12 @@
 // Membuat pratinjau statis Index.html dengan data contoh, tanpa Apps Script.
-// Pakai: node tests/pratinjau.js [daftar|belum_buka|tutup|galat] > pratinjau.html
+// Pakai: node tests/pratinjau.js [daftar|belum_buka|tutup|galat] [form] > pratinjau.html
+// Argumen kedua "form" membuka form pendaftaran langsung (seperti ?form=daftar).
 const fs = require('fs');
 const path = require('path');
 const muatGas = require('./muat-gas');
 
 const g = muatGas(['Util.gs', 'Config.gs', 'Konten.gs', 'Setup.gs', 'DataContoh.gs']);
+const param = process.argv[3] === 'form' ? { form: 'daftar' } : {};
 const fase = process.argv[2] || 'daftar';
 const dir = path.join(__dirname, '..', 'gas');
 const baca = (n) => fs.readFileSync(path.join(dir, n + '.html'), 'utf8');
@@ -33,7 +35,7 @@ const konten = {
   cabang: daftar.Cabang, prestasi: daftar.Prestasi, testimoni: daftar.Testimoni, faq: daftar.FAQ,
   ada_contoh: true
 };
-const dataAwal = fase === 'galat' ? { config: null, konten: null } : { config, konten };
+const dataAwal = fase === 'galat' ? { config: null, konten: null, param } : { config, konten, param };
 
 const html = baca('Index')
   .replace(/<\?!= include\('(\w+)'\) \?>/g, (_, n) => baca(n))

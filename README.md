@@ -14,6 +14,7 @@ Apps Script tidak bisa dijalankan lokal. Logika murni (fase, normalisasi WA, pen
 ```bash
 npm test
 npm run pratinjau   # membuat pratinjau.html dari Index.html dengan data contoh
+npm run e2e         # form pendaftaran diisi di Chromium, submitDaftar asli dengan spreadsheet tiruan
 ```
 
 ## Status
@@ -21,7 +22,7 @@ npm run pratinjau   # membuat pratinjau.html dari Index.html dengan data contoh
 | Fase | Isi | Status |
 |---|---|---|
 | 1 | Fondasi dan uji embed | Kode selesai (mode standalone), menunggu langkah manual di `docs/catatan-deploy.md` |
-| 2 | Form pendaftaran | Belum |
+| 2 | Form pendaftaran | Kode selesai, U1-U8 dan U27-U30 lolos di uji lokal; menunggu uji di ponsel |
 | 3 | Halaman utama Rilis 1 | Belum |
 | 4 | Panel admin pendaftaran | Belum |
 | 5 | Konten Rilis 2 | Belum |

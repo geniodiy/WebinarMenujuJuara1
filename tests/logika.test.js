@@ -2,7 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert');
 const muatGas = require('./muat-gas');
 
-const g = muatGas(['Util.gs', 'Config.gs', 'Konten.gs', 'Setup.gs', 'DataContoh.gs']);
+const g = muatGas(['Util.gs', 'Config.gs', 'Konten.gs', 'Setup.gs', 'DataContoh.gs', 'Pendaftaran.gs']);
 const wib = (s) => g.parseWaktuWib_(s);
 
 test('normalisasi nomor WA (U5)', () => {
