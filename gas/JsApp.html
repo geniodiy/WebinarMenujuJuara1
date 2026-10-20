@@ -222,12 +222,11 @@
         li.appendChild(el('span', 'agenda-nomor', String(i + 1)));
         var isi = el('div', 'agenda-isi');
         var meta = el('div', 'agenda-meta');
+        if (a.sasaran) meta.appendChild(el('span', kelasSasaran(a.sasaran), a.sasaran));
         if (a.jam) meta.appendChild(el('span', 'label-jam', a.jam));
         if (a.contoh) meta.appendChild(labelContoh());
         if (meta.children.length) isi.appendChild(meta);
-        var judul = el('h3', null, a.judul);
-        if (a.sasaran) judul.appendChild(el('span', kelasSasaran(a.sasaran), a.sasaran));
-        isi.appendChild(judul);
+        isi.appendChild(el('h3', null, a.judul));
         if (a.deskripsi) isi.appendChild(el('p', null, a.deskripsi));
         li.appendChild(isi);
         ol.appendChild(li);

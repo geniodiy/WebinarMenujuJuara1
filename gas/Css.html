@@ -143,11 +143,13 @@
   .agenda-isi { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
   .agenda-isi h3 { font-size: 15px; font-weight: 600; line-height: 1.45; }
   .agenda-isi p { font-size: 14px; }
-  .agenda-meta { display: flex; flex-wrap: wrap; gap: 6px; }
-  /* Label sasaran sebaris setelah judul, warnanya mengikuti gradien di poster. */
-  .label-sasaran { display: inline-block; vertical-align: 2px; margin-left: 6px; padding: 1px 8px; border-radius: 5px; font-size: 10.5px; font-weight: 700; line-height: 1.6; color: #fff; white-space: nowrap; background: linear-gradient(90deg, var(--indigo), var(--cyan)); }
+  .agenda-meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  /* Label sasaran di atas judul, warnanya mengikuti gradien di poster; berdetak selama nomornya menyala. */
+  .label-sasaran { display: inline-block; padding: 1px 9px; border-radius: 5px; font-size: 10.5px; font-weight: 700; line-height: 1.6; color: #fff; white-space: nowrap; background: linear-gradient(90deg, var(--indigo), var(--cyan)); }
   .label-sasaran.siswa { background: linear-gradient(90deg, var(--cyan), var(--teal)); }
   .label-sasaran.ortu { background: linear-gradient(90deg, var(--coral), var(--gold)); }
+  .agenda-nomor.aktif + .agenda-isi .label-sasaran { animation: detakLabel 1.6s ease-in-out .3s infinite; }
+  @keyframes detakLabel { 0%, 40%, 100% { transform: scale(1); } 12% { transform: scale(1.14); } 26% { transform: scale(1.06); } }
   .label-jam { font-size: 12px; font-weight: 600; color: var(--redup); padding: 2px 0; }
 
   .daftar-narasumber { display: grid; gap: 20px; }
