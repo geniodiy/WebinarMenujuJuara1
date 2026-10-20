@@ -351,10 +351,11 @@
   /* Form tampil sebagai popup yang naik dari bawah; halaman di belakangnya tetap terlihat di atas popup. */
   .fd-latar { position: fixed; inset: 0; z-index: 99; background: rgba(20, 24, 50, .5); animation: pudarMasuk .25s ease-out; }
   .fd {
-    position: fixed; left: 0; right: 0; bottom: 0; z-index: 100;
-    width: 100%; max-width: 600px; max-height: 88vh; max-height: 88dvh; margin: 0 auto;
+    /* Melayang seperti bilah Daftar: berjarak 12px dari kiri, kanan, dan bawah layar. */
+    position: fixed; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 100;
+    max-width: 600px; max-height: calc(88vh - 12px); max-height: calc(88dvh - 12px); margin: 0 auto;
     display: flex; flex-direction: column; overflow: hidden;
-    border-radius: 20px 20px 0 0; background: var(--latar); color: var(--item);
+    border-radius: var(--radius); background: var(--latar); color: var(--item);
     box-shadow: 0 -8px 30px rgba(20, 24, 50, .18);
     animation: naikBawah .35s cubic-bezier(.2, .8, .3, 1);
   }
@@ -367,7 +368,7 @@
 
   .fd-kepala { border-bottom: 1px solid var(--garis); background: var(--latar); }
   .fd-kepala-baris { display: flex; align-items: center; gap: 8px; min-height: 48px; }
-  .fd-kepala-judul { flex: 1; min-width: 0; font-weight: 700; color: var(--indigo); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .fd-kepala-judul { flex: 1; min-width: 0; font-weight: 700; color: var(--item); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .fd-tutup {
     width: 44px; height: 44px; margin-left: -10px; border: 0; border-radius: 12px;
     background: none; color: var(--item); display: flex; align-items: center; justify-content: center; cursor: pointer;
@@ -380,10 +381,10 @@
   .fd-isi { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
   .fd-isi-dalam { padding-top: 16px; padding-bottom: 24px; }
   /* Ukuran huruf form mengikuti halaman utama: judul 17px, isi 14px. */
-  .fd-judul-langkah { font-size: 17px; font-weight: 700; color: var(--indigo); margin: 0 0 14px; outline: none; }
+  .fd-judul-langkah { font-size: 17px; font-weight: 700; color: var(--item); margin: 0 0 14px; outline: none; }
   .fd-langkah-isi { display: flex; flex-direction: column; gap: 16px; }
 
-  .fd-kaki-luar { border-top: 1px solid var(--garis); background: var(--latar); padding-bottom: env(safe-area-inset-bottom); }
+  .fd-kaki-luar { border-top: 1px solid var(--garis); background: var(--latar); }
   .fd-kaki { display: flex; gap: 10px; padding-top: 10px; padding-bottom: 10px; }
   .fd-kaki .fd-tombol-utama { flex: 1; }
 
@@ -418,7 +419,7 @@
   .fd-kartu-judul { font-weight: 500; }
   .fd-kartu-ket { font-size: 12px; color: var(--redup); }
   .fd-pilihan-besar .fd-kartu { padding: 14px 14px; }
-  .fd-pilihan-besar .fd-kartu-judul { font-size: 15px; font-weight: 600; color: var(--indigo); }
+  .fd-pilihan-besar .fd-kartu-judul { font-size: 15px; font-weight: 600; color: var(--item); }
   .fd-setuju { font-size: 13px; }
 
   .fd-tombol {
@@ -429,12 +430,14 @@
   }
   /* Tombol utama form senada dengan tombol Daftar: gradien oranye ke kuning, tulisan putih. */
   .fd-tombol-utama { background: linear-gradient(90deg, var(--coral), var(--gold)); color: #fff; text-shadow: 0 1px 2px rgba(150, 60, 20, .35); }
-  .fd-tombol-garis { border-color: var(--indigo); background: var(--latar); }
+  /* Tombol garis seperti kartu Pukul: garis gelap tipis, huruf tidak tebal. */
+  .fd-tombol-garis { border: 1.5px solid rgba(84, 86, 59, .55); border-radius: 14px; background: var(--latar); color: var(--item); font-weight: 400; }
   .fd-tombol-teks { min-height: 44px; padding: 6px 8px; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
   .fd-tombol-hapus { color: #B42318; }
   .fd-tombol[disabled] { opacity: .65; cursor: progress; }
   .fd-lebar { width: 100%; }
-  .fd-mulai-ulang { font-size: 13px; flex-shrink: 0; }
+  /* Mulai ulang: pil gelap bertulisan putih. */
+  .fd-tombol.fd-mulai-ulang { flex-shrink: 0; min-height: 30px; padding: 4px 14px; border: 0; border-radius: 999px; background: var(--item); color: #fff; font-size: 12px; font-weight: 600; text-decoration: none; }
 
   .fd-blok { border: 1.5px solid var(--garis); border-radius: 14px; overflow: hidden; }
   .fd-blok.terbuka { border-color: var(--indigo); }
@@ -444,7 +447,7 @@
     font: inherit; text-align: left; color: var(--item); cursor: pointer;
   }
   .fd-blok-teks { display: flex; flex-direction: column; min-width: 0; }
-  .fd-blok-judul { font-weight: 600; color: var(--indigo); }
+  .fd-blok-judul { font-weight: 600; color: var(--item); }
   .fd-blok-sub { font-size: 13px; color: var(--redup); overflow-wrap: anywhere; }
   .fd-blok-tanda { flex-shrink: 0; font-size: 12px; font-weight: 700; color: #B42318; background: #FDECEA; padding: 2px 8px; border-radius: 6px; }
   .fd-blok-isi { padding: 14px 12px; display: flex; flex-direction: column; gap: 16px; }
