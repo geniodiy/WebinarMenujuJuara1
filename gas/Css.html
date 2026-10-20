@@ -306,13 +306,13 @@
   }
 
   @media (min-width: 640px) {
-    /* Desktop: kartu prestasi melayang menimpa sisi kanan kotak biru. */
-    .narasumber { width: 540px; max-width: 100%; margin: 0; }
-    .narasumber-figur { width: 340px; }
+    /* Desktop: foto dan kartu prestasi sebagai satu kelompok di tengah; kartu menimpa sisi kanan foto dan sejajar dasar foto. */
+    .narasumber { display: grid; grid-template-columns: 340px auto; align-items: end; width: fit-content; max-width: 100%; margin: 0 auto; }
     .narasumber-figur:not(:last-child) .narasumber-papan { bottom: 0; }
     .narasumber-figur .narasumber-papan h3 { font-size: 19px; }
     .narasumber-figur .narasumber-papan .jabatan { font-size: 13px; }
-    .narasumber-figur + .narasumber-teks { position: absolute; left: 282px; top: 96px; width: 230px; margin: 0; }
+    .narasumber-figur + .narasumber-teks { margin: 0 0 0 -50px; min-width: 240px; }
+    .prestasi-ajang { white-space: nowrap; }
     .prestasi-sorot { gap: 10px; padding: 18px 16px; }
     .prestasi-ikon { width: 56px; height: 62px; }
     /* Lencana bertumpuk dibuat sama lebar supaya rapi. */
