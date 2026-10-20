@@ -358,13 +358,9 @@
     border-radius: var(--radius); background: var(--latar); color: var(--item);
     box-shadow: 0 -8px 30px rgba(20, 24, 50, .18);
     animation: naikBawah .35s cubic-bezier(.2, .8, .3, 1);
+    transition: bottom .2s ease, max-height .2s ease;
   }
   .fd[hidden], .fd-latar[hidden] { display: none; }
-  /* Mode mengetik di ponsel: popup direntangkan dari atas agar isian aktif tetap di atas keyboard. */
-  .fd.fd-mengetik { top: 12px; max-height: none; }
-  .fd.fd-mengetik::before { display: none; }
-  /* Ruang ekstra di bawah agar isian paling akhir pun bisa digulir ke atas. */
-  .fd.fd-mengetik .fd-isi-dalam { padding-bottom: 60vh; }
   /* Pegangan kecil di atas sebagai tanda popup. */
   .fd::before { content: ""; display: block; flex-shrink: 0; width: 40px; height: 4px; margin: 8px auto 0; border-radius: 2px; background: #C9D3DC; }
   @keyframes naikBawah { from { transform: translateY(100%); } to { transform: none; } }
@@ -434,7 +430,7 @@
     border: 2px solid transparent; background: none; color: var(--indigo);
   }
   /* Tombol utama form senada dengan tombol Daftar: gradien oranye ke kuning, tulisan putih. */
-  .fd-tombol-utama { background: linear-gradient(90deg, var(--coral), var(--gold)); color: #fff; text-shadow: 0 1px 2px rgba(150, 60, 20, .35); }
+  .fd-tombol-utama { background: linear-gradient(90deg, var(--coral), var(--gold)) border-box; color: #fff; text-shadow: 0 1px 2px rgba(150, 60, 20, .35); }
   /* Tombol garis seperti kartu Pukul: garis gelap tipis, huruf tidak tebal. */
   .fd-tombol-garis { border: 1.5px solid rgba(84, 86, 59, .55); border-radius: 14px; background: var(--latar); color: var(--item); font-weight: 400; }
   .fd-tombol-teks { min-height: 44px; padding: 6px 8px; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }

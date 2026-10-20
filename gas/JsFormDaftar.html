@@ -961,11 +961,14 @@
       document.body.appendChild(akar);
     }
 
-    /* Saat mengetik di ponsel, keyboard menutup bagian bawah layar. Halaman berjalan di dalam iframe Apps Script,
-       sehingga tinggi keyboard tidak bisa dibaca dengan andal. Jalan keluarnya: popup direntangkan dari atas layar
-       dan isian yang disentuh digulir ke bagian atas popup, yang selalu berada di atas keyboard. */
+    /* Saat mengetik di ponsel: bila kolom yang disentuh akan tertutup keyboard, seluruh popup (termasuk tombol
+       di bawahnya) diangkat sehingga duduk tepat di atas keyboard, lalu kolom digulir agar terlihat. Bila kolom
+       tidak tertutup, tidak ada yang berubah. Saat keyboard hilang atau kolom ditinggalkan, popup kembali semula.
+       Halaman berjalan di dalam iframe Apps Script, sehingga tinggi keyboard sering tidak bisa dibaca; bila begitu
+       dipakai perkiraan tinggi keyboard ponsel pada umumnya. */
     var ponsel = window.matchMedia ? window.matchMedia('(pointer: coarse)') : null;
     var jedaKetik = null;
+    var terangkat = false;
 
     function bisaDiketik(t) {
       if (!t || !t.tagName) return false;
@@ -973,26 +976,61 @@
       return t.tagName === 'INPUT' && !/^(radio|checkbox|button|submit|hidden)$/i.test(t.type);
     }
 
-    function gulirKeAtas(isi, t) {
-      var sasaran = t.closest('.fd-isian') || t;
-      isi.scrollTop += sasaran.getBoundingClientRect().top - isi.getBoundingClientRect().top - 12;
+    function tinggiKeyboard() {
+      var vv = window.visualViewport;
+      if (vv) {
+        var terukur = window.innerHeight - vv.height - vv.offsetTop;
+        if (terukur > 120) return terukur;
+      }
+      // KEPUTUSAN: perkiraan keyboard ponsel sekitar 42% tinggi layar tegak, 55% saat mendatar.
+      return Math.round(window.innerHeight * (window.innerHeight > window.innerWidth ? 0.42 : 0.55));
+    }
+
+    function pastikanTerlihat(isi, t) {
+      var r = t.getBoundingClientRect();
+      var ri = isi.getBoundingClientRect();
+      if (r.bottom > ri.bottom - 12) isi.scrollTop += r.bottom - ri.bottom + 12;
+      else if (r.top < ri.top + 12) isi.scrollTop -= ri.top + 12 - r.top;
+    }
+
+    function angkatPopup(isi, t) {
+      var kb = tinggiKeyboard();
+      var batas = window.innerHeight - kb - 8;
+      if (!terangkat && t.getBoundingClientRect().bottom <= batas) return;
+      terangkat = true;
+      akar.style.bottom = (kb + 8) + 'px';
+      akar.style.maxHeight = Math.max(200, window.innerHeight - kb - 20) + 'px';
+      pastikanTerlihat(isi, t);
+    }
+
+    function turunkanPopup() {
+      if (!terangkat) return;
+      terangkat = false;
+      akar.style.bottom = '';
+      akar.style.maxHeight = '';
     }
 
     function siapkanModeKetik(isi) {
       akar.addEventListener('focusin', function (e) {
         if (!ponsel || !ponsel.matches || !bisaDiketik(e.target)) return;
         clearTimeout(jedaKetik);
-        akar.classList.add('fd-mengetik');
-        // Gulir ulang setelah animasi keyboard selesai, karena sebagian browser ikut menggeser halaman.
-        window.requestAnimationFrame(function () { gulirKeAtas(isi, e.target); });
-        setTimeout(function () { if (document.activeElement === e.target) gulirKeAtas(isi, e.target); }, 350);
+        var t = e.target;
+        // Periksa setelah keyboard mulai muncul, lalu sekali lagi setelah animasinya selesai.
+        setTimeout(function () { if (document.activeElement === t) angkatPopup(isi, t); }, 60);
+        setTimeout(function () { if (document.activeElement === t) angkatPopup(isi, t); }, 400);
       });
       akar.addEventListener('focusout', function () {
-        // Jeda agar ketukan pada tombol (misalnya Lanjut) selesai sebelum ukuran popup kembali.
+        // Jeda agar ketukan pada tombol (misalnya Lanjut) selesai sebelum posisi popup kembali.
         jedaKetik = setTimeout(function () {
-          if (!bisaDiketik(document.activeElement)) akar.classList.remove('fd-mengetik');
+          if (!bisaDiketik(document.activeElement)) turunkanPopup();
         }, 300);
       });
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', function () {
+          // Keyboard ditutup (misalnya lewat tombol kembali) walau kolom masih aktif.
+          if (terangkat && window.innerHeight - window.visualViewport.height < 80) turunkanPopup();
+        });
+      }
     }
 
     function buka() {
@@ -1016,6 +1054,7 @@
       if (!akar) return;
       akar.hidden = true;
       latarFd.hidden = true;
+      turunkanPopup();
       document.documentElement.classList.remove('fd-terbuka');
       if (S && S.mode === 'berhasil') S = null;
       if (pemicu && pemicu.focus) pemicu.focus();
