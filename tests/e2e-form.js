@@ -498,6 +498,11 @@ async function uji(nama, fn) {
     await masukAdmin(page, SANDI);
     await page.waitForSelector('.admin-angka');
     assert.strictEqual(await page.locator('.admin-angka-kartu strong').first().textContent(), '1');
+    await page.click('label:has(#ap-uji_ringkasan)');
+    await page.waitForSelector('text=Data uji ikut dihitung');
+    assert.strictEqual(await page.locator('.admin-angka-kartu strong').first().textContent(), '2');
+    await page.click('label:has(#ap-uji_ringkasan)');
+    await page.waitForSelector('text=Data uji tidak dihitung.');
     await page.screenshot({ path: path.join(DIR_KELUAR, 'admin-ringkasan.png') });
     await page.click('.admin-tab-tombol:has-text("Pengaturan")');
     await page.waitForSelector('#ap-pendaftaran_tutup');

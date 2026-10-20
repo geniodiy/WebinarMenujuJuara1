@@ -190,8 +190,14 @@
 
     function tabRingkasan(isi) {
       memuat(isi);
-      panggil('adminGetData', [A.token, 'ringkasan', false], function (d) {
+      panggil('adminGetData', [A.token, 'ringkasan', A.sertakanUji], function (d) {
         isi.textContent = '';
+        var uji = kotakCentang('uji_ringkasan', 'Sertakan data uji', A.sertakanUji);
+        uji.querySelector('input').addEventListener('change', function (e) {
+          A.sertakanUji = e.target.checked;
+          A.pendaftar = null;
+          tabRingkasan(isi);
+        });
         if (d.peringatan.mode_uji) isi.appendChild(el('p', 'pita', 'Mode uji aktif: semua kiriman ditandai data uji (' + d.jumlah_uji + ' baris uji tersimpan).'));
         if (d.peringatan.data_contoh) isi.appendChild(el('p', 'pita', 'Data contoh sedang ditampilkan di halaman publik.'));
 
@@ -227,7 +233,8 @@
         });
         tabel.appendChild(tbody);
         isi.appendChild(tabel);
-        isi.appendChild(el('p', 'admin-catatan', 'Data uji tidak dihitung.'));
+        isi.appendChild(uji);
+        isi.appendChild(el('p', 'admin-catatan', A.sertakanUji ? 'Data uji ikut dihitung (hanya di tampilan ini; lembar Rekap tetap tanpa data uji).' : 'Data uji tidak dihitung.'));
         isi.appendChild(tombol('Muat ulang', 'tombol-garis', function () { tabRingkasan(isi); }));
       }, function (e) { galat(isi, e.message, function () { tabRingkasan(isi); }); });
     }

@@ -224,9 +224,9 @@ function saringProspek_(baris) {
   });
 }
 
-function ringkasan_(semua, peng) {
+function ringkasan_(semua, peng, sertakanUji) {
   var waktu = Utilities.formatDate(new Date(), ZONA_WAKTU_, 'yyyy-MM-dd HH:mm');
-  var rekap = hitungRekap_(semua, peng, waktu);
+  var rekap = hitungRekap_(semua, peng, waktu, sertakanUji);
   var sekarang = Date.now();
   return {
     rekap: rekap,
@@ -242,7 +242,7 @@ function adminGetData(token, jenis, sertakanUji) {
   return jalankanAman_(function () {
     sesi_(token, ['admin']);
     var uji = sertakanUji === true;
-    if (jenis === 'ringkasan') return ok_(ringkasan_(barisPendaftar_(true), bacaPengaturan_(true)));
+    if (jenis === 'ringkasan') return ok_(ringkasan_(barisPendaftar_(true), bacaPengaturan_(true), uji));
     if (jenis === 'pendaftar') return ok_({ baris: barisPendaftar_(uji) });
     if (jenis === 'prospek') return ok_({ baris: saringProspek_(barisPendaftar_(uji)) });
     if (jenis === 'semua') {

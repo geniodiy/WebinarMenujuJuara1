@@ -265,9 +265,9 @@ function rencanakanPendaftaran_(r, ada, uji) {
   };
 }
 
-/** Baris lembar Rekap dari seluruh pendaftar (data uji tidak dihitung). Murni. */
-function hitungRekap_(semua, peng, waktu) {
-  var asli = semua.filter(function (b) { return !yaTidak_(b.uji); });
+/** Baris lembar Rekap dari seluruh pendaftar (data uji tidak dihitung kecuali sertakanUji). Murni. */
+function hitungRekap_(semua, peng, waktu, sertakanUji) {
+  var asli = sertakanUji ? semua : semua.filter(function (b) { return !yaTidak_(b.uji); });
   function hitung(kolom, nilai) {
     return asli.filter(function (b) { return b[kolom] === nilai; }).length;
   }
