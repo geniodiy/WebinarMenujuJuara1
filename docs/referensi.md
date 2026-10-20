@@ -5,6 +5,8 @@
 | `PRD.md` | PRD v1.2, 20 Oktober 2026 | Acuan perilaku sistem dan tampilan |
 | `docs/poster-asli.jpg` | Poster resmi webinar | Isi acara, hierarki visual, gaya kartu dan strip info |
 | `docs/Genio_Colour_Palette_Guide.jpg` | Palet warna Genio | Token warna (PRD 7.1) |
+| `assets-raw/genio.png`, `osn.png`, `genio-jogja.png`, `genio-semarang.png` | Logo PNG transparan, tinggi 126 sampai 144 px | Header dan kartu cabang. Di bawah spesifikasi PRD 4.2 (minimal 200 px): cukup untuk header setinggi sekitar 40 px, bisa kurang tajam bila dibesarkan |
+| `assets-raw/badge-terbuka.png` | Badge "Terbuka untuk Siswa SD, SMP, Guru & Orang tua" | Acuan saja. Di header dibuat sebagai teks dan ikon SVG agar tajam dan terbaca pembaca layar |
 | `docs/Rancangan_Form_Webinar.pdf` | Rancangan form (8 halaman) | Acuan label, pilihan, dan teks bantuan form |
 | https://go.okegas.app/webinar12 | Website webinar sejenis. Tangkapan layar: `docs/referensi-okegas-desktop.jpg`, `docs/referensi-okegas-mobile.png` | Pola halaman webinar satu halaman. PRD 10.1: form **tidak** meniru gaya chat dari referensi ini |
 
