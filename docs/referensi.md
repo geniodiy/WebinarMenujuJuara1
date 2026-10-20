@@ -5,10 +5,18 @@
 | `PRD.md` | PRD v1.2, 20 Oktober 2026 | Acuan perilaku sistem dan tampilan |
 | `docs/poster-asli.jpg` | Poster resmi webinar | Isi acara, hierarki visual, gaya kartu dan strip info |
 | `docs/Genio_Colour_Palette_Guide.jpg` | Palet warna Genio | Token warna (PRD 7.1) |
-| https://go.okegas.app/webinar12 | Website webinar sejenis | Pola halaman webinar satu halaman. PRD 10.1: form **tidak** meniru gaya chat dari referensi ini |
-| `docs/Rancangan_Form_Webinar.pdf` | Rancangan form | **Belum diterima.** Wajib ada sebelum Fase 2 (label, pilihan, teks bantuan form) |
+| `docs/Rancangan_Form_Webinar.pdf` | Rancangan form (8 halaman) | Acuan label, pilihan, dan teks bantuan form |
+| https://go.okegas.app/webinar12 | Website webinar sejenis. Tangkapan layar: `docs/referensi-okegas-desktop.jpg`, `docs/referensi-okegas-mobile.png` | Pola halaman webinar satu halaman. PRD 10.1: form **tidak** meniru gaya chat dari referensi ini |
 
-Catatan: situs go.okegas.app tidak bisa dibuka dari lingkungan pengembangan (diblokir jaringan). Bila perlu dirujuk lebih rinci, simpan tangkapan layarnya di `docs/`.
+Catatan: situs go.okegas.app tidak bisa dibuka dari lingkungan pengembangan (diblokir jaringan), jadi acuannya hanya tangkapan layar.
+
+## Yang diambil dari referensi okegas
+
+- Satu kolom terpusat, logo di atas, kartu pembuka berisi badge acara, judul besar, kalimat pendukung, lalu gambar.
+- Info acara sebagai baris kartu: ikon dalam kotak, label kecil di atas, nilai tebal di bawah.
+- Bilah aksi melayang di bawah layar: info singkat di kiri (misalnya "Gratis", sisa waktu pendaftaran) dan tombol daftar di kanan. Ini bentuk tombol floating PRD Bagian 9.
+
+Yang tidak diambil: latar gelap (halaman kita terang seperti poster, PRD 7.1), label huruf kapital semua (CLAUDE.md), harga coret dan "sisa kursi" palsu (kuota diatur panitia, K6).
 
 ## Palet warna
 
@@ -25,6 +33,6 @@ Catatan: situs go.okegas.app tidak bisa dibuka dari lingkungan pengembangan (dib
 
 | No | Hal | Poster | PRD | Usulan |
 |---|---|---|---|---|
-| R1 | Nomor narahubung Lily | 0878-3886-2882 | 0821-3313-1916 (Bagian 1 dan pesan galat 10.6) | Konfirmasi ke tim; nomor disimpan di Pengaturan_Konten agar mudah diganti |
+| R1 | Nomor narahubung Lily | 0878-3886-2882 | 0821-3313-1916 | **Diputuskan: ikut poster.** PRD sudah diperbarui |
 | R2 | Nama sesi orang tua & guru | "Sharing Session" | "Ruang Sinergi" (K1) | Ikuti K1 |
-| R3 | Kelas simulasi | Matematika, IPA & IPS | 6 room (2 jenjang x 3 bidang) | Sudah sejalan |
+| R3 | Teks persetujuan | | PDF: "Genio Yogyakarta" | Ikuti K2 ("Genio Institute") bila disetujui |

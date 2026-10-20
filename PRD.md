@@ -54,7 +54,7 @@ Website satu halaman untuk webinar gratis Genio Institute: memperkenalkan acara 
 | Biaya | Gratis |
 | Sasaran | Siswa SD, SMP, guru pembina, dan orang tua |
 | Bonus | Materi Kelas OSN (syarat lihat K3) |
-| Narahubung | Lily, 0821-3313-1916 |
+| Narahubung | Lily, 0878-3886-2882 |
 | Instagram | @genio_institute, @genio.diy |
 | Link tercetak di poster | s.id/geniojuara1, diarahkan ke halaman Blogger |
 
@@ -514,7 +514,7 @@ Label, pilihan, dan teks bantuan mengikuti **PDF Bagian 0 sampai 8** (kecuali te
 | Jumlah siswa kurang dari 1 | Isi minimal 1 siswa. |
 | Persetujuan wajib belum dicentang | Centang persetujuan ini untuk melanjutkan. |
 | Pendaftar sudah terdaftar | Peserta ini sudah terdaftar. |
-| Pendaftaran tertutup saat mengirim | Pendaftaran sudah ditutup. Hubungi Lily di 0821-3313-1916 bila ada kendala. |
+| Pendaftaran tertutup saat mengirim | Pendaftaran sudah ditutup. Hubungi Lily di 0878-3886-2882 bila ada kendala. |
 | Koneksi terputus | Pendaftaran belum terkirim karena koneksi terputus. Isian Anda masih ada, silakan coba kirim lagi. |
 
 - Saat tombol kirim diketuk, tombol langsung nonaktif dan bertuliskan "Menyimpan pendaftaran…" agar tidak terkirim dua kali.
