@@ -212,8 +212,10 @@
 
   /* Narahubung seperti poster: pil bergaris dengan label bergradien cyan, ikon WhatsApp, nama tebal. */
   .narahubung { display: inline-flex; align-items: stretch; max-width: 100%; border: 1.5px solid rgba(84, 86, 59, .6); border-radius: 999px; background: #fff; font-size: clamp(11.5px, 3.45vw, 14px); }
-  .narahubung-label { display: flex; align-items: center; padding: 8px clamp(10px, 3vw, 16px); margin: -1.5px 0 -1.5px -1.5px; border-radius: 999px; background: var(--gradien); color: #fff; font-weight: 700; }
-  .narahubung-tautan { display: flex; align-items: center; gap: 5px; padding: 6px clamp(10px, 3vw, 16px) 6px 8px; min-height: 44px; color: var(--item); text-decoration: none; white-space: nowrap; }
+  .narahubung-label { display: flex; align-items: center; padding: 3px clamp(10px, 3vw, 16px); margin: -1.5px 0 -1.5px -1.5px; border-radius: 999px; background: var(--gradien); color: #fff; font-weight: 700; }
+  /* Pil gepeng seperti poster; area ketuk tetap sekitar 44px lewat ::before. */
+  .narahubung-tautan { position: relative; display: flex; align-items: center; gap: 5px; padding: 3px clamp(10px, 3vw, 16px) 3px 8px; min-height: 28px; color: var(--item); text-decoration: none; white-space: nowrap; }
+  .narahubung-tautan::before { content: ""; position: absolute; left: 0; right: 0; top: -8px; bottom: -8px; }
   .narahubung-tautan b { font-weight: 700; }
   .narahubung-tautan svg { width: 1.35em; height: 1.35em; flex-shrink: 0; }
 
