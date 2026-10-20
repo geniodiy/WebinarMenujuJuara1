@@ -110,15 +110,16 @@
   .agenda li { position: relative; z-index: 1; display: flex; gap: 14px; }
   .agenda-nomor { width: 32px; height: 32px; flex-shrink: 0; border-radius: 50%; background: #C9D6E0; color: #fff; font-size: 14px; font-weight: 700; display: flex; align-items: center; justify-content: center; transition: background-color .3s ease; }
   /* Alur agenda: garis terisi mengikuti scroll, nomor menyala dan timbul saat tercapai. */
-  .agenda-nomor.aktif { background: var(--cyan); animation: timbul .45s ease-out; }
+  .agenda-nomor.aktif { background: linear-gradient(135deg, var(--cyan), var(--teal)); animation: timbul .45s ease-out; }
   @keyframes timbul { 0% { transform: scale(1); } 45% { transform: scale(1.28); } 100% { transform: scale(1); } }
-  .agenda-garis { position: absolute; left: 15px; width: 2px; background: var(--garis); z-index: 0; }
-  .agenda-garis-isi { position: absolute; left: 0; top: 0; width: 2px; height: 0; background: linear-gradient(var(--cyan), var(--teal)); }
-  .agenda-garis-isi::after {
-    content: ""; position: absolute; left: -5px; bottom: -7px; opacity: 0;
-    border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 8px solid var(--teal);
+  /* Garis setebal poster (sekitar 13% diameter nomor), terisi gradien cyan dengan ujung panah. */
+  .agenda-garis { position: absolute; left: 13.5px; width: 5px; border-radius: 3px; background: var(--garis); z-index: 0; }
+  .agenda-garis-isi { position: absolute; left: 0; top: 0; width: 5px; height: 0; border-radius: 3px; background: linear-gradient(var(--cyan), var(--teal)); }
+  .agenda-panah {
+    position: absolute; left: -4.5px; bottom: -9px; width: 14px; height: 11px; opacity: 0;
+    background: linear-gradient(90deg, var(--cyan), var(--teal)); clip-path: polygon(0 0, 100% 0, 50% 100%);
   }
-  .agenda-garis-isi.mulai::after { opacity: 1; }
+  .agenda-garis-isi.mulai .agenda-panah { opacity: 1; }
   .agenda-isi { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
   .agenda-isi h3 { font-size: 15px; font-weight: 600; line-height: 1.35; }
   .agenda-isi p { font-size: 14px; }
@@ -391,6 +392,10 @@
     .bilah-isi { flex-direction: column; align-items: stretch; text-align: center; }
     .bilah .tombol { width: 100%; }
   }
+
+  /* Bagian yang awalnya di luar layar muncul perlahan saat digulir. */
+  .gulir-muncul { opacity: 0; transform: translateY(18px); transition: opacity .55s ease-out, transform .55s ease-out; }
+  .gulir-muncul.terlihat { opacity: 1; transform: none; }
 
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }

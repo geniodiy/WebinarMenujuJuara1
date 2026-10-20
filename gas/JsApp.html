@@ -239,8 +239,8 @@
 
     function ukurAlur() {
       if (!alur.ol || alur.nomor.length < 2) return;
-      var dasar = alur.ol.getBoundingClientRect().top;
-      alur.posisi = alur.nomor.map(function (n) { return n.getBoundingClientRect().top - dasar + n.offsetHeight / 2; });
+      // offsetTop tidak terpengaruh animasi muncul (transform), jadi posisi garis tetap tepat.
+      alur.posisi = alur.nomor.map(function (n) { return n.parentNode.offsetTop + n.offsetTop + n.offsetHeight / 2; });
       var garis = alur.isi.parentNode;
       garis.style.top = alur.posisi[0] + 'px';
       garis.style.height = (alur.posisi[alur.posisi.length - 1] - alur.posisi[0]) + 'px';
@@ -273,6 +273,7 @@
       var garis = el('div', 'agenda-garis');
       garis.setAttribute('aria-hidden', 'true');
       alur.isi = el('div', 'agenda-garis-isi');
+      alur.isi.appendChild(el('span', 'agenda-panah'));
       garis.appendChild(alur.isi);
       ol.appendChild(garis);
       if (!alur.siap) {
@@ -461,6 +462,28 @@
       $('tombol-admin').addEventListener('click', bukaAdmin);
     }
 
+    /* ---------- Animasi muncul saat digulir ---------- */
+
+    var SASARAN_MUNCUL = '.strip-tanggal, .info-kartu, .hitung-mundur, .bagian > h2, .agenda li, .narasumber, .kaki > *';
+
+    /** Hanya elemen yang awalnya di luar layar yang dianimasikan; yang sudah terlihat dibiarkan. */
+    function siapkanMunculGulir() {
+      if (!('IntersectionObserver' in window)) return;
+      if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      var pengamat = new IntersectionObserver(function (entri) {
+        entri.forEach(function (e) {
+          if (!e.isIntersecting) return;
+          e.target.classList.add('terlihat');
+          pengamat.unobserve(e.target);
+        });
+      }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
+      Array.prototype.forEach.call(document.querySelectorAll(SASARAN_MUNCUL), function (n) {
+        if (n.closest('[hidden]') || n.getBoundingClientRect().top < window.innerHeight) return;
+        n.classList.add('gulir-muncul');
+        pengamat.observe(n);
+      });
+    }
+
     /* ---------- Muat ulang bila gagal ---------- */
 
     function renderSemua() {
@@ -492,6 +515,7 @@
     }
 
     renderSemua();
+    siapkanMunculGulir();
     pasTanggal();
     window.addEventListener('resize', pasTanggal);
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(pasTanggal);
