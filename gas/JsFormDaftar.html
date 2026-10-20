@@ -961,11 +961,13 @@
       document.body.appendChild(akar);
     }
 
-    /* Saat mengetik di ponsel: bila kolom yang disentuh akan tertutup keyboard, seluruh popup (termasuk tombol
-       di bawahnya) diangkat sehingga duduk tepat di atas keyboard, lalu kolom digulir agar terlihat. Bila kolom
-       tidak tertutup, tidak ada yang berubah. Saat keyboard hilang atau kolom ditinggalkan, popup kembali semula.
-       Halaman berjalan di dalam iframe Apps Script, sehingga tinggi keyboard sering tidak bisa dibaca; bila begitu
-       dipakai perkiraan tinggi keyboard ponsel pada umumnya. */
+    /* Saat mengetik di ponsel, keyboard menutup bagian bawah layar. Halaman Apps Script berjalan di dalam iframe
+       yang bagian bawahnya bisa melewati layar (karena ada pita info Google di atasnya), sehingga tinggi dan posisi
+       keyboard tidak bisa dihitung dari dalam halaman. Jalan keluarnya: bila kolom yang disentuh berada di setengah
+       bawah layar, popup dipindah ke setengah atas layar (yang selalu di atas keyboard) lengkap dengan tombolnya,
+       lalu kolom digulir agar terlihat. Kolom di setengah atas tidak mengubah apa pun. Saat kolom ditinggalkan atau
+       keyboard ditutup, popup kembali ke bawah. Bila browser memberi tinggi keyboard yang sebenarnya, popup
+       diletakkan pas di atas keyboard. */
     var ponsel = window.matchMedia ? window.matchMedia('(pointer: coarse)') : null;
     var jedaKetik = null;
     var terangkat = false;
@@ -978,16 +980,15 @@
 
     var tinggiAwal = 0;
 
+    // Tinggi keyboard bila bisa diketahui; 0 bila halaman sudah mengecil di atas keyboard; null bila tidak diketahui.
     function tinggiKeyboard() {
       var vv = window.visualViewport;
       if (vv) {
         var terukur = window.innerHeight - vv.height - vv.offsetTop;
         if (terukur > 120) return terukur;
       }
-      // Sebagian browser mengecilkan halaman (iframe) saat keyboard muncul: ruang yang tersisa sudah di atas keyboard.
       if (tinggiAwal && window.innerHeight < tinggiAwal - 120) return 0;
-      // KEPUTUSAN: perkiraan keyboard ponsel sekitar 45% tinggi layar tegak, 55% saat mendatar.
-      return Math.round(window.innerHeight * (window.innerHeight > window.innerWidth ? 0.45 : 0.55));
+      return null;
     }
 
     function pastikanTerlihat(isi, t) {
@@ -999,27 +1000,37 @@
 
     function angkatPopup(isi, t) {
       var kb = tinggiKeyboard();
-      if (!kb) {
+      if (kb === 0) {
         // Halaman sudah mengecil di atas keyboard: cukup pastikan kolom terlihat di dalam popup.
         turunkanPopup();
         pastikanTerlihat(isi, t);
         return;
       }
+      var h = window.innerHeight;
       if (!terangkat) {
-        // Periksa posisi kolom pada keadaan semula agar keputusan tidak terpengaruh posisi angkat sebelumnya.
-        if (t.getBoundingClientRect().bottom <= window.innerHeight - kb - 8) return;
+        // KEPUTUSAN: kolom di 42% atas layar dianggap aman dari keyboard.
+        var batas = kb ? h - kb - 8 : h * 0.42;
+        if (t.getBoundingClientRect().bottom <= batas) return;
         terangkat = true;
       }
-      akar.style.bottom = (kb + 8) + 'px';
-      akar.style.maxHeight = Math.max(200, window.innerHeight - kb - 20) + 'px';
+      if (kb) {
+        akar.style.top = '';
+        akar.style.bottom = (kb + 8) + 'px';
+        akar.style.maxHeight = Math.max(200, h - kb - 20) + 'px';
+      } else {
+        // KEPUTUSAN: popup menempati 45% atas layar, di atas keyboard ponsel pada umumnya.
+        akar.style.top = '12px';
+        akar.style.bottom = 'auto';
+        akar.style.maxHeight = Math.max(220, Math.round(h * 0.45) - 12) + 'px';
+      }
       pastikanTerlihat(isi, t);
-      // Gulir ulang setelah transisi tinggi popup selesai.
       setTimeout(function () { if (document.activeElement === t) pastikanTerlihat(isi, t); }, 230);
     }
 
     function turunkanPopup() {
       if (!terangkat) return;
       terangkat = false;
+      akar.style.top = '';
       akar.style.bottom = '';
       akar.style.maxHeight = '';
     }
