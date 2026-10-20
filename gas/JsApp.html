@@ -154,18 +154,38 @@
       return { awal: 'Pendaftaran ditutup dalam ', tebal: config.sisa_hari + ' hari', akhir: '' };
     }
 
+    var detakHitungMundur = null;
+
+    /**
+     * Hitung mundur berjalan memakai selisih jam server, bukan jam perangkat yang bisa salah.
+     * Jam tutup berlaku sampai akhir menitnya, sama seperti di server.
+     */
     function isiHitungMundur() {
-      var t = teksHitungMundur();
-      var p = $('hitung-mundur');
-      p.hidden = !t;
-      if (!t) return;
-      p.textContent = t.awal;
-      p.appendChild(el('b', null, t.tebal));
-      p.appendChild(document.createTextNode(t.akhir));
-      if (config.pendaftaran_tutup) {
-        p.appendChild(el('br'));
-        p.appendChild(document.createTextNode(formatWib(config.pendaftaran_tutup, true)));
+      clearInterval(detakHitungMundur);
+      var wadah = $('hitung-mundur');
+      var aktif = config && config.fase === 'daftar' && config.sisa_hari != null && config.pendaftaran_tutup;
+      wadah.hidden = !aktif;
+      if (!aktif) return;
+      var selisihJam = config.jam_server - Date.now();
+      var akhir = config.pendaftaran_tutup + 60 * 1000;
+      $('hm-tanggal').textContent = 'Ditutup ' + formatWib(config.pendaftaran_tutup, true);
+
+      function detak() {
+        var sisa = Math.max(0, akhir - (Date.now() + selisihJam));
+        var s = Math.floor(sisa / 1000);
+        var nilai = [Math.floor(s / 86400), Math.floor(s % 86400 / 3600), Math.floor(s % 3600 / 60), s % 60];
+        ['hm-hari', 'hm-jam', 'hm-menit', 'hm-detik'].forEach(function (id, i) { $(id).textContent = pad(nilai[i]); });
+        $('hm-teks').textContent = 'Pendaftaran ditutup dalam ' + nilai[0] + ' hari ' + nilai[1] + ' jam ' + nilai[2] + ' menit.';
+        if (sisa === 0) {
+          clearInterval(detakHitungMundur);
+          config.fase = 'tutup';
+          config.form.pendaftaran = 'TUTUP';
+          wadah.hidden = true;
+          renderBilah();
+        }
       }
+      detak();
+      detakHitungMundur = setInterval(detak, 1000);
     }
 
     /* ---------- Agenda dan narasumber ---------- */

@@ -30,7 +30,7 @@ var PENGATURAN_KONTEN_AWAL_ = [
   ['judul_acara', '#MenujuJuara Eps. 1: Roadmap OSN 2027', ''],
   ['tagline', 'Pertajam Strategi, Kuatkan Sinergi, Genggam Prestasi', ''],
   ['tanggal_teks', 'Sabtu, 14 November 2026', ''],
-  ['jam_teks', '08.00 WIB sampai selesai', ''],
+  ['jam_teks', '08.00 WIB - Selesai', ''],
   ['media_teks', 'Zoom Meeting', ''],
   ['poster', 'poster-web.jpg', 'Nama file poster di folder Gambar Web (rasio 4:5)'],
   ['bonus_teks', 'Materi Kelas OSN', ''],
