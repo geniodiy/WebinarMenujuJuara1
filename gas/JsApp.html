@@ -318,21 +318,29 @@
       wadah.textContent = '';
       daftar.forEach(function (n) {
         var kartu = el('article', 'narasumber');
+        var teks = el('div', 'narasumber-teks');
+        var papan = el('div', 'narasumber-papan');
+        var h = el('h3', null, n.nama_lengkap);
+        if (n.contoh) { h.appendChild(document.createTextNode(' ')); h.appendChild(labelContoh()); }
+        papan.appendChild(h);
+        if (n.jabatan) papan.appendChild(el('p', 'jabatan', n.jabatan));
         if (n.foto_url) {
+          // Foto potongan berlatar transparan di atas kotak biru: kepala keluar dari kotak, papan nama menutup bagian bawah.
+          var figur = el('div', 'narasumber-figur');
+          figur.appendChild(el('span', 'narasumber-latar'));
           var img = el('img', 'narasumber-foto');
           img.alt = 'Foto ' + n.nama_lengkap;
           img.loading = 'lazy';
           img.decoding = 'async';
           img.width = 800;
           img.height = 1000;
-          aturGambar(img, n.foto_url, [400, 800], '(max-width: 640px) 100vw, 360px');
-          kartu.appendChild(img);
+          aturGambar(img, n.foto_url, [400, 800], '(max-width: 640px) 90vw, 340px');
+          figur.appendChild(img);
+          figur.appendChild(papan);
+          kartu.appendChild(figur);
+        } else {
+          teks.appendChild(papan);
         }
-        var teks = el('div', 'narasumber-teks');
-        var h = el('h3', null, n.nama_lengkap);
-        if (n.contoh) { h.appendChild(document.createTextNode(' ')); h.appendChild(labelContoh()); }
-        teks.appendChild(h);
-        if (n.jabatan) teks.appendChild(el('p', 'jabatan', n.jabatan));
         if (n.ringkasan) teks.appendChild(el('p', null, n.ringkasan));
         if ((n.prestasi_binaan || []).length) teks.appendChild(daftarPrestasi(n, 3));
         var tombol = el('button', 'tombol tombol-garis', 'Lihat selengkapnya');
