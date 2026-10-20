@@ -155,7 +155,8 @@
   /* Efek timbul seperti poster: kotak biru di belakang, foto potongan lebih tinggi dari kotaknya. */
   .narasumber-figur { position: relative; }
   /* Bagian bawah foto dipotong rata oleh bingkai supaya tidak menjuntai di bawah kotak dan papan nama. */
-  .narasumber-bingkai { position: relative; overflow: hidden; aspect-ratio: 449 / 520; }
+  /* Margin negatif memangkas ruang transparan di atas kepala pada foto potongan, agar jarak ke judul bagian sama dengan bagian lain. */
+  .narasumber-bingkai { position: relative; overflow: hidden; aspect-ratio: 449 / 520; margin-top: -12.5%; }
   .narasumber-latar { position: absolute; left: 12%; right: 10%; top: 20%; bottom: 0; border-radius: 22px 22px 0 0; background: linear-gradient(160deg, #8DD8F6, var(--cyan)); }
   .narasumber-foto { position: relative; display: block; width: 100%; height: 100%; object-fit: cover; object-position: center top; }
   /* Papan nama selebar isinya, mulai sedikit di kiri kotak biru. */
@@ -323,6 +324,9 @@
     .narasumber-figur .narasumber-papan .jabatan { font-size: 13px; }
     .narasumber-figur + .narasumber-teks { margin: 0 0 0 -50px; min-width: 240px; }
     .prestasi-ajang { white-space: nowrap; }
+    /* Di desktop kartu melayang ke bawah, supaya potongan dasar foto di balik kartu tidak terlihat. */
+    .narasumber-teks { animation-name: melayangBawah; }
+    @keyframes melayangBawah { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(5px); } }
     .prestasi-sorot { gap: 10px; padding: 18px 16px; }
     .prestasi-ikon { width: 56px; height: 62px; }
     /* Lencana bertumpuk dibuat sama lebar supaya rapi. */
