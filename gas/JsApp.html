@@ -5,7 +5,7 @@
     var BULAN = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
     var HARI = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
     var SELISIH_WIB = 7 * 3600 * 1000;
-    var CADANGAN = { narahubung_nama: 'Lily', narahubung_wa: '6287838862882', instagram_1: 'genio_institute', instagram_2: 'genio.diy' };
+    var CADANGAN = { narahubung_nama: 'Lily', narahubung_wa: '6287838862882', instagram_1: 'genio_institute', instagram_2: 'genio.diy', bonus_teks: 'Materi Kelas OSN' };
 
     var data = window.DATA_AWAL || {};
     var config = data.config;
@@ -66,7 +66,7 @@
 
     /* ---------- Pembuka ---------- */
 
-    // KEPUTUSAN: judul_acara dipecah otomatis: sebelum ":" menjadi label (#MenujuJuara | Eps. 1),
+    // KEPUTUSAN: bila poster belum ada, judul_acara dipecah otomatis: sebelum ":" menjadi label (#MenujuJuara | Eps. 1),
     // sesudahnya menjadi judul, dan dua kata terakhir judul diberi kotak gradien seperti poster.
     function isiJudul() {
       var judul = peng('judul_acara');
@@ -114,12 +114,11 @@
       setTeks('tanggal-teks', peng('tanggal_teks'));
       setTeks('jam-teks', peng('jam_teks'));
       setTeks('media-teks', peng('media_teks'));
-      setTeks('bonus-teks', peng('bonus_teks'));
-      setTeks('bonus-syarat', peng('bonus_syarat'));
-      if (konten && konten.poster_url) {
-        $('poster').src = konten.poster_url + '&sz=w1080';
-        $('wadah-poster').hidden = false;
-      }
+      var adaPoster = !!(konten && konten.poster_url);
+      if (adaPoster) $('poster').src = konten.poster_url + '&sz=w1080';
+      $('wadah-poster').hidden = !adaPoster;
+      $('judul-cadangan').hidden = adaPoster;
+      if (peng('judul_acara')) $('judul-halaman').textContent = 'Webinar ' + peng('judul_acara');
     }
 
     function teksHitungMundur() {

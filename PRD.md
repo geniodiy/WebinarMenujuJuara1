@@ -410,8 +410,8 @@ Halaman memakai latar terang seperti poster, dengan latar `body` ditetapkan eksp
 
 ## 8. Spesifikasi halaman utama (urutan dari atas)
 
-1. **Header.** Logo Genio dan OSN di kiri. Di kanan: badge centang "Terbuka untuk Siswa SD, SMP, Guru & Orang Tua", lalu **ikon admin** di pojok paling kanan (ikon gembok kecil berwarna lembut, area sentuh 44 px, `aria-label="Masuk panel admin"`). Di lebar di bawah 600 px, badge pindah ke baris di bawah logo agar ikon admin tetap di pojok kanan atas. Header menempel di atas dan menipis saat digulir.
-2. **Poster dan info acara.** Poster penuh lebar (bisa diketuk untuk diperbesar). Di bawahnya strip info: tanggal, jam, Zoom, label Gratis, bonus beserta syaratnya. Hitung mundur "Pendaftaran ditutup dalam X hari" selama fase daftar, dari jam server.
+1. **Header.** Seperti poster: logo Genio dan OSN berukuran kecil di kiri, lencana centang dengan teks dua baris "Terbuka untuk Siswa SD, SMP," / "Guru & Orang tua" di kanan. Tidak ada ikon admin yang terlihat: **mengetuk ikon centang membuka layar masuk panel admin** (pintu tersembunyi; tetap dilindungi kata sandi). Header menempel di atas. Seluruh halaman, termasuk di desktop, berupa satu kolom di tengah (lebar maksimal sekitar 760 px) dengan jarak dari tepi layar, mengikuti referensi go.okegas.app.
+2. **Poster dan info acara.** Paling atas langsung poster penuh lebar kolom (bisa diketuk untuk diperbesar). Di bawahnya strip "Pelaksanaan" (tanggal dan label Gratis), lalu kartu "Pukul" dan "Live di", lalu hitung mundur "Pendaftaran ditutup dalam X hari" selama fase daftar, dari jam server. Bila poster belum diunggah, tampil judul acara sebagai gantinya.
 3. **Agenda.** Timeline vertikal bernomor 1 sampai 3, dengan label sasaran dan jam bila diisi.
 4. **Narasumber.** Kartu besar Indro: foto, nama, jabatan, ringkasan, 3 prestasi teratas, "Lihat selengkapnya" membuka panel dari bawah layar.
 5. **Tutor.** Kartu geser horizontal (scroll-snap) di ponsel dengan kartu berikutnya terlihat di tepi dan indikator titik; grid 3 kolom di layar lebar. Tiap kartu: foto, nama, label room, ringkasan, 2 prestasi teratas, "Lihat selengkapnya" membuka panel dari bawah (bukan dropdown, agar tinggi kartu seragam).
@@ -542,7 +542,7 @@ Label, pilihan, dan teks bantuan mengikuti **PDF Bagian 0 sampai 8** (kecuali te
 
 ## 13. Panel admin
 
-Dibuka dari ikon admin di header, atau langsung lewat `?admin=1`. Tampil sebagai lapisan layar penuh di atas halaman.
+Dibuka dengan mengetuk ikon centang di header, atau langsung lewat `?admin=1`. Tampil sebagai lapisan layar penuh di atas halaman.
 
 Pembagian pengerjaan:
 
