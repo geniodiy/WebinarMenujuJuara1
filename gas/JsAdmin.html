@@ -1,0 +1,729 @@
+<script>
+  /**
+   * Panel admin (PRD Bagian 13). Token hanya disimpan di memori: memuat ulang halaman berarti masuk lagi.
+   * Semua pemeriksaan hak akses terjadi di server (Admin.gs).
+   */
+  var PanelAdmin = (function () {
+    'use strict';
+
+    var URL_SHEETJS = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+    var BARIS_PER_HALAMAN = 50;
+    var SELISIH_WIB = 7 * 3600 * 1000;
+    var ROOM = ['SD Matematika', 'SD IPA', 'SD IPS', 'SMP Matematika', 'SMP IPA', 'SMP IPS'];
+    var KATEGORI = ['Siswa SD', 'Siswa SMP', 'Orang Tua', 'Guru Pembina'];
+    var LABEL_FASE = { belum_buka: 'Pendaftaran belum dibuka', daftar: 'Pendaftaran dibuka', tutup: 'Pendaftaran ditutup' };
+    var LABEL_KOLOM = {
+      id_peserta: 'ID Peserta', id_pendaftaran: 'ID Pendaftaran', waktu_daftar: 'Waktu Daftar (WIB)', peran: 'Peran',
+      didaftarkan_oleh: 'Didaftarkan Oleh', nama_lengkap: 'Nama Lengkap', nama_kunci: 'Nama (pencocokan)', wa: 'Nomor WhatsApp',
+      wa_kunci: 'WhatsApp Kunci', email: 'Email', kota: 'Kota/Kabupaten', kelas: 'Kelas', kategori: 'Kategori',
+      asal_sekolah: 'Asal Sekolah', bidang: 'Bidang', room: 'Room', pengalaman_osn: 'Pengalaman OSN', siswa_genio: 'Siswa Genio',
+      perangkat: 'Perangkat', sekolah_mengajar: 'Sekolah Mengajar', jenjang_dibina: 'Jenjang Dibina', bidang_dibina: 'Bidang Dibina',
+      daftarkan_siswa: 'Mendaftarkan Siswa', jumlah_didaftarkan: 'Jumlah Didaftarkan', minat_jenjang_anak: 'Minat Jenjang Anak',
+      minat_bidang_anak: 'Minat Bidang Anak', anak_siswa_genio: 'Anak Siswa Genio', sumber_info: 'Sumber Informasi',
+      pertanyaan_narsum: 'Pertanyaan untuk Narasumber', setuju_kehadiran: 'Setuju Kehadiran', setuju_siswa_binaan: 'Setuju Siswa Binaan',
+      setuju_info_program: 'Setuju Info Program', sumber_link: 'Sumber Link', uji: 'Data Uji', sumber_persetujuan: 'Sumber Persetujuan'
+    };
+
+    var A = { token: '', tab: 'ringkasan', pendaftar: null, sertakanUji: false, cari: '', filter: {}, halaman: 0, pengaturanAwal: null };
+    var akar = null;
+    var tundaPratinjau = null;
+
+    function $(id) { return document.getElementById(id); }
+
+    function el(tag, kelas, teks) {
+      var e = document.createElement(tag);
+      if (kelas) e.className = kelas;
+      if (teks != null) e.textContent = teks;
+      return e;
+    }
+
+    function tombol(teks, kelas, aksi) {
+      var b = el('button', 'tombol ' + (kelas || 'tombol-garis'), teks);
+      b.type = 'button';
+      if (aksi) b.addEventListener('click', aksi);
+      return b;
+    }
+
+    function pad(n) { return (n < 10 ? '0' : '') + n; }
+
+    function formatWib(ms) {
+      var d = new Date(ms + SELISIH_WIB);
+      return d.getUTCDate() + '/' + (d.getUTCMonth() + 1) + '/' + d.getUTCFullYear() + ' ' + pad(d.getUTCHours()) + '.' + pad(d.getUTCMinutes()) + ' WIB';
+    }
+
+    function normalisasiWa(v) {
+      var angka = String(v || '').replace(/[^\d]/g, '');
+      return angka.indexOf('0') === 0 ? '62' + angka.slice(1) : angka;
+    }
+
+    /** Memanggil fungsi server; galat SESI mengembalikan ke layar masuk. */
+    function panggil(nama, args, berhasil, gagal) {
+      if (!window.google || !google.script || !google.script.run) {
+        if (gagal) gagal({ message: 'Panel admin hanya bisa dipakai dari halaman Apps Script.' });
+        return;
+      }
+      var r = google.script.run
+        .withSuccessHandler(function (res) {
+          if (res && res.ok) return berhasil(res.data);
+          var e = (res && res.error) || { message: 'Terjadi kendala di server.' };
+          if (e.code === 'SESI') {
+            A.token = '';
+            renderMasuk(e.message);
+            return;
+          }
+          if (gagal) gagal(e);
+        })
+        .withFailureHandler(function () {
+          if (gagal) gagal({ message: 'Koneksi ke server terputus. Periksa internet lalu coba lagi.' });
+        });
+      r[nama].apply(r, args);
+    }
+
+    /* ---------- Masuk ---------- */
+
+    function renderMasuk(pesan) {
+      akar.textContent = '';
+      var w = el('div', 'admin-masuk');
+      var h = el('h2', null, 'Masuk panel admin');
+      h.id = 'judul-admin';
+      w.appendChild(h);
+      var form = el('form', 'admin-form');
+      form.noValidate = true;
+      var lab = el('label', null, 'Kata sandi');
+      lab.htmlFor = 'sandi-admin';
+      var input = el('input', 'fd-input');
+      input.type = 'password';
+      input.id = 'sandi-admin';
+      input.autocomplete = 'current-password';
+      var kirim = el('button', 'tombol tombol-indigo', 'Masuk');
+      kirim.type = 'submit';
+      var info = el('p', 'pesan-admin', pesan || '');
+      info.setAttribute('role', 'status');
+      info.setAttribute('aria-live', 'polite');
+      form.appendChild(lab);
+      form.appendChild(input);
+      form.appendChild(kirim);
+      form.appendChild(info);
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        if (!input.value) { info.textContent = 'Isi kata sandi.'; return; }
+        kirim.disabled = true;
+        kirim.textContent = 'Memeriksa…';
+        info.textContent = '';
+        panggil('adminLogin', [input.value], function (data) {
+          A.token = data.token;
+          A.pendaftar = null;
+          muatSheetJs();
+          renderPanel('ringkasan');
+        }, function (err) {
+          kirim.disabled = false;
+          kirim.textContent = 'Masuk';
+          info.textContent = err.message;
+          input.select();
+        });
+      });
+      w.appendChild(form);
+      akar.appendChild(w);
+      input.focus();
+    }
+
+    function keluar() {
+      var t = A.token;
+      A = { token: '', tab: 'ringkasan', pendaftar: null, sertakanUji: false, cari: '', filter: {}, halaman: 0, pengaturanAwal: null };
+      if (t) panggil('adminKeluar', [t], function () {}, function () {});
+      renderMasuk('Anda sudah keluar.');
+    }
+
+    /* ---------- Kerangka panel ---------- */
+
+    var TAB = [['ringkasan', 'Ringkasan'], ['pengaturan', 'Pengaturan'], ['pendaftar', 'Pendaftar'], ['unduh', 'Unduh']];
+
+    function renderPanel(tab) {
+      A.tab = tab;
+      akar.textContent = '';
+      var panel = el('div', 'admin-panel');
+      var kepala = el('div', 'admin-kepala');
+      var judul = el('h2', null, 'Panel admin');
+      judul.id = 'judul-admin';
+      kepala.appendChild(judul);
+      kepala.appendChild(tombol('Keluar', 'tombol-garis tombol-kecil', keluar));
+      panel.appendChild(kepala);
+
+      var daftarTab = el('div', 'admin-tab');
+      daftarTab.setAttribute('role', 'tablist');
+      TAB.forEach(function (t) {
+        var b = el('button', 'admin-tab-tombol', t[1]);
+        b.type = 'button';
+        b.setAttribute('role', 'tab');
+        b.setAttribute('aria-selected', t[0] === tab ? 'true' : 'false');
+        b.addEventListener('click', function () { renderPanel(t[0]); });
+        daftarTab.appendChild(b);
+      });
+      panel.appendChild(daftarTab);
+
+      var isi = el('div', 'admin-isi');
+      isi.id = 'admin-isi';
+      isi.setAttribute('role', 'tabpanel');
+      panel.appendChild(isi);
+      akar.appendChild(panel);
+
+      if (tab === 'ringkasan') tabRingkasan(isi);
+      else if (tab === 'pengaturan') tabPengaturan(isi);
+      else if (tab === 'pendaftar') tabPendaftar(isi);
+      else tabUnduh(isi);
+    }
+
+    function memuat(isi, teks) {
+      isi.textContent = '';
+      isi.appendChild(el('p', 'admin-memuat', teks || 'Memuat…'));
+    }
+
+    function galat(isi, pesan, ulang) {
+      isi.textContent = '';
+      var k = el('div', 'kotak-galat');
+      k.appendChild(el('p', null, pesan));
+      if (ulang) k.appendChild(tombol('Coba lagi', 'tombol-garis', ulang));
+      isi.appendChild(k);
+    }
+
+    /* ---------- Ringkasan ---------- */
+
+    function tabRingkasan(isi) {
+      memuat(isi);
+      panggil('adminGetData', [A.token, 'ringkasan', false], function (d) {
+        isi.textContent = '';
+        if (d.peringatan.mode_uji) isi.appendChild(el('p', 'pita', 'Mode uji aktif: semua kiriman ditandai data uji (' + d.jumlah_uji + ' baris uji tersimpan).'));
+        if (d.peringatan.data_contoh) isi.appendChild(el('p', 'pita', 'Data contoh sedang ditampilkan di halaman publik.'));
+
+        var info = el('p', 'admin-info');
+        info.textContent = (LABEL_FASE[d.status.fase] || d.status.fase) + ' · Jam server ' + formatWib(d.jam_server);
+        isi.appendChild(info);
+
+        var angka = el('div', 'admin-angka');
+        d.rekap.filter(function (b) { return b[0] === 'Total' || b[0] === 'Kategori' || b[0] === 'Prospek'; }).forEach(function (b) {
+          var k = el('div', 'admin-angka-kartu');
+          k.appendChild(el('strong', null, String(b[2])));
+          k.appendChild(el('span', null, b[0] === 'Total' ? 'Total pendaftar' : b[0] === 'Prospek' ? 'Prospek (setuju info program)' : b[1]));
+          angka.appendChild(k);
+        });
+        isi.appendChild(angka);
+
+        isi.appendChild(el('h3', 'admin-subjudul', 'Siswa per room'));
+        var tabel = el('table', 'admin-tabel');
+        var thead = el('thead');
+        var tr = el('tr');
+        ['Room', 'Siswa', 'Kuota', 'Status'].forEach(function (j) { tr.appendChild(el('th', null, j)); });
+        thead.appendChild(tr);
+        tabel.appendChild(thead);
+        var tbody = el('tbody');
+        d.rekap.filter(function (b) { return b[0] === 'Room'; }).forEach(function (b) {
+          var r = el('tr', b[4] === 'penuh' ? 'status-penuh' : b[4] === 'hampir penuh' ? 'status-hampir' : '');
+          [b[1], String(b[2]), b[3] === '' ? 'Tanpa batas' : String(b[3]), b[4] === 'tanpa batas' ? '-' : b[4]].forEach(function (v, i) {
+            var td = el('td', null, v);
+            td.setAttribute('data-label', ['Room', 'Siswa', 'Kuota', 'Status'][i]);
+            r.appendChild(td);
+          });
+          tbody.appendChild(r);
+        });
+        tabel.appendChild(tbody);
+        isi.appendChild(tabel);
+        isi.appendChild(el('p', 'admin-catatan', 'Data uji tidak dihitung.'));
+        isi.appendChild(tombol('Muat ulang', 'tombol-garis', function () { tabRingkasan(isi); }));
+      }, function (e) { galat(isi, e.message, function () { tabRingkasan(isi); }); });
+    }
+
+    /* ---------- Pengaturan ---------- */
+
+    function isianPengaturan(id, label, input, bantuan) {
+      var w = el('div', 'admin-isian');
+      var lab = el('label', null, label);
+      lab.htmlFor = 'ap-' + id;
+      input.id = 'ap-' + id;
+      input.name = id;
+      w.appendChild(lab);
+      if (bantuan) w.appendChild(el('p', 'fd-bantuan', bantuan));
+      w.appendChild(input);
+      var e = el('p', 'fd-galat');
+      e.id = 'ap-' + id + '-e';
+      w.appendChild(e);
+      return w;
+    }
+
+    function inputTeks(type, nilai) {
+      var i = el('input', 'fd-input');
+      i.type = type;
+      i.value = nilai == null ? '' : nilai;
+      return i;
+    }
+
+    function kotakCentang(id, label, nilai) {
+      var w = el('label', 'fd-kartu' + (nilai ? ' terpilih' : ''));
+      var i = el('input');
+      i.type = 'checkbox';
+      i.id = 'ap-' + id;
+      i.name = id;
+      i.checked = nilai;
+      i.addEventListener('change', function () { w.classList.toggle('terpilih', i.checked); });
+      var t = el('span', 'fd-kartu-teks');
+      t.appendChild(el('span', 'fd-kartu-judul', label));
+      w.appendChild(i);
+      w.appendChild(t);
+      var b = el('div', 'admin-isian');
+      b.appendChild(w);
+      var e = el('p', 'fd-galat');
+      e.id = 'ap-' + id + '-e';
+      b.appendChild(e);
+      return b;
+    }
+
+    function grup(judul) {
+      var fs = el('fieldset', 'admin-grup');
+      fs.appendChild(el('legend', null, judul));
+      return fs;
+    }
+
+    function keInputWaktu(v) {
+      return String(v || '').replace(' ', 'T').slice(0, 16);
+    }
+
+    function bacaForm(form) {
+      var p = {};
+      Array.prototype.forEach.call(form.elements, function (i) {
+        if (!i.name) return;
+        p[i.name] = i.type === 'checkbox' ? (i.checked ? 'YA' : 'TIDAK') : i.value;
+      });
+      ['pendaftaran_buka', 'pendaftaran_tutup'].forEach(function (k) { if (p[k]) p[k] = p[k].replace('T', ' '); });
+      return p;
+    }
+
+    function teksStatus(status) {
+      var t = (LABEL_FASE[status.fase] || status.fase);
+      if (status.fase === 'daftar' && status.sisa_hari != null) t += status.sisa_hari > 0 ? ', ditutup dalam ' + status.sisa_hari + ' hari' : ', ditutup hari ini';
+      return t + '.';
+    }
+
+    function tampilkanGalatForm(form, g) {
+      Array.prototype.forEach.call(form.querySelectorAll('.fd-galat'), function (e) { e.textContent = ''; });
+      var pertama = null;
+      Object.keys(g || {}).forEach(function (k) {
+        var e = $('ap-' + k + '-e');
+        if (e) e.textContent = g[k];
+        if (!pertama) pertama = $('ap-' + k);
+      });
+      if (pertama) pertama.focus();
+    }
+
+    /** Konfirmasi di dalam panel (window.confirm bisa diblokir di iframe Apps Script). */
+    function konfirmasi(judul, teksYa, lanjut) {
+      var lapis = el('div', 'admin-konfirmasi');
+      var kotak = el('div', 'admin-konfirmasi-kotak');
+      kotak.setAttribute('role', 'alertdialog');
+      kotak.setAttribute('aria-label', judul);
+      kotak.appendChild(el('p', null, judul));
+      var aksi = el('div', 'admin-aksi');
+      var batal = tombol('Batal', 'tombol-garis', function () { lapis.remove(); });
+      var ya = tombol(teksYa, 'tombol-indigo', function () { lapis.remove(); lanjut(); });
+      aksi.appendChild(batal);
+      aksi.appendChild(ya);
+      kotak.appendChild(aksi);
+      lapis.appendChild(kotak);
+      akar.appendChild(lapis);
+      ya.focus();
+    }
+
+    function perluKonfirmasi(lama, baru, statusBaru, statusLama) {
+      if (baru.form_pendaftaran !== lama.form_pendaftaran && baru.form_pendaftaran === 'TUTUP') return ['Tutup pendaftaran sekarang?', 'Tutup pendaftaran'];
+      if (baru.form_pendaftaran !== lama.form_pendaftaran && baru.form_pendaftaran === 'BUKA') return ['Buka pendaftaran sekarang, tanpa mengikuti tanggal?', 'Buka pendaftaran'];
+      if (statusLama && statusBaru && statusLama.fase === 'daftar' && statusBaru.fase !== 'daftar') return ['Dengan pengaturan ini pendaftaran akan tertutup. Lanjutkan?', 'Simpan dan tutup'];
+      if (lama.mode_uji === 'YA' && baru.mode_uji === 'TIDAK') return ['Matikan mode uji? Kiriman berikutnya dihitung sebagai data asli.', 'Matikan mode uji'];
+      if (lama.tampilkan_data_contoh === 'TIDAK' && baru.tampilkan_data_contoh === 'YA') return ['Tampilkan data contoh di halaman publik?', 'Tampilkan data contoh'];
+      return null;
+    }
+
+    function tabPengaturan(isi) {
+      memuat(isi);
+      panggil('adminGetSettings', [A.token], function (d) {
+        var p = d.pengaturan;
+        A.pengaturanAwal = p;
+        var statusAwal = d.status;
+        isi.textContent = '';
+        var form = el('form', 'admin-form-pengaturan');
+        form.noValidate = true;
+
+        var g1 = grup('Pendaftaran');
+        var mode = el('select', 'fd-input');
+        [['OTOMATIS', 'Otomatis ikut tanggal'], ['BUKA', 'Buka sekarang'], ['TUTUP', 'Tutup sekarang']].forEach(function (o) {
+          var op = el('option', null, o[1]);
+          op.value = o[0];
+          mode.appendChild(op);
+        });
+        mode.value = p.form_pendaftaran || 'OTOMATIS';
+        g1.appendChild(isianPengaturan('form_pendaftaran', 'Mode', mode));
+        g1.appendChild(isianPengaturan('pendaftaran_buka', 'Dibuka (WIB)', inputTeks('datetime-local', keInputWaktu(p.pendaftaran_buka))));
+        g1.appendChild(isianPengaturan('pendaftaran_tutup', 'Ditutup (WIB)', inputTeks('datetime-local', keInputWaktu(p.pendaftaran_tutup))));
+        form.appendChild(g1);
+
+        var g2 = grup('Hari H');
+        g2.appendChild(isianPengaturan('tanggal_hari_h', 'Tanggal hari H', inputTeks('date', p.tanggal_hari_h)));
+        form.appendChild(g2);
+
+        var g3 = grup('Tautan');
+        var link = inputTeks('url', p.link_grup_wa);
+        link.placeholder = 'https://chat.whatsapp.com/...';
+        g3.appendChild(isianPengaturan('link_grup_wa', 'Link grup WhatsApp peserta', link, 'Hanya dikirim ke pendaftar setelah pendaftaran berhasil.'));
+        form.appendChild(g3);
+
+        var g4 = grup('Kuota per room');
+        g4.appendChild(el('p', 'fd-bantuan', '0 berarti tanpa batas. Pendaftaran tetap diterima walau kuota penuh; room penuh ditandai di Ringkasan.'));
+        var kisi = el('div', 'admin-kisi');
+        ROOM.forEach(function (r) {
+          var k = 'kuota_' + r.toLowerCase().replace(' ', '_');
+          var i = inputTeks('number', p[k]);
+          i.min = 0;
+          i.setAttribute('inputmode', 'numeric');
+          kisi.appendChild(isianPengaturan(k, r, i));
+        });
+        g4.appendChild(kisi);
+        form.appendChild(g4);
+
+        var g5 = grup('Lainnya');
+        g5.appendChild(kotakCentang('mode_uji', 'Mode uji (semua kiriman ditandai data uji)', p.mode_uji === 'YA'));
+        g5.appendChild(kotakCentang('tampilkan_data_contoh', 'Tampilkan data contoh di halaman publik', p.tampilkan_data_contoh === 'YA'));
+        form.appendChild(g5);
+
+        var pratinjau = el('p', 'admin-pratinjau');
+        pratinjau.setAttribute('aria-live', 'polite');
+        pratinjau.textContent = 'Dengan pengaturan ini, status sekarang: ' + teksStatus(statusAwal);
+        form.appendChild(pratinjau);
+        var statusBaru = statusAwal;
+
+        var pesan = el('p', 'pesan-admin');
+        pesan.setAttribute('role', 'status');
+        var simpan = el('button', 'tombol tombol-indigo', 'Simpan pengaturan');
+        simpan.type = 'submit';
+        var aksi = el('div', 'admin-aksi');
+        aksi.appendChild(simpan);
+        form.appendChild(aksi);
+        form.appendChild(pesan);
+
+        function perbaruiPratinjau() {
+          clearTimeout(tundaPratinjau);
+          tundaPratinjau = setTimeout(function () {
+            panggil('adminPratinjau', [A.token, bacaForm(form)], function (r) {
+              statusBaru = r.status;
+              pratinjau.textContent = 'Dengan pengaturan ini, status sekarang: ' + teksStatus(r.status);
+            }, function () {});
+          }, 500);
+        }
+        form.addEventListener('input', perbaruiPratinjau);
+        form.addEventListener('change', perbaruiPratinjau);
+
+        function lakukanSimpan(baru) {
+          simpan.disabled = true;
+          simpan.textContent = 'Menyimpan…';
+          pesan.textContent = '';
+          panggil('adminSaveSettings', [A.token, baru], function (hasil) {
+            A.pengaturanAwal = hasil.pengaturan;
+            statusAwal = hasil.status;
+            simpan.disabled = false;
+            simpan.textContent = 'Simpan pengaturan';
+            tampilkanGalatForm(form, {});
+            pesan.textContent = 'Pengaturan tersimpan. Halaman pengunjung memakai pengaturan baru saat dimuat ulang.';
+          }, function (e) {
+            simpan.disabled = false;
+            simpan.textContent = 'Simpan pengaturan';
+            tampilkanGalatForm(form, e.kolom);
+            pesan.textContent = e.message;
+          });
+        }
+
+        form.addEventListener('submit', function (e) {
+          e.preventDefault();
+          var baru = bacaForm(form);
+          var k = perluKonfirmasi(A.pengaturanAwal, baru, statusBaru, statusAwal);
+          if (k) konfirmasi(k[0], k[1], function () { lakukanSimpan(baru); });
+          else lakukanSimpan(baru);
+        });
+        isi.appendChild(form);
+      }, function (e) { galat(isi, e.message, function () { tabPengaturan(isi); }); });
+    }
+
+    /* ---------- Pendaftar ---------- */
+
+    function berbagiPerangkat(b) {
+      return !!b.perangkat && b.perangkat !== 'Perangkat sendiri';
+    }
+
+    /** Pencarian nama, nomor WA (format 08 atau 62), ID, dan sekolah; lalu filter. */
+    function saring(baris) {
+      var q = A.cari.trim().toLowerCase();
+      var qWa = /\d{4,}/.test(q) ? normalisasiWa(q) : '';
+      var f = A.filter;
+      return baris.filter(function (b) {
+        if (f.kategori && b.kategori !== f.kategori) return false;
+        if (f.room && b.room !== f.room) return false;
+        if (f.peran && b.peran !== f.peran) return false;
+        if (f.asal === 'mandiri' && b.didaftarkan_oleh !== 'MANDIRI') return false;
+        if (f.asal === 'pendamping' && (b.didaftarkan_oleh === 'MANDIRI' || !b.didaftarkan_oleh)) return false;
+        if (!q) return true;
+        if (qWa && (String(b.wa).indexOf(qWa) >= 0 || String(b.wa_kunci).indexOf(qWa) >= 0)) return true;
+        return [b.nama_lengkap, b.id_peserta, b.id_pendaftaran, b.asal_sekolah, b.sekolah_mengajar].some(function (v) {
+          return String(v || '').toLowerCase().indexOf(q) >= 0;
+        });
+      });
+    }
+
+    function pilihFilter(id, label, opsi) {
+      var s = el('select', 'fd-input');
+      s.id = 'af-' + id;
+      var semua = el('option', null, 'Semua ' + label.toLowerCase());
+      semua.value = '';
+      s.appendChild(semua);
+      opsi.forEach(function (o) {
+        var op = el('option', null, Array.isArray(o) ? o[1] : o);
+        op.value = Array.isArray(o) ? o[0] : o;
+        s.appendChild(op);
+      });
+      s.value = A.filter[id] || '';
+      s.setAttribute('aria-label', label);
+      s.addEventListener('change', function () { A.filter[id] = s.value; A.halaman = 0; renderDaftar(); });
+      return s;
+    }
+
+    function tabPendaftar(isi) {
+      isi.textContent = '';
+      var alat = el('div', 'admin-alat');
+      var cari = el('input', 'fd-input');
+      cari.type = 'search';
+      cari.placeholder = 'Cari nama, nomor WA, ID, atau sekolah';
+      cari.setAttribute('aria-label', 'Cari pendaftar');
+      cari.value = A.cari;
+      var tunda = null;
+      cari.addEventListener('input', function () {
+        clearTimeout(tunda);
+        tunda = setTimeout(function () { A.cari = cari.value; A.halaman = 0; renderDaftar(); }, 250);
+      });
+      alat.appendChild(cari);
+      var filter = el('div', 'admin-filter');
+      filter.appendChild(pilihFilter('kategori', 'Kategori', KATEGORI));
+      filter.appendChild(pilihFilter('room', 'Room', ROOM));
+      filter.appendChild(pilihFilter('peran', 'Peran', ['Siswa', 'Orang Tua', 'Guru Pembina']));
+      filter.appendChild(pilihFilter('asal', 'Jalur', [['mandiri', 'Daftar mandiri'], ['pendamping', 'Lewat pendamping']]));
+      alat.appendChild(filter);
+      var uji = kotakCentang('uji_daftar', 'Sertakan data uji', A.sertakanUji);
+      uji.querySelector('input').addEventListener('change', function (e) {
+        A.sertakanUji = e.target.checked;
+        A.pendaftar = null;
+        A.halaman = 0;
+        muatPendaftar();
+      });
+      alat.appendChild(uji);
+      isi.appendChild(alat);
+      var hasil = el('div');
+      hasil.id = 'admin-daftar';
+      isi.appendChild(hasil);
+      if (A.pendaftar) renderDaftar();
+      else muatPendaftar();
+    }
+
+    function muatPendaftar() {
+      var wadah = $('admin-daftar');
+      memuat(wadah);
+      panggil('adminGetData', [A.token, 'pendaftar', A.sertakanUji], function (d) {
+        A.pendaftar = d.baris.slice().reverse();
+        renderDaftar();
+      }, function (e) { galat(wadah, e.message, muatPendaftar); });
+    }
+
+    function renderDaftar() {
+      var wadah = $('admin-daftar');
+      if (!wadah || !A.pendaftar) return;
+      var hasil = saring(A.pendaftar);
+      var total = hasil.length;
+      var maksHalaman = Math.max(0, Math.ceil(total / BARIS_PER_HALAMAN) - 1);
+      A.halaman = Math.min(A.halaman, maksHalaman);
+      var potong = hasil.slice(A.halaman * BARIS_PER_HALAMAN, (A.halaman + 1) * BARIS_PER_HALAMAN);
+      wadah.textContent = '';
+      wadah.appendChild(el('p', 'admin-info', total + ' orang' + (A.pendaftar.length !== total ? ' dari ' + A.pendaftar.length : '') + ' · terbaru di atas'));
+      if (!total) {
+        wadah.appendChild(el('p', 'admin-memuat', 'Tidak ada pendaftar yang cocok.'));
+        return;
+      }
+      var tabel = el('table', 'admin-tabel admin-tabel-pendaftar');
+      var kolom = [['id_peserta', 'ID'], ['nama_lengkap', 'Nama'], ['kategori', 'Kategori'], ['room', 'Room'], ['wa_kunci', 'WhatsApp'], ['sekolah', 'Sekolah'], ['perangkat', 'Perangkat']];
+      var thead = el('thead');
+      var tr = el('tr');
+      kolom.forEach(function (k) { tr.appendChild(el('th', null, k[1])); });
+      thead.appendChild(tr);
+      tabel.appendChild(thead);
+      var tbody = el('tbody');
+      potong.forEach(function (b) {
+        var r = el('tr');
+        kolom.forEach(function (k) {
+          var v = k[0] === 'sekolah' ? (b.asal_sekolah || b.sekolah_mengajar || '') : k[0] === 'perangkat' ? (berbagiPerangkat(b) ? 'Berbagi' : '') : (b[k[0]] || '');
+          var td = el('td', k[0] === 'perangkat' && v ? 'tanda-berbagi' : null);
+          td.setAttribute('data-label', k[1]);
+          if (k[0] === 'nama_lengkap') {
+            var t = tombol(v || '-', 'tombol-tautan', function () { bukaDetail(b); });
+            td.appendChild(t);
+            if (b.uji === 'YA') td.appendChild(el('span', 'label-contoh', 'Uji'));
+          } else {
+            td.textContent = v;
+          }
+          r.appendChild(td);
+        });
+        tbody.appendChild(r);
+      });
+      tabel.appendChild(tbody);
+      wadah.appendChild(tabel);
+
+      if (maksHalaman > 0) {
+        var nav = el('div', 'admin-aksi');
+        var seb = tombol('Sebelumnya', 'tombol-garis', function () { A.halaman--; renderDaftar(); wadah.scrollIntoView(); });
+        seb.disabled = A.halaman === 0;
+        var ber = tombol('Berikutnya', 'tombol-garis', function () { A.halaman++; renderDaftar(); wadah.scrollIntoView(); });
+        ber.disabled = A.halaman >= maksHalaman;
+        nav.appendChild(seb);
+        nav.appendChild(el('span', 'admin-info', 'Halaman ' + (A.halaman + 1) + ' dari ' + (maksHalaman + 1)));
+        nav.appendChild(ber);
+        wadah.appendChild(nav);
+      }
+    }
+
+    function bukaDetail(b) {
+      var lapis = el('div', 'admin-konfirmasi');
+      var kotak = el('div', 'admin-detail');
+      kotak.setAttribute('role', 'dialog');
+      kotak.setAttribute('aria-label', 'Detail ' + b.nama_lengkap);
+      var tutup = tombol('Tutup', 'tombol-garis tombol-kecil', function () { lapis.remove(); });
+      var kepala = el('div', 'admin-kepala');
+      kepala.appendChild(el('h3', null, b.nama_lengkap));
+      kepala.appendChild(tutup);
+      kotak.appendChild(kepala);
+      var dl = el('dl', 'fd-ringkas-dl');
+      Object.keys(LABEL_KOLOM).forEach(function (k) {
+        if (b[k] == null || b[k] === '' || k === 'nama_kunci') return;
+        dl.appendChild(el('dt', null, LABEL_KOLOM[k]));
+        dl.appendChild(el('dd', null, b[k]));
+      });
+      kotak.appendChild(dl);
+      var satu = (A.pendaftar || []).filter(function (x) { return x.id_pendaftaran === b.id_pendaftaran && x.id_peserta !== b.id_peserta; });
+      if (satu.length) {
+        kotak.appendChild(el('h3', 'admin-subjudul', 'Dalam ID pendaftaran yang sama'));
+        var ul = el('ul', 'admin-anggota');
+        satu.forEach(function (x) {
+          var li = el('li');
+          li.appendChild(tombol(x.nama_lengkap, 'tombol-tautan', function () { lapis.remove(); bukaDetail(x); }));
+          li.appendChild(el('span', null, ' · ' + [x.kategori, x.room, berbagiPerangkat(x) ? 'Berbagi perangkat' : ''].filter(Boolean).join(' · ')));
+          ul.appendChild(li);
+        });
+        kotak.appendChild(ul);
+      }
+      lapis.appendChild(kotak);
+      lapis.addEventListener('click', function (e) { if (e.target === lapis) lapis.remove(); });
+      akar.appendChild(lapis);
+      tutup.focus();
+    }
+
+    /* ---------- Unduh ---------- */
+
+    function muatSheetJs(selesai) {
+      if (window.XLSX) { if (selesai) selesai(true); return; }
+      var ada = document.getElementById('skrip-sheetjs');
+      if (!ada) {
+        ada = document.createElement('script');
+        ada.id = 'skrip-sheetjs';
+        ada.src = URL_SHEETJS;
+        document.head.appendChild(ada);
+      }
+      if (selesai) {
+        ada.addEventListener('load', function () { selesai(true); });
+        ada.addEventListener('error', function () { selesai(false); });
+      }
+    }
+
+    function namaFile(jenis) {
+      var d = new Date(Date.now() + SELISIH_WIB);
+      return 'MenujuJuara-Eps1_' + jenis + '_' + d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1) + '-' + pad(d.getUTCDate()) + '_' + pad(d.getUTCHours()) + pad(d.getUTCMinutes()) + '.xlsx';
+    }
+
+    /** Lembar Excel dari daftar objek; semua nilai ditulis sebagai teks agar nomor WA tetap utuh. */
+    function lembarDariObjek(baris, kolom) {
+      var aoa = [kolom.map(function (k) { return LABEL_KOLOM[k] || k; })];
+      baris.forEach(function (b) { aoa.push(kolom.map(function (k) { return String(b[k] == null ? '' : b[k]); })); });
+      var ws = XLSX.utils.aoa_to_sheet(aoa);
+      ws['!cols'] = kolom.map(function (k) { return { wch: Math.min(40, Math.max(10, (LABEL_KOLOM[k] || k).length + 2)) }; });
+      return ws;
+    }
+
+    function bukuSemua(d) {
+      var wb = XLSX.utils.book_new();
+      var kolom = Object.keys(LABEL_KOLOM).filter(function (k) { return k !== 'sumber_persetujuan' && k !== 'nama_kunci'; });
+      XLSX.utils.book_append_sheet(wb, lembarDariObjek(d.pendaftar, kolom), 'Pendaftar');
+      var rekap = [['Kelompok', 'Nama', 'Jumlah', 'Kuota', 'Status', 'Diperbarui']].concat(d.rekap.map(function (b) { return b.map(String); }));
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rekap), 'Rekap');
+      return wb;
+    }
+
+    function bukuProspek(d) {
+      var wb = XLSX.utils.book_new();
+      var kolom = ['nama_lengkap', 'wa_kunci', 'email', 'kategori', 'kota', 'asal_sekolah', 'sekolah_mengajar', 'id_peserta', 'id_pendaftaran', 'sumber_persetujuan'];
+      XLSX.utils.book_append_sheet(wb, lembarDariObjek(d.baris, kolom), 'Prospek');
+      return wb;
+    }
+
+    function tabUnduh(isi) {
+      isi.textContent = '';
+      isi.appendChild(el('p', 'fd-bantuan', 'File dibuat di perangkat ini. Data uji tidak ikut kecuali dicentang.'));
+      var uji = kotakCentang('uji_unduh', 'Sertakan data uji', false);
+      isi.appendChild(uji);
+      var status = el('p', 'pesan-admin');
+      status.setAttribute('role', 'status');
+      status.setAttribute('aria-live', 'polite');
+
+      function unduh(jenis, tombolnya) {
+        var sertakan = uji.querySelector('input').checked;
+        tombolnya.disabled = true;
+        status.textContent = 'Menyiapkan file…';
+        function selesai(pesan) {
+          tombolnya.disabled = false;
+          status.textContent = pesan;
+        }
+        muatSheetJs(function (ok) {
+          if (!ok || !window.XLSX) return selesai('Pustaka Excel gagal dimuat. Periksa koneksi internet lalu coba lagi.');
+          panggil('adminGetData', [A.token, jenis === 'semua' ? 'semua' : 'prospek', sertakan], function (d) {
+            try {
+              var wb = jenis === 'semua' ? bukuSemua(d) : bukuProspek(d);
+              XLSX.writeFile(wb, namaFile(jenis));
+              panggil('adminCatatUnduhan', [A.token, jenis + (sertakan ? ' (dengan data uji)' : '')], function () {}, function () {});
+              selesai('File sudah dibuat. Bila tidak terunduh, buka alamat /exec langsung di Chrome, lalu unduh lagi dari panel admin.');
+            } catch (err) {
+              selesai('File gagal dibuat di perangkat ini. Buka alamat /exec langsung di Chrome, lalu coba lagi.');
+            }
+          }, function (e) { selesai(e.message); });
+        });
+      }
+
+      var aksi = el('div', 'admin-aksi admin-aksi-kolom');
+      var b1 = tombol('Unduh semua data (.xlsx)', 'tombol-indigo');
+      b1.addEventListener('click', function () { unduh('semua', b1); });
+      var b2 = tombol('Unduh daftar prospek (.xlsx)', 'tombol-garis');
+      b2.addEventListener('click', function () { unduh('prospek', b2); });
+      aksi.appendChild(b1);
+      aksi.appendChild(b2);
+      isi.appendChild(aksi);
+      isi.appendChild(status);
+      isi.appendChild(el('p', 'admin-catatan', 'Semua data: lembar Pendaftar dan Rekap. Prospek: hanya yang menyetujui informasi program. Setiap unduhan dicatat di Log_Admin.'));
+    }
+
+    /* ---------- Buka ---------- */
+
+    function buka(wadah) {
+      akar = wadah;
+      if (A.token) renderPanel(A.tab);
+      else renderMasuk('');
+    }
+
+    return { buka: buka, saring: function (baris, cari, filter) { A.cari = cari || ''; A.filter = filter || {}; return saring(baris); } };
+  })();
+</script>

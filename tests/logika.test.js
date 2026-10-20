@@ -125,3 +125,38 @@ test('atribut poster ditanam di HTML hanya untuk URL https yang aman', () => {
     assert.strictEqual(b.wadah, 'hidden');
   }
 });
+
+test('admin: validasi pengaturan, perapian, kunci login, dan prospek', () => {
+  const a = muatGas(['Util.gs', 'Config.gs', 'Konten.gs', 'Setup.gs', 'Pendaftaran.gs', 'Admin.gs']);
+  const dasar = {
+    form_pendaftaran: 'OTOMATIS', pendaftaran_buka: '2026-10-19 00:00', pendaftaran_tutup: '2026-11-07 23:59', tanggal_hari_h: '2026-11-14',
+    link_grup_wa: '', kuota_sd_matematika: '0', kuota_sd_ipa: '0', kuota_sd_ips: '0', kuota_smp_matematika: '0', kuota_smp_ipa: '0', kuota_smp_ips: '10',
+    mode_uji: 'YA', tampilkan_data_contoh: 'TIDAK'
+  };
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(a.validasiPengaturan_(dasar))), {});
+  const g = a.validasiPengaturan_({ ...dasar, pendaftaran_tutup: '2026-10-01 10:00', link_grup_wa: 'http://x', kuota_sd_ipa: '-1', form_pendaftaran: 'X' });
+  assert.strictEqual(g.pendaftaran_tutup, 'Jam tutup harus setelah jam buka.');
+  assert.strictEqual(g.link_grup_wa, 'Link harus diawali https://');
+  assert.ok(g.kuota_sd_ipa);
+  assert.ok(g.form_pendaftaran);
+
+  const r = a.rapikanPerubahan_({ pendaftaran_tutup: '2026-11-20T23:59', mode_uji: 'tidak', asing: 'x' });
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(r)), { pendaftaran_tutup: '2026-11-20 23:59', mode_uji: 'TIDAK' });
+
+  let daftar = [];
+  const t0 = 1e12;
+  for (let i = 0; i < 19; i++) daftar = a.catatPercobaanGagal_(daftar, t0 + i).daftar;
+  assert.strictEqual(a.catatPercobaanGagal_(daftar, t0 + 20).kunci, true);
+  assert.strictEqual(a.catatPercobaanGagal_(daftar, t0 + 16 * 60 * 1000).kunci, false);
+
+  assert.ok(a.samaAman_('abc', 'abc'));
+  assert.ok(!a.samaAman_('abc', 'abd'));
+  assert.ok(!a.samaAman_('abc', 'abcd'));
+
+  const p = a.saringProspek_([
+    { nama_lengkap: 'A', setuju_info_program: 'YA', didaftarkan_oleh: 'MANDIRI' },
+    { nama_lengkap: 'B', setuju_info_program: 'TIDAK', didaftarkan_oleh: 'MANDIRI' },
+    { nama_lengkap: 'C', setuju_info_program: 'YA', didaftarkan_oleh: 'MJ-0001' }
+  ]);
+  assert.deepStrictEqual(p.map((x) => x.sumber_persetujuan), ['Pendaftaran', 'Pendaftaran (persetujuan pendamping)']);
+});

@@ -369,8 +369,8 @@ Kolom `foto` berisi nama file di folder Gambar Web. Default `cta_teks_tombol`: "
 - Perbarui daftar gambar (Konten Website)
 - Hapus data uji (Database)
 - Perbarui rekap (Database)
-- Ganti kata sandi admin / moderator (Database, lewat kotak isian)
-- Buka kunci login (Database)
+- Ganti kata sandi admin / moderator (ubah Script Properties `ADMIN_PASSWORD` / `MODERATOR_PASSWORD`, karena proyek standalone tidak punya kotak isian spreadsheet)
+- Buka kunci login (fungsi `bukaKunciLogin` di editor Apps Script)
 - Bersihkan cache
 
 ---

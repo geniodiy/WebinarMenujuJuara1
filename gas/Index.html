@@ -112,15 +112,9 @@
   </div>
 
   <div class="lapisan lapisan-penuh" id="lapisan-admin" hidden>
-    <div class="admin-masuk" role="dialog" aria-modal="true" aria-labelledby="judul-admin">
+    <div class="admin" role="dialog" aria-modal="true" aria-labelledby="judul-admin">
       <button type="button" class="tombol-tutup-lapisan" data-tutup aria-label="Tutup panel admin"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
-      <h2 id="judul-admin">Masuk panel admin</h2>
-      <form id="form-admin" class="admin-form" novalidate>
-        <label for="sandi-admin">Kata sandi</label>
-        <input id="sandi-admin" type="password" autocomplete="current-password" class="fd-input">
-        <button type="submit" class="tombol tombol-indigo">Masuk</button>
-        <p id="pesan-admin" class="pesan-admin" role="status" aria-live="polite"></p>
-      </form>
+      <div id="admin-akar"></div>
     </div>
   </div>
 
@@ -129,6 +123,7 @@
   </script>
   <?!= include('LogikaDaftar') ?>
   <?!= include('JsFormDaftar') ?>
+  <?!= include('JsAdmin') ?>
   <?!= include('JsApp') ?>
 </body>
 </html>

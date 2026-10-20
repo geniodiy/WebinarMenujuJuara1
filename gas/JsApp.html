@@ -340,21 +340,24 @@
     function siapkanLapisan(id) {
       var l = $(id);
       l.addEventListener('click', function (e) {
-        if (e.target === l || e.target.closest('[data-tutup]')) tutupLapisan(id);
+        // Panel admin hanya ditutup lewat tombolnya agar tidak tertutup karena ketukan tak sengaja.
+        var latar = e.target === l && id !== 'lapisan-admin';
+        if (latar || e.target.closest('[data-tutup]')) tutupLapisan(id);
       });
       l.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') tutupLapisan(id);
       });
     }
 
-    /* ---------- Admin (Fase 4) ---------- */
+    /* ---------- Admin ---------- */
+
+    function bukaAdmin() {
+      bukaLapisan('lapisan-admin', $('tombol-admin'));
+      PanelAdmin.buka($('admin-akar'));
+    }
 
     function siapkanAdmin() {
-      $('tombol-admin').addEventListener('click', function () { bukaLapisan('lapisan-admin', $('tombol-admin')); });
-      $('form-admin').addEventListener('submit', function (e) {
-        e.preventDefault();
-        $('pesan-admin').textContent = 'Panel admin sedang disiapkan.';
-      });
+      $('tombol-admin').addEventListener('click', bukaAdmin);
     }
 
     /* ---------- Muat ulang bila gagal ---------- */
@@ -401,6 +404,6 @@
     $('tombol-muat-ulang').addEventListener('click', muatUlang);
 
     if (param.form === 'daftar') FormDaftar.buka();
-    else if (param.admin === '1') bukaLapisan('lapisan-admin', $('tombol-admin'));
+    else if (param.admin === '1') bukaAdmin();
   })();
 </script>

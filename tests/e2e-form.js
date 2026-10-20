@@ -1,5 +1,6 @@
 // Uji ujung-ke-ujung form pendaftaran: Chromium mengisi form, submitDaftar asli berjalan di Node
 // dengan spreadsheet tiruan. Pakai: NODE_PATH=$(npm root -g) node tests/e2e-form.js
+// Uji unduhan Excel butuh SHEETJS_LOKAL=<path xlsx.full.min.js 0.18.5> bila cdnjs tidak terjangkau.
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
@@ -9,22 +10,37 @@ const { chromium } = require('playwright');
 const muatGas = require('./muat-gas');
 
 const DIR_KELUAR = fs.mkdtempSync(path.join(os.tmpdir(), 'e2e-form-'));
-const g = muatGas(['Util.gs', 'Config.gs', 'Konten.gs', 'Setup.gs', 'Pendaftaran.gs']);
+const g = muatGas(['Util.gs', 'Config.gs', 'Konten.gs', 'Setup.gs', 'Pendaftaran.gs', 'Admin.gs']);
+const SANDI = 'sandi-uji-panjang-123';
 
 function lembarTiruan(judul) {
   const data = [judul.slice()];
+  const lebar = () => Math.max(...data.map((r) => r.length));
   return {
     data,
     getLastRow: () => data.length,
-    getDataRange: () => ({ getValues: () => data.map((r) => r.slice()), getDisplayValues: () => data.map((r) => r.map(String)) }),
+    getLastColumn: () => lebar(),
+    appendRow(r) { data.push(r.slice()); },
+    getDataRange: () => ({
+      getValues: () => data.map((r) => r.slice()),
+      getDisplayValues: () => data.map((r) => Array.from({ length: lebar() }, (_, i) => String(r[i] == null ? '' : r[i])))
+    }),
     getRange: (r, c, nr = 1, nc = 1) => ({
+      getValues() {
+        const hasil = [];
+        for (let i = 0; i < nr; i++) hasil.push(Array.from({ length: nc }, (_, j) => (data[r - 1 + i] || [])[c - 1 + j] ?? ''));
+        return hasil;
+      },
       setValues(vals) {
         for (let i = 0; i < nr; i++) {
           while (data.length < r + i) data.push(new Array(data[0].length).fill(''));
           for (let j = 0; j < nc; j++) data[r - 1 + i][c - 1 + j] = vals[i][j];
         }
       },
-      setValue(v) { data[r - 1][c - 1] = v; },
+      setValue(v) {
+        while (data.length < r) data.push(new Array(data[0].length).fill(''));
+        data[r - 1][c - 1] = v;
+      },
       clearContent() {
         for (let i = 0; i < nr; i++) for (let j = 0; j < nc; j++) if (data[r - 1 + i]) data[r - 1 + i][c - 1 + j] = '';
       }
@@ -33,21 +49,46 @@ function lembarTiruan(judul) {
 }
 
 let lembar = {};
-let peng = {};
+let lembarKonten = {};
 const cache = new Map();
 function reset() {
-  lembar = { Pendaftar: lembarTiruan(g.KOLOM_PENDAFTAR_), Rekap: lembarTiruan(g.KOLOM_REKAP_) };
-  peng = {};
-  g.PENGATURAN_AWAL_.forEach((b) => { peng[b[0]] = b[1]; });
-  peng.form_pendaftaran = 'BUKA';
-  peng.link_grup_wa = 'https://chat.whatsapp.com/contohgrup';
+  const peng = lembarTiruan(['kunci', 'nilai', 'keterangan']);
+  g.PENGATURAN_AWAL_.forEach((b) => peng.appendRow([b[0], b[1], b[2]]));
+  lembar = {
+    Pendaftar: lembarTiruan(g.KOLOM_PENDAFTAR_),
+    Rekap: lembarTiruan(g.KOLOM_REKAP_),
+    Log_Admin: lembarTiruan(g.KOLOM_LOG_ADMIN_),
+    Pengaturan: peng
+  };
+  const pk = lembarTiruan(['kunci', 'nilai', 'keterangan']);
+  pk.appendRow(['tampilkan_data_contoh', 'TIDAK', '']);
+  lembarKonten = { Pengaturan_Konten: pk };
+  aturPeng('form_pendaftaran', 'BUKA');
+  aturPeng('link_grup_wa', 'https://chat.whatsapp.com/contohgrup');
   cache.clear();
 }
+function aturPeng(kunci, nilai) {
+  const baris = lembar.Pengaturan.data.find((r) => r[0] === kunci);
+  baris[1] = nilai;
+  cache.delete('pengaturan');
+}
+function nilaiPeng(kunci) {
+  return lembar.Pengaturan.data.find((r) => r[0] === kunci)[1];
+}
 g.bukaDb_ = () => ({ getSheetByName: (n) => lembar[n] || null });
-g.bacaPengaturan_ = () => peng;
-g.CacheService = { getScriptCache: () => ({ get: (k) => cache.get(k) || null, put: (k, v) => cache.set(k, v), removeAll() {} }) };
+g.bukaKonten_ = () => ({ getSheetByName: (n) => lembarKonten[n] || null });
+g.CacheService = { getScriptCache: () => ({
+  get: (k) => cache.get(k) || null, put: (k, v) => cache.set(k, v), remove: (k) => cache.delete(k),
+  removeAll: (ks) => ks.forEach((k) => cache.delete(k))
+}) };
 g.LockService = { getScriptLock: () => ({ tryLock: () => true, releaseLock() {} }) };
-g.Utilities = { formatDate: (d) => d.toISOString().replace('T', ' ').slice(0, 19) };
+g.PropertiesService = { getScriptProperties: () => ({ getProperty: (k) => (k === 'ADMIN_PASSWORD' ? SANDI : '') }) };
+let nomorUuid = 0;
+g.Utilities = {
+  formatDate: (d) => d.toISOString().replace('T', ' ').slice(0, 19),
+  getUuid: () => 'aaaaaaaa-bbbb-cccc-dddd-' + String(++nomorUuid).padStart(12, '0'),
+  sleep() {}
+};
 g.DURASI_MINIMUM_MS_ = 0;
 
 function barisPendaftar() {
@@ -57,39 +98,47 @@ function barisPendaftar() {
 
 const berkasHtml = path.join(DIR_KELUAR, 'form.html');
 fs.writeFileSync(berkasHtml, execFileSync('node', [path.join(__dirname, 'pratinjau.js'), 'daftar', 'form']));
+const berkasAdmin = path.join(DIR_KELUAR, 'halaman.html');
+fs.writeFileSync(berkasAdmin, execFileSync('node', [path.join(__dirname, 'pratinjau.js'), 'daftar']));
 
 let putus = '';
 async function halamanBaru(browser, opsi = {}) {
-  const ctx = await browser.newContext({ viewport: { width: 360, height: 740 } });
+  const ctx = await browser.newContext({ viewport: opsi.viewport || { width: 360, height: 740 }, acceptDownloads: true });
   const page = await ctx.newPage();
   const galatHalaman = [];
   page.on('pageerror', (e) => galatHalaman.push(e.message));
   page.on('dialog', (d) => d.accept());
-  await page.exposeFunction('__kirimServer', (payload) => {
-    const hasil = g.submitDaftar(payload);
-    return JSON.parse(JSON.stringify(hasil));
-  });
+  await page.exposeFunction('__panggilServer', (nama, args) => JSON.parse(JSON.stringify(g[nama](...args))));
   await page.exposeFunction('__putus', () => putus);
   await page.addInitScript(() => {
     function runner() {
       let sukses = () => {};
       let gagal = () => {};
-      const r = {
+      const dasar = {
         withSuccessHandler(f) { sukses = f; return r; },
-        withFailureHandler(f) { gagal = f; return r; },
-        async submitDaftar(p) {
-          const mode = await window.__putus();
-          if (mode === 'sebelum') return setTimeout(() => gagal(new Error('putus')), 50);
-          const hasil = await window.__kirimServer(p);
-          setTimeout(() => (mode === 'setelah' ? gagal(new Error('putus')) : sukses(hasil)), 150);
-        },
-        getConfig() { sukses({ ok: false }); }
+        withFailureHandler(f) { gagal = f; return r; }
       };
+      const r = new Proxy(dasar, {
+        get(t, nama) {
+          if (nama in t) return t[nama];
+          return async (...args) => {
+            const mode = nama === 'submitDaftar' ? await window.__putus() : '';
+            if (mode === 'sebelum') return setTimeout(() => gagal(new Error('putus')), 50);
+            const hasil = await window.__panggilServer(nama, args);
+            setTimeout(() => (mode === 'setelah' ? gagal(new Error('putus')) : sukses(hasil)), 100);
+          };
+        }
+      });
       return r;
     }
     window.google = { script: { get run() { return runner(); } } };
   });
-  await page.goto('file://' + berkasHtml);
+  // cdnjs diblokir di lingkungan uji; SheetJS versi yang sama bisa diberikan lewat SHEETJS_LOKAL.
+  if (process.env.SHEETJS_LOKAL) {
+    await page.route('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js', (route) =>
+      route.fulfill({ contentType: 'application/javascript', body: fs.readFileSync(process.env.SHEETJS_LOKAL, 'utf8') }));
+  }
+  await page.goto('file://' + (opsi.berkas || berkasHtml));
   if (opsi.bersih !== false) {
     await page.evaluate(() => { try { localStorage.clear(); } catch (e) {} });
     await page.reload();
@@ -286,7 +335,7 @@ async function uji(nama, fn) {
   await uji('U8: pendaftaran ditutup saat halaman masih terbuka', async () => {
     const { page } = await halamanBaru(browser);
     await jalurSiswa(page, 'Budi Uji', '081234567890');
-    peng.form_pendaftaran = 'TUTUP';
+    aturPeng('form_pendaftaran', 'TUTUP');
     await lanjut(page);
     await page.waitForSelector('.fd-kotak-galat');
     assert.ok((await page.locator('.fd-kotak-galat').textContent()).includes('Pendaftaran sudah ditutup. Hubungi Lily di 0878-3886-2882'));
@@ -401,6 +450,142 @@ async function uji(nama, fn) {
     } finally {
       g.DURASI_MINIMUM_MS_ = 0;
     }
+  });
+
+
+  function daftarLangsung(nama, wa, uji) {
+    const d = {
+      kode_kiriman: 'k-' + Math.random().toString(16).slice(2, 14), durasi_ms: 9000, hp: '',
+      daftar_sebagai: 'Siswa', nama, wa, email: 'uji@contoh.id', kota: 'Sleman', kelas: '8', asal_sekolah: 'SMP Uji',
+      bidang: 'IPA', pengalaman_osn: 'Belum pernah', siswa_genio: 'Tidak', sumber_info: ['Sekolah'],
+      setuju_kehadiran: true, setuju_info_program: true
+    };
+    aturPeng('mode_uji', uji ? 'YA' : 'TIDAK');
+    const h = g.submitDaftar(d);
+    assert.ok(h.ok, JSON.stringify(h));
+  }
+  async function masukAdmin(page, sandi) {
+    await page.click('#tombol-admin');
+    await page.fill('#sandi-admin', sandi);
+    await page.click('.admin-form button[type=submit]');
+  }
+
+  await uji('U20: kata sandi salah tidak masuk dan tercatat di Log_Admin', async () => {
+    const { page, galatHalaman } = await halamanBaru(browser, { berkas: berkasAdmin });
+    await masukAdmin(page, 'salah');
+    await page.waitForSelector('text=Kata sandi salah.');
+    assert.strictEqual(lembar.Log_Admin.data.length, 2);
+    assert.strictEqual(lembar.Log_Admin.data[1][2], 'login gagal');
+    assert.strictEqual(await page.locator('.admin-panel').count(), 0);
+    assert.deepStrictEqual(galatHalaman, []);
+  });
+
+  await uji('U21: 20 kali salah mengunci login, bukaKunciLogin membukanya', async () => {
+    for (let i = 0; i < 20; i++) g.adminLogin('salah');
+    assert.strictEqual(g.adminLogin(SANDI).error.code, 'TERKUNCI');
+    const penjaga = g.penjagaPanitia_;
+    g.penjagaPanitia_ = () => {};
+    g.lapor_ = (x) => x;
+    g.bukaKunciLogin();
+    g.penjagaPanitia_ = penjaga;
+    assert.strictEqual(g.adminLogin(SANDI).ok, true);
+  });
+
+  await uji('U22: admin mengubah tanggal tutup, Pengaturan dan Log_Admin berubah', async () => {
+    daftarLangsung('Budi Asli', '081234567890', false);
+    daftarLangsung('Ani Uji', '081299998888', true);
+    const { page } = await halamanBaru(browser, { berkas: berkasAdmin, viewport: { width: 390, height: 844 } });
+    await masukAdmin(page, SANDI);
+    await page.waitForSelector('.admin-angka');
+    assert.strictEqual(await page.locator('.admin-angka-kartu strong').first().textContent(), '1');
+    await page.screenshot({ path: path.join(DIR_KELUAR, 'admin-ringkasan.png') });
+    await page.click('.admin-tab-tombol:has-text("Pengaturan")');
+    await page.waitForSelector('#ap-pendaftaran_tutup');
+    const sisaLama = g.getConfig().data.sisa_hari;
+    await page.fill('#ap-pendaftaran_tutup', '2026-11-20T23:59');
+    await page.selectOption('#ap-form_pendaftaran', 'OTOMATIS');
+    await page.click('text=Simpan pengaturan');
+    await page.waitForSelector('text=Pengaturan tersimpan.');
+    assert.strictEqual(nilaiPeng('pendaftaran_tutup'), '2026-11-20 23:59');
+    const log = lembar.Log_Admin.data.find((r) => r[3] === 'pendaftaran_tutup');
+    assert.deepStrictEqual([log[4], log[5]], ['2026-11-07 23:59', '2026-11-20 23:59']);
+    assert.strictEqual(g.getConfig().data.sisa_hari, sisaLama + 13);
+    await page.screenshot({ path: path.join(DIR_KELUAR, 'admin-pengaturan.png'), fullPage: true });
+  });
+
+  await uji('U23: jam tutup sebelum jam buka ditolak dengan pesan jelas', async () => {
+    const { page } = await halamanBaru(browser, { berkas: berkasAdmin });
+    await masukAdmin(page, SANDI);
+    await page.click('.admin-tab-tombol:has-text("Pengaturan")');
+    await page.waitForSelector('#ap-pendaftaran_tutup');
+    await page.fill('#ap-pendaftaran_tutup', '2026-10-01T10:00');
+    await page.click('text=Simpan pengaturan');
+    await page.waitForSelector('text=Jam tutup harus setelah jam buka.');
+    assert.strictEqual(nilaiPeng('pendaftaran_tutup'), '2026-11-07 23:59');
+  });
+
+  await uji('tutup pendaftaran sekarang meminta konfirmasi', async () => {
+    const { page } = await halamanBaru(browser, { berkas: berkasAdmin });
+    await masukAdmin(page, SANDI);
+    await page.click('.admin-tab-tombol:has-text("Pengaturan")');
+    await page.waitForSelector('#ap-form_pendaftaran');
+    await page.selectOption('#ap-form_pendaftaran', 'TUTUP');
+    await page.click('text=Simpan pengaturan');
+    await page.waitForSelector('text=Tutup pendaftaran sekarang?');
+    await page.click('.admin-konfirmasi button:has-text("Batal")');
+    assert.strictEqual(nilaiPeng('form_pendaftaran'), 'BUKA');
+    await page.click('text=Simpan pengaturan');
+    await page.click('.admin-konfirmasi button:has-text("Tutup pendaftaran")');
+    await page.waitForSelector('text=Pengaturan tersimpan.');
+    assert.strictEqual(nilaiPeng('form_pendaftaran'), 'TUTUP');
+  });
+
+  await uji('U25: cari peserta lewat nomor 0812 dan detail pendaftar', async () => {
+    daftarLangsung('Budi Asli', '+62 812-3456-7890', false);
+    daftarLangsung('Citra Asli', '081277776666', false);
+    const { page } = await halamanBaru(browser, { berkas: berkasAdmin });
+    await masukAdmin(page, SANDI);
+    await page.click('.admin-tab-tombol:has-text("Pendaftar")');
+    await page.waitForSelector('.admin-tabel-pendaftar');
+    await page.fill('input[type=search]', '0812 3456');
+    await page.waitForTimeout(400);
+    assert.strictEqual(await page.locator('.admin-tabel-pendaftar tbody tr').count(), 1);
+    await page.screenshot({ path: path.join(DIR_KELUAR, 'admin-pendaftar.png') });
+    await page.click('.admin-tabel-pendaftar .tombol-tautan');
+    await page.waitForSelector('.admin-detail');
+    assert.ok((await page.locator('.admin-detail').textContent()).includes('6281234567890'));
+  });
+
+  await uji('U24: unduh semua data dan prospek tanpa data uji, WA tetap teks', async () => {
+    if (!process.env.SHEETJS_LOKAL) throw new Error('lewati: set SHEETJS_LOKAL ke xlsx.full.min.js 0.18.5 (cdnjs tidak terjangkau)');
+    daftarLangsung('Budi Asli', '081234567890', false);
+    daftarLangsung('Ani Uji', '081299998888', true);
+    const { page } = await halamanBaru(browser, { berkas: berkasAdmin, viewport: { width: 1280, height: 900 } });
+    await masukAdmin(page, SANDI);
+    await page.click('.admin-tab-tombol:has-text("Unduh")');
+    const [unduhan] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('text=Unduh semua data (.xlsx)')]);
+    assert.ok(/^MenujuJuara-Eps1_semua_\d{4}-\d{2}-\d{2}_\d{4}\.xlsx$/.test(unduhan.suggestedFilename()), unduhan.suggestedFilename());
+    const berkas = path.join(DIR_KELUAR, unduhan.suggestedFilename());
+    await unduhan.saveAs(berkas);
+    const isi = await page.evaluate(async (b64) => {
+      const wb = XLSX.read(b64, { type: 'base64' });
+      const ws = wb.Sheets.Pendaftar;
+      const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
+      const kolomWa = rows[0].indexOf('Nomor WhatsApp');
+      return { lembar: wb.SheetNames, baris: rows.length, wa: rows[1][kolomWa], tipe: ws[XLSX.utils.encode_cell({ r: 1, c: kolomWa })].t };
+    }, fs.readFileSync(berkas).toString('base64'));
+    assert.deepStrictEqual(isi.lembar, ['Pendaftar', 'Rekap']);
+    assert.strictEqual(isi.baris, 2);
+    assert.strictEqual(isi.wa, '6281234567890');
+    assert.strictEqual(isi.tipe, 's');
+    const [prospek] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('text=Unduh daftar prospek (.xlsx)')]);
+    assert.ok(prospek.suggestedFilename().startsWith('MenujuJuara-Eps1_prospek_'));
+    assert.ok(lembar.Log_Admin.data.some((r) => r[2] === 'unduh data' && r[3] === 'semua'));
+  });
+
+  await uji('akses data admin tanpa token ditolak server', async () => {
+    assert.strictEqual(g.adminGetData('', 'pendaftar', true).error.code, 'SESI');
+    assert.strictEqual(g.adminSaveSettings('a'.repeat(64), { form_pendaftaran: 'TUTUP' }).error.code, 'SESI');
   });
 
   await browser.close();

@@ -7,6 +7,13 @@ var ZONA_WAKTU_ = 'Asia/Jakarta';
 var SELISIH_WIB_MS_ = 7 * 3600 * 1000;
 var SATU_HARI_MS_ = 24 * 3600 * 1000;
 
+/** Galat dengan kode yang diteruskan apa adanya ke browser (misalnya SESI). */
+function galatKode_(kode, pesan) {
+  var e = new Error(pesan);
+  e.kode = kode;
+  return e;
+}
+
 function ok_(data) {
   return { ok: true, data: data };
 }
@@ -20,6 +27,7 @@ function jalankanAman_(fn) {
   try {
     return fn();
   } catch (err) {
+    if (err && err.kode) return gagal_(err.kode, err.message);
     console.error(err && err.stack ? err.stack : err);
     return gagal_('SERVER', 'Terjadi kendala di server. Silakan coba lagi sebentar lagi.');
   }

@@ -51,7 +51,7 @@ Setelan project > **Properti skrip** > Tambahkan properti skrip. Nilainya boleh 
 | `KONTEN_SHEET_ID` | URL spreadsheet Konten Website |
 | `GAMBAR_FOLDER_ID` | URL folder Gambar Web |
 
-Kata sandi admin (`ADMIN_PASSWORD`) baru ditambahkan di Fase 4.
+Tambahkan juga `ADMIN_PASSWORD`: kata sandi panel admin, minimal 12 karakter, hanya dibagikan ke panitia yang perlu. Untuk menggantinya, ubah nilai properti ini (sesi yang sedang masuk tetap berlaku sampai 6 jam atau sampai Keluar).
 
 ### 4. Jalankan siapkanLembar
 
@@ -95,6 +95,12 @@ Pilih fungsi **isiDataContoh**, lalu **Jalankan**. Lembar yang sudah berisi tida
 - [ ] Ada atau tidaknya banner Google di atas halaman dicatat di tabel atas. Banner ini dari Google untuk akun Gmail biasa dan tidak bisa dihapus lewat kode.
 - [ ] Fungsi panitia berjalan dari editor (`siapkanLembar`, `isiDataContoh`). Pengganti menu "Genio" di PRD 6.4.
 
+## Panel admin
+
+Ketuk ikon centang di header (atau buka alamat `/exec?admin=1`), lalu masukkan kata sandi `ADMIN_PASSWORD`. Tab: Ringkasan, Pengaturan, Pendaftar, Unduh. Setiap perubahan pengaturan, login gagal, dan unduhan dicatat di lembar Log_Admin.
+
+Bila unduhan Excel tidak muncul (browser bawaan aplikasi kadang memblokir unduhan di dalam iframe), buka alamat `/exec` langsung di Chrome lalu unduh lagi.
+
 ## Fungsi panitia (pengganti menu "Genio")
 
 Jalankan dari editor Apps Script: pilih nama fungsi, lalu **Jalankan**. Hasilnya tampil di log eksekusi.
@@ -105,6 +111,7 @@ Jalankan dari editor Apps Script: pilih nama fungsi, lalu **Jalankan**. Hasilnya
 | `isiDataContoh` | Mengisi Konten Website dengan data contoh (lembar kosong saja) |
 | `perbaruiDaftarGambar` | Memindai folder Gambar Web dan mengisi lembar Gambar |
 | `hapusDataUji` | Menghapus semua baris `uji` = YA di lembar Pendaftar, langsung tanpa konfirmasi |
+| `bukaKunciLogin` | Membuka kunci panel admin setelah 20 kali salah kata sandi dalam 15 menit |
 | `perbaruiRekap` | Menghitung ulang lembar Rekap dari lembar Pendaftar |
 | `bersihkanCache` | Memaksa halaman memakai data terbaru |
 

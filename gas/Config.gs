@@ -67,10 +67,10 @@ function hitungStatus_(peng, sekarang) {
   };
 }
 
-/** Isi lembar Pengaturan sebagai objek kunci ke teks, dengan cache 20 detik. */
-function bacaPengaturan_() {
+/** Isi lembar Pengaturan sebagai objek kunci ke teks, dengan cache 20 detik. segar = abaikan cache. */
+function bacaPengaturan_(segar) {
   var cache = CacheService.getScriptCache();
-  var tersimpan = cache.get(KUNCI_CACHE_PENGATURAN_);
+  var tersimpan = segar ? null : cache.get(KUNCI_CACHE_PENGATURAN_);
   if (tersimpan) return JSON.parse(tersimpan);
 
   var peng = {};
