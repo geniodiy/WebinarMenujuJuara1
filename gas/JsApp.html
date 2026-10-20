@@ -311,6 +311,32 @@
       bukaLapisan('lapisan-detail', pemicu);
     }
 
+    /* Kata medali dan gelar dipisah dari nama ajang supaya bisa ditonjolkan sebagai lencana. */
+    var POLA_SOROT = /gold medal|silver medal|bronze medal|best overall|absolute winner|medali emas|medali perak|medali perunggu|juara umum|juara \d+/gi;
+    function pecahPrestasi(teks) {
+      var sorot = [];
+      var ajang = String(teks).replace(POLA_SOROT, function (m) { sorot.push(m); return ' '; });
+      ajang = ajang.replace(/\s*[&,+]\s*(?=[&,+]|\s*$)/g, ' ').replace(/^[\s&,+-]+|[\s&,+-]+$/g, '').replace(/\s{2,}/g, ' ');
+      return { sorot: sorot, ajang: ajang };
+    }
+
+    function sorotPrestasi(teks) {
+      var bagian = pecahPrestasi(teks);
+      var kotak = el('div', 'prestasi-sorot');
+      kotak.appendChild(el('span', 'prestasi-ikon'));
+      var isi = el('div', 'prestasi-isi');
+      // KEPUTUSAN: kalimat pengantar tetap, karena kolom prestasi hanya berisi nama prestasinya.
+      isi.appendChild(el('p', 'prestasi-pengantar', 'Pembimbing siswa peraih'));
+      if (bagian.sorot.length) {
+        var lencana = el('p', 'prestasi-lencana');
+        bagian.sorot.forEach(function (s, i) { lencana.appendChild(el('span', 'lencana-sorot lencana-' + (i + 1), s)); });
+        isi.appendChild(lencana);
+      }
+      if (bagian.ajang) isi.appendChild(el('p', 'prestasi-ajang', bagian.ajang));
+      kotak.appendChild(isi);
+      return kotak;
+    }
+
     function renderNarasumber() {
       var daftar = konten ? konten.narasumber : [];
       $('bagian-narasumber').hidden = !daftar.length;
@@ -327,7 +353,8 @@
         if (n.foto_url) {
           // Foto potongan berlatar transparan di atas kotak biru: kepala keluar dari kotak, papan nama menutup bagian bawah.
           var figur = el('div', 'narasumber-figur');
-          figur.appendChild(el('span', 'narasumber-latar'));
+          var bingkai = el('div', 'narasumber-bingkai');
+          bingkai.appendChild(el('span', 'narasumber-latar'));
           var img = el('img', 'narasumber-foto');
           img.alt = 'Foto ' + n.nama_lengkap;
           img.loading = 'lazy';
@@ -335,18 +362,16 @@
           img.width = 800;
           img.height = 1000;
           aturGambar(img, n.foto_url, [400, 800], '(max-width: 640px) 90vw, 340px');
-          figur.appendChild(img);
+          bingkai.appendChild(img);
+          figur.appendChild(bingkai);
           figur.appendChild(papan);
           kartu.appendChild(figur);
         } else {
           teks.appendChild(papan);
         }
-        if (n.ringkasan) teks.appendChild(el('p', null, n.ringkasan));
-        if ((n.prestasi_binaan || []).length) teks.appendChild(daftarPrestasi(n, 3));
-        var tombol = el('button', 'tombol tombol-garis', 'Lihat selengkapnya');
-        tombol.type = 'button';
-        tombol.addEventListener('click', function () { bukaDetail(n, tombol); });
-        teks.appendChild(tombol);
+        var prestasi = (n.prestasi_binaan || [])[0];
+        if (prestasi) teks.appendChild(sorotPrestasi(prestasi));
+        else if (n.ringkasan) teks.appendChild(el('p', 'narasumber-ringkasan', n.ringkasan));
         kartu.appendChild(teks);
         wadah.appendChild(kartu);
       });
