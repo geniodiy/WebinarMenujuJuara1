@@ -17,7 +17,7 @@ var DATA_CONTOH_ = {
 
   Narasumber_Tutor: [
     { urutan: 1, tampil: 'YA', data_contoh: 'TIDAK', peran: 'Narasumber', nama_lengkap: 'Indro, S.Pd.',
-      jabatan: 'Manajer Genio Institute', room: '', foto: 'indro.jpg',
+      jabatan: 'Manajer Genio Institute', room: '', foto: 'indro.png',
       ringkasan: 'Pembimbing siswa peraih Gold Medal & Best Overall SMP OSN Matematika 2026.',
       prestasi_binaan: 'Gold Medal & Best Overall SMP OSN Matematika 2026' },
     { urutan: 2, tampil: 'YA', data_contoh: 'YA', peran: 'Tutor', nama_lengkap: 'Tutor Contoh 1', jabatan: 'Tutor Matematika SD',

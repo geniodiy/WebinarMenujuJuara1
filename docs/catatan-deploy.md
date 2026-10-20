@@ -77,6 +77,8 @@ Pilih fungsi **isiDataContoh**, lalu **Jalankan**. Lembar yang sudah berisi tida
 
 ### 7. Buat halaman Blogger percobaan
 
+> Atas permintaan pemilik, langkah ini dikerjakan paling akhir (setelah halaman utama jadi). Selama itu, pengujian memakai URL `/exec` langsung.
+
 1. Di Blogger, buka **Halaman > Halaman baru** (bukan Postingan).
 2. Pindah ke **Tampilan HTML**, tempel isi `docs/embed-blogger.html`.
 3. Ganti `ID_DEPLOYMENT` di dua tempat dengan URL `/exec` dari langkah 6. Gambar pratinjau boleh menyusul.
