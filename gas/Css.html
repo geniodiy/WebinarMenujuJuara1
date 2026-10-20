@@ -84,7 +84,12 @@
   .strip-label { display: block; font-size: 13px; font-weight: 500; }
   /* Tanggal selalu satu baris di samping label Gratis; ukurannya mengecil di layar sempit. */
   .strip-tanggal strong { display: block; font-size: clamp(14px, 4.6vw, 22px); font-weight: 700; line-height: 1.3; white-space: nowrap; }
-  .lencana-gratis { flex-shrink: 0; padding: 6px 14px; border-radius: 10px; background: linear-gradient(90deg, var(--coral), var(--gold)); color: #fff; font-size: 15px; font-weight: 700; letter-spacing: .3px; text-shadow: 0 1px 2px rgba(150, 60, 20, .35); }
+  /* Gaya oranye ke kuning dipakai label Gratis dan tombol Daftar: muncul membesar, lalu berdetak. */
+  .lencana-gratis, .tombol-detak { background: linear-gradient(90deg, var(--coral), var(--gold)); color: #fff; font-weight: 700; letter-spacing: .3px; text-shadow: 0 1px 2px rgba(150, 60, 20, .35); }
+  .lencana-gratis { flex-shrink: 0; padding: 6px 14px; border-radius: 10px; font-size: 15px; animation: zoomMasuk .6s cubic-bezier(.3, 1.6, .5, 1) both, detak 1.8s ease-in-out .8s infinite; }
+  .tombol-detak { border: 0; animation: zoomMasuk .6s cubic-bezier(.3, 1.6, .5, 1) both, detak 1.8s ease-in-out .8s infinite; }
+  @keyframes zoomMasuk { 0% { transform: scale(.4); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+  @keyframes detak { 0%, 100% { transform: scale(1); } 14% { transform: scale(1.08); } 28% { transform: scale(1); } 42% { transform: scale(1.05); } 56% { transform: scale(1); } }
   .info-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
   @media (max-width: 419px) { .info-grid { grid-template-columns: minmax(0, 1fr); } }
   /* Kartu Pukul dan Live di, mengikuti gaya poster: ikon bulat penuh dan garis tepi gelap tipis. */
@@ -115,11 +120,12 @@
   /* Garis setebal poster (sekitar 13% diameter nomor), terisi gradien cyan dengan ujung panah. */
   .agenda-garis { position: absolute; left: 13.5px; width: 5px; border-radius: 3px; background: var(--garis); z-index: 0; }
   .agenda-garis-isi { position: absolute; left: 0; top: 0; width: 5px; height: 0; border-radius: 3px; background: linear-gradient(var(--cyan), var(--teal)); }
-  .agenda-panah {
-    position: absolute; left: -4.5px; bottom: -9px; width: 14px; height: 11px; opacity: 0;
-    background: linear-gradient(90deg, var(--cyan), var(--teal)); clip-path: polygon(0 0, 100% 0, 50% 100%);
+  /* Titik oranye di ujung garis; berada di belakang nomor sehingga tersembunyi saat melewatinya. */
+  .agenda-titik {
+    position: absolute; left: 50%; bottom: -7px; width: 14px; height: 14px; margin-left: -7px; border-radius: 50%; opacity: 0;
+    background: var(--coral); box-shadow: 0 0 0 3px rgba(255, 138, 91, .25);
   }
-  .agenda-garis-isi.mulai .agenda-panah { opacity: 1; }
+  .agenda-garis-isi.mulai .agenda-titik { opacity: 1; }
   .agenda-isi { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
   .agenda-isi h3 { font-size: 15px; font-weight: 600; line-height: 1.35; }
   .agenda-isi p { font-size: 14px; }
@@ -181,6 +187,7 @@
   .bilah-info span { display: block; font-size: 13px; color: var(--redup); }
   .bilah-info a { font-weight: 600; }
   .bilah .tombol { flex-shrink: 0; }
+  .tombol-daftar { min-width: 132px; font-size: 17px; }
 
   /* Lapisan: poster besar, detail narasumber, masuk admin */
   .lapisan { position: fixed; inset: 0; z-index: 60; background: rgba(20, 24, 50, .55); display: flex; align-items: flex-end; justify-content: center; }

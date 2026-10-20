@@ -273,7 +273,7 @@
       var garis = el('div', 'agenda-garis');
       garis.setAttribute('aria-hidden', 'true');
       alur.isi = el('div', 'agenda-garis-isi');
-      alur.isi.appendChild(el('span', 'agenda-panah'));
+      alur.isi.appendChild(el('span', 'agenda-titik'));
       garis.appendChild(alur.isi);
       ol.appendChild(garis);
       if (!alur.siap) {
@@ -390,7 +390,9 @@
         var t = teksHitungMundur();
         info.appendChild(el('strong', null, 'Gratis'));
         info.appendChild(el('span', null, t ? t.awal + t.tebal + t.akhir : 'Bonus ' + peng('bonus_teks')));
-        aksi = tombolBilah('Daftar Webinar Gratis', true);
+        aksi = tombolBilah('Daftar', true);
+        aksi.classList.remove('tombol-utama');
+        aksi.classList.add('tombol-detak', 'tombol-daftar');
         aksi.addEventListener('click', bukaForm);
       } else {
         info.appendChild(el('strong', null, 'Pendaftaran Ditutup'));

@@ -434,7 +434,7 @@ Fase dihitung server. Fase `belum_buka`, `daftar`, dan `tutup` dibuat di Fase 3.
 | Fase | Kondisi | Tampilan tombol |
 |---|---|---|
 | belum_buka | Sebelum `pendaftaran_buka` (mode OTOMATIS) | Tidak aktif: "Pendaftaran dibuka [tanggal]" |
-| daftar | Pendaftaran terbuka | Coral, teks Indigo: "Daftar Webinar Gratis" |
+| daftar | Pendaftaran terbuka | Gradien Coral ke Gold, teks putih, berdetak pelan: "Daftar" (keterangan "Gratis" dan hitung mundur di sebelah kiri) |
 | tutup | Pendaftaran tertutup dan belum hari H | Tidak aktif: "Pendaftaran Ditutup", dengan teks kecil "Sudah daftar tapi belum masuk grup? Hubungi Lily" |
 | hari_h | Tanggal = `tanggal_hari_h` dan belum selesai | Dua tombol: "Ajukan Pertanyaan" dan "Isi Presensi", masing-masing aktif hanya bila form-nya sedang terbuka; bila tidak, tampil redup dengan keterangan "Belum dibuka" atau "Sudah ditutup" |
 | selesai | `acara_selesai` = YA, atau presensi terjadwal sudah lewat jam tutup, atau tanggal sudah lewat hari H | "Terima kasih sudah hadir", dengan tautan Instagram untuk episode berikutnya |
