@@ -123,26 +123,31 @@
   .bagian h2 { font-size: 20px; font-weight: 700; margin-bottom: 16px; }
   .agenda { position: relative; list-style: none; margin: 0; padding: 0; display: grid; gap: 22px; }
   .agenda li { position: relative; z-index: 1; display: flex; gap: 14px; }
-  .agenda-nomor { width: 32px; height: 32px; flex-shrink: 0; border-radius: 50%; background: #C9D6E0; color: #fff; font-size: 14px; font-weight: 700; display: flex; align-items: center; justify-content: center; transition: background-color .3s ease; }
-  /* Alur agenda: garis terisi mengikuti scroll, nomor menyala dan timbul saat tercapai. */
-  .agenda-nomor.aktif { background: linear-gradient(135deg, var(--cyan), var(--teal)); animation: timbul .45s ease-out; }
+  .agenda-nomor { position: relative; width: 32px; height: 32px; flex-shrink: 0; border-radius: 50%; background-color: #C9D6E0; color: #fff; font-size: 14px; font-weight: 700; display: flex; align-items: center; justify-content: center; transition: background-color .3s ease, box-shadow .3s ease; }
+  /* Alur agenda: garis terisi mengikuti scroll, nomor menyala, timbul, dan memancarkan gelombang saat tercapai.
+     Warna dasar di background-color dan gradien di background-image agar nomor tidak tampak putih setelah kelas aktif dilepas. */
+  .agenda-nomor.aktif { background-image: linear-gradient(135deg, var(--cyan), var(--teal)); box-shadow: 0 0 0 3px #fff, 0 0 0 5px rgba(19, 153, 216, .35); animation: timbul .45s ease-out; }
+  .agenda-nomor.aktif::after { content: ""; position: absolute; inset: 0; border-radius: 50%; border: 3px solid var(--teal); opacity: 0; animation: gelombang 1s ease-out; }
   @keyframes timbul { 0% { transform: scale(1); } 45% { transform: scale(1.28); } 100% { transform: scale(1); } }
-  /* Garis setebal poster (sekitar 13% diameter nomor), terisi gradien cyan dengan ujung panah. */
+  @keyframes gelombang { from { transform: scale(1); opacity: .9; } to { transform: scale(2.3); opacity: 0; } }
+  /* Garis setebal poster (sekitar 13% diameter nomor), terisi gradien cyan. */
   .agenda-garis { position: absolute; left: 13.5px; width: 5px; border-radius: 3px; background: var(--garis); z-index: 0; }
   .agenda-garis-isi { position: absolute; left: 0; top: 0; width: 5px; height: 0; border-radius: 3px; background: linear-gradient(var(--cyan), var(--teal)); }
-  /* Titik oranye di ujung garis; berada di belakang nomor sehingga tersembunyi saat melewatinya. */
+  /* Titik coral bercahaya berekor komet di ujung garis; berada di belakang nomor sehingga tersembunyi saat melewatinya. */
   .agenda-titik {
-    position: absolute; left: 50%; bottom: -7px; width: 14px; height: 14px; margin-left: -7px; border-radius: 50%; opacity: 0;
-    background: var(--coral); box-shadow: 0 0 0 3px rgba(255, 138, 91, .25);
+    position: absolute; left: 50%; bottom: -8px; width: 16px; height: 16px; margin-left: -8px; border-radius: 50%; opacity: 0;
+    background: var(--coral); box-shadow: 0 0 0 4px rgba(255, 138, 91, .25), 0 0 14px 4px rgba(255, 138, 91, .55);
   }
+  .agenda-titik::before { content: ""; position: absolute; left: 50%; bottom: 8px; width: 5px; height: 46px; margin-left: -2.5px; border-radius: 3px; background: linear-gradient(rgba(255, 138, 91, 0), rgba(255, 138, 91, .9)); }
   .agenda-garis-isi.mulai .agenda-titik { opacity: 1; }
   .agenda-isi { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
-  .agenda-isi h3 { font-size: 15px; font-weight: 600; line-height: 1.35; }
+  .agenda-isi h3 { font-size: 15px; font-weight: 600; line-height: 1.45; }
   .agenda-isi p { font-size: 14px; }
   .agenda-meta { display: flex; flex-wrap: wrap; gap: 6px; }
-  .label-sasaran { font-size: 11px; font-weight: 500; padding: 2px 10px; border-radius: 999px; background: #EEF0E6; color: var(--item); }
-  .label-sasaran.siswa { background: #E7F5FC; color: var(--indigo); }
-  .label-sasaran.ortu { background: #FFE9DF; color: var(--indigo); }
+  /* Label sasaran sebaris setelah judul, warnanya mengikuti gradien di poster. */
+  .label-sasaran { display: inline-block; vertical-align: 2px; margin-left: 6px; padding: 1px 8px; border-radius: 5px; font-size: 10.5px; font-weight: 700; line-height: 1.6; color: #fff; white-space: nowrap; background: linear-gradient(90deg, var(--indigo), var(--cyan)); }
+  .label-sasaran.siswa { background: linear-gradient(90deg, var(--cyan), var(--teal)); }
+  .label-sasaran.ortu { background: linear-gradient(90deg, var(--coral), var(--gold)); }
   .label-jam { font-size: 12px; font-weight: 600; color: var(--redup); padding: 2px 0; }
 
   .daftar-narasumber { display: grid; gap: 20px; }
