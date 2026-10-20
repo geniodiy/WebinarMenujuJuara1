@@ -231,6 +231,62 @@
         li.appendChild(isi);
         ol.appendChild(li);
       });
+      siapkanAlurAgenda();
+    }
+
+    /* Alur agenda: garis penghubung terisi sesuai posisi scroll, nomor menyala saat garis mencapainya. */
+    var alur = { ol: null, nomor: [], posisi: [], isi: null, menunggu: false, siap: false };
+
+    function ukurAlur() {
+      if (!alur.ol || alur.nomor.length < 2) return;
+      var dasar = alur.ol.getBoundingClientRect().top;
+      alur.posisi = alur.nomor.map(function (n) { return n.getBoundingClientRect().top - dasar + n.offsetHeight / 2; });
+      var garis = alur.isi.parentNode;
+      garis.style.top = alur.posisi[0] + 'px';
+      garis.style.height = (alur.posisi[alur.posisi.length - 1] - alur.posisi[0]) + 'px';
+      perbaruiAlur();
+    }
+
+    function perbaruiAlur() {
+      alur.menunggu = false;
+      if (!alur.ol || alur.nomor.length < 2) return;
+      // Titik acuan sedikit di bawah tengah layar: garis terisi sampai titik itu.
+      var acuan = window.innerHeight * 0.6 - alur.ol.getBoundingClientRect().top;
+      var awal = alur.posisi[0];
+      var panjang = alur.posisi[alur.posisi.length - 1] - awal;
+      alur.isi.style.height = Math.max(0, Math.min(panjang, acuan - awal)) + 'px';
+      alur.isi.classList.toggle('mulai', acuan > awal);
+      alur.nomor.forEach(function (n, i) {
+        var aktif = acuan >= alur.posisi[i];
+        if (aktif !== n.classList.contains('aktif')) n.classList.toggle('aktif', aktif);
+      });
+    }
+
+    function siapkanAlurAgenda() {
+      var ol = $('daftar-agenda');
+      alur.ol = ol;
+      alur.nomor = Array.prototype.slice.call(ol.querySelectorAll('.agenda-nomor'));
+      if (alur.nomor.length < 2) {
+        alur.nomor.forEach(function (n) { n.classList.add('aktif'); });
+        return;
+      }
+      var garis = el('div', 'agenda-garis');
+      garis.setAttribute('aria-hidden', 'true');
+      alur.isi = el('div', 'agenda-garis-isi');
+      garis.appendChild(alur.isi);
+      ol.appendChild(garis);
+      if (!alur.siap) {
+        alur.siap = true;
+        window.addEventListener('scroll', function () {
+          if (!alur.menunggu) {
+            alur.menunggu = true;
+            window.requestAnimationFrame(perbaruiAlur);
+          }
+        }, { passive: true });
+        window.addEventListener('resize', ukurAlur);
+        if (document.fonts && document.fonts.ready) document.fonts.ready.then(ukurAlur);
+      }
+      window.requestAnimationFrame(ukurAlur);
     }
 
     function daftarPrestasi(item, batas) {

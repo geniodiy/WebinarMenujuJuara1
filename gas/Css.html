@@ -106,9 +106,19 @@
   /* Bagian */
   .bagian { padding-top: 40px; }
   .bagian h2 { font-size: 20px; font-weight: 700; margin-bottom: 16px; }
-  .agenda { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px; }
-  .agenda li { display: flex; gap: 14px; }
-  .agenda-nomor { width: 32px; height: 32px; flex-shrink: 0; border-radius: 50%; background: var(--cyan); color: #fff; font-size: 14px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+  .agenda { position: relative; list-style: none; margin: 0; padding: 0; display: grid; gap: 22px; }
+  .agenda li { position: relative; z-index: 1; display: flex; gap: 14px; }
+  .agenda-nomor { width: 32px; height: 32px; flex-shrink: 0; border-radius: 50%; background: #C9D6E0; color: #fff; font-size: 14px; font-weight: 700; display: flex; align-items: center; justify-content: center; transition: background-color .3s ease; }
+  /* Alur agenda: garis terisi mengikuti scroll, nomor menyala dan timbul saat tercapai. */
+  .agenda-nomor.aktif { background: var(--cyan); animation: timbul .45s ease-out; }
+  @keyframes timbul { 0% { transform: scale(1); } 45% { transform: scale(1.28); } 100% { transform: scale(1); } }
+  .agenda-garis { position: absolute; left: 15px; width: 2px; background: var(--garis); z-index: 0; }
+  .agenda-garis-isi { position: absolute; left: 0; top: 0; width: 2px; height: 0; background: linear-gradient(var(--cyan), var(--teal)); }
+  .agenda-garis-isi::after {
+    content: ""; position: absolute; left: -5px; bottom: -7px; opacity: 0;
+    border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 8px solid var(--teal);
+  }
+  .agenda-garis-isi.mulai::after { opacity: 1; }
   .agenda-isi { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
   .agenda-isi h3 { font-size: 15px; font-weight: 600; line-height: 1.35; }
   .agenda-isi p { font-size: 14px; }
