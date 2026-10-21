@@ -358,7 +358,6 @@
     border-radius: var(--radius); background: var(--latar); color: var(--item);
     box-shadow: 0 -8px 30px rgba(20, 24, 50, .18);
     animation: naikBawah .35s cubic-bezier(.2, .8, .3, 1);
-    transition: bottom .2s ease, max-height .2s ease;
   }
   .fd[hidden], .fd-latar[hidden] { display: none; }
   /* Pegangan kecil di atas sebagai tanda popup. */
@@ -368,36 +367,38 @@
   .fd-wadah { width: 100%; padding: 0 16px; }
 
   .fd-kepala { border-bottom: 1px solid var(--garis); background: var(--latar); }
-  .fd-kepala-baris { display: flex; align-items: center; gap: 8px; min-height: 48px; }
+  .fd-kepala-baris { display: flex; align-items: center; gap: 8px; min-height: 44px; }
   .fd-kepala-judul { flex: 1; min-width: 0; font-weight: 700; color: var(--item); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .fd-tutup {
     width: 44px; height: 44px; margin-left: -10px; border: 0; border-radius: 12px;
     background: none; color: var(--item); display: flex; align-items: center; justify-content: center; cursor: pointer;
   }
-  .fd-kemajuan-wadah { padding-bottom: 10px; }
+  .fd-kemajuan-wadah { padding-bottom: 8px; }
   .fd-penanda { margin: 0 0 6px; font-size: 12px; color: var(--redup); }
   .fd-kemajuan { height: 6px; border-radius: 3px; background: #E7EEF3; overflow: hidden; }
   .fd-kemajuan span { display: block; height: 100%; width: 0; background: var(--gradien); transition: width .2s ease; }
 
   .fd-isi { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-  .fd-isi-dalam { padding-top: 16px; padding-bottom: 24px; }
+  .fd-isi-dalam { padding-top: 14px; padding-bottom: 18px; }
+  .fd-isi-dalam.fd-masuk { animation: fdMasuk .26s ease-out; }
+  @keyframes fdMasuk { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
   /* Ukuran huruf form mengikuti halaman utama: judul 17px, isi 14px. */
-  .fd-judul-langkah { font-size: 17px; font-weight: 700; color: var(--item); margin: 0 0 14px; outline: none; }
-  .fd-langkah-isi { display: flex; flex-direction: column; gap: 16px; }
+  .fd-judul-langkah { font-size: 16px; font-weight: 700; color: var(--item); margin: 0 0 12px; outline: none; }
+  .fd-langkah-isi { display: flex; flex-direction: column; gap: 14px; }
 
   .fd-kaki-luar { border-top: 1px solid var(--garis); background: var(--latar); }
   .fd-kaki { display: flex; gap: 10px; padding-top: 10px; padding-bottom: 10px; }
   .fd-kaki .fd-tombol-utama { flex: 1; }
 
-  .fd-isian { display: flex; flex-direction: column; gap: 6px; }
-  .fd-label { font-size: 14px; font-weight: 500; color: var(--item); padding: 0; }
+  .fd-isian { display: flex; flex-direction: column; gap: 4px; }
+  .fd-label { font-size: 13px; font-weight: 500; color: var(--item); padding: 0; }
   .fd-opsional { font-weight: 400; color: var(--redup); }
   .fd-bantuan { margin: 0; font-size: 12px; color: var(--redup); }
   .fd-galat { margin: 0; font-size: 13px; font-weight: 500; color: #B42318; min-height: 0; }
   .fd-galat:empty { display: none; }
   .fd-input {
     /* 16px dipertahankan agar Safari iPhone tidak memperbesar halaman saat isian disentuh. */
-    width: 100%; min-height: 44px; padding: 8px 12px;
+    width: 100%; min-height: 42px; padding: 7px 12px;
     font: inherit; font-size: 16px; color: var(--item);
     background: var(--latar); border: 1.5px solid #C9D3DC; border-radius: 12px;
   }
@@ -406,10 +407,10 @@
   .ada-galat .fd-input { border-color: #B42318; }
 
   .fd-pilihan { border: 0; margin: 0; padding: 0; min-width: 0; display: flex; flex-direction: column; gap: 6px; outline: none; }
-  .fd-kartu-daftar { display: flex; flex-direction: column; gap: 8px; margin-top: 2px; }
+  .fd-kartu-daftar { display: flex; flex-direction: column; gap: 6px; margin-top: 2px; }
   .fd-kartu {
     display: flex; align-items: flex-start; gap: 12px;
-    min-height: 46px; padding: 10px 12px; cursor: pointer; font-size: 14px;
+    min-height: 42px; padding: 9px 12px; cursor: pointer; font-size: 13px;
     border: 1.5px solid #C9D3DC; border-radius: 12px; background: var(--latar);
   }
   .fd-kartu input { width: 20px; height: 20px; margin: 2px 0 0; flex-shrink: 0; accent-color: var(--indigo); }
@@ -419,13 +420,13 @@
   .fd-kartu-teks { display: flex; flex-direction: column; gap: 2px; }
   .fd-kartu-judul { font-weight: 500; }
   .fd-kartu-ket { font-size: 12px; color: var(--redup); }
-  .fd-pilihan-besar .fd-kartu { padding: 14px 14px; }
-  .fd-pilihan-besar .fd-kartu-judul { font-size: 15px; font-weight: 600; color: var(--item); }
+  .fd-pilihan-besar .fd-kartu { padding: 12px; }
+  .fd-pilihan-besar .fd-kartu-judul { font-size: 14px; font-weight: 600; color: var(--item); }
   .fd-setuju { font-size: 13px; }
 
   .fd-tombol {
     display: inline-flex; align-items: center; justify-content: center;
-    min-height: 44px; padding: 8px 16px; border-radius: 12px;
+    min-height: 42px; padding: 8px 16px; border-radius: 12px;
     font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none;
     border: 2px solid transparent; background: none; color: var(--indigo);
   }

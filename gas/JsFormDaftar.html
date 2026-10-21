@@ -876,7 +876,22 @@
       isi.appendChild(el('p', 'fd-bantuan', 'Simpan tangkapan layar halaman ini sebagai bukti pendaftaran.'));
     }
 
+    var langkahTampil = null;
+
+    // Tinggi popup meluncur halus saat isi berganti; isi langkah baru muncul memudar dari bawah.
     function renderUlang(jagaFokus) {
+      transisiPopup(function () { renderUlangLangsung(jagaFokus); });
+      var kunci = S.mode + ':' + S.langkah;
+      if (langkahTampil !== null && kunci !== langkahTampil && !(gerakDikurangi && gerakDikurangi.matches)) {
+        var dalam = akar.querySelector('.fd-isi-dalam');
+        dalam.classList.remove('fd-masuk');
+        void dalam.offsetWidth;
+        dalam.classList.add('fd-masuk');
+      }
+      langkahTampil = kunci;
+    }
+
+    function renderUlangLangsung(jagaFokus) {
       var idFokus = jagaFokus && document.activeElement ? document.activeElement.id : null;
       var isi = akar.querySelector('.fd-isi-dalam');
       isi.innerHTML = '';
@@ -968,7 +983,10 @@
        lalu kolom digulir agar terlihat. Kolom di setengah atas tidak mengubah apa pun. Saat kolom ditinggalkan atau
        keyboard ditutup, popup kembali ke bawah. Bila browser memberi tinggi keyboard yang sebenarnya, popup
        diletakkan pas di atas keyboard. */
-    var ponsel = window.matchMedia ? window.matchMedia('(pointer: coarse)') : null;
+    // Hanya ponsel (layar sentuh dan sempit). Tablet seperti iPad sering memakai keyboard fisik, jadi popup tidak dipindah.
+    var ponsel = window.matchMedia ? window.matchMedia('(pointer: coarse) and (max-width: 599px)') : null;
+    var gerakDikurangi = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
+    var jedaTransisi = null;
     var jedaKetik = null;
     var terangkat = false;
 
@@ -991,11 +1009,47 @@
       return null;
     }
 
-    function pastikanTerlihat(isi, t) {
+    /* Perubahan posisi dan tinggi popup dianimasikan (teknik FLIP): ukur sebelum, ubah, ukur sesudah, lalu
+       mulai dari ukuran lama dan meluncur halus ke ukuran baru. */
+    function transisiPopup(ubah) {
+      if (!akar || akar.hidden || (gerakDikurangi && gerakDikurangi.matches)) { ubah(); return; }
+      var a = akar.getBoundingClientRect();
+      selesaikanTransisi();
+      akar.style.transition = 'none';
+      ubah();
+      var b = akar.getBoundingClientRect();
+      if (!a.height || (Math.abs(a.top - b.top) < 2 && Math.abs(a.height - b.height) < 2)) { akar.style.transition = ''; return; }
+      batasTinggiTertunda = akar.style.maxHeight;
+      akar.style.maxHeight = 'none';
+      akar.style.height = a.height + 'px';
+      var c = akar.getBoundingClientRect();
+      akar.style.transform = 'translateY(' + (a.top - c.top) + 'px)';
+      void akar.offsetHeight;
+      akar.style.transition = 'height .28s cubic-bezier(.2, .8, .3, 1), transform .28s cubic-bezier(.2, .8, .3, 1)';
+      akar.style.height = b.height + 'px';
+      akar.style.transform = '';
+      jedaTransisi = setTimeout(selesaikanTransisi, 300);
+    }
+
+    // Kembalikan gaya sementara transisi; dipanggil saat transisi selesai atau sebelum transisi baru dimulai.
+    var batasTinggiTertunda = null;
+    function selesaikanTransisi() {
+      clearTimeout(jedaTransisi);
+      akar.style.transition = '';
+      akar.style.transform = '';
+      akar.style.height = '';
+      if (batasTinggiTertunda !== null) { akar.style.maxHeight = batasTinggiTertunda; batasTinggiTertunda = null; }
+    }
+
+    function pastikanTerlihat(isi, t, halus) {
       var r = t.getBoundingClientRect();
       var ri = isi.getBoundingClientRect();
-      if (r.bottom > ri.bottom - 12) isi.scrollTop += r.bottom - ri.bottom + 12;
-      else if (r.top < ri.top + 12) isi.scrollTop -= ri.top + 12 - r.top;
+      var geser = 0;
+      if (r.bottom > ri.bottom - 12) geser = r.bottom - ri.bottom + 12;
+      else if (r.top < ri.top + 12) geser = r.top - ri.top - 12;
+      if (!geser) return;
+      if (halus && isi.scrollBy) isi.scrollBy({ top: geser, behavior: 'smooth' });
+      else isi.scrollTop += geser;
     }
 
     function angkatPopup(isi, t) {
@@ -1013,26 +1067,30 @@
         if (t.getBoundingClientRect().bottom <= batas) return;
         terangkat = true;
       }
-      if (kb) {
-        akar.style.top = '';
-        akar.style.bottom = (kb + 8) + 'px';
-        akar.style.maxHeight = Math.max(200, h - kb - 20) + 'px';
-      } else {
-        // KEPUTUSAN: popup menempati 45% atas layar, di atas keyboard ponsel pada umumnya.
-        akar.style.top = '12px';
-        akar.style.bottom = 'auto';
-        akar.style.maxHeight = Math.max(220, Math.round(h * 0.45) - 12) + 'px';
-      }
+      transisiPopup(function () {
+        if (kb) {
+          akar.style.top = '';
+          akar.style.bottom = (kb + 8) + 'px';
+          akar.style.maxHeight = Math.max(200, h - kb - 20) + 'px';
+        } else {
+          // KEPUTUSAN: popup menempati 45% atas layar, di atas keyboard ponsel pada umumnya.
+          akar.style.top = '12px';
+          akar.style.bottom = 'auto';
+          akar.style.maxHeight = Math.max(220, Math.round(h * 0.45) - 12) + 'px';
+        }
+      });
       pastikanTerlihat(isi, t);
-      setTimeout(function () { if (document.activeElement === t) pastikanTerlihat(isi, t); }, 230);
+      setTimeout(function () { if (document.activeElement === t) pastikanTerlihat(isi, t, true); }, 320);
     }
 
     function turunkanPopup() {
       if (!terangkat) return;
       terangkat = false;
-      akar.style.top = '';
-      akar.style.bottom = '';
-      akar.style.maxHeight = '';
+      transisiPopup(function () {
+        akar.style.top = '';
+        akar.style.bottom = '';
+        akar.style.maxHeight = '';
+      });
     }
 
     function kolomAktif() {
