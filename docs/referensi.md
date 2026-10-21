@@ -75,3 +75,11 @@ Pratinjau: `docs/pratinjau/cabang.png`.
 - Judul "Cabang Genio" dan subjudul "Datang langsung atau hubungi admin cabang terdekat."
 - Dua kartu sebaris (Semarang dan Yogyakarta): logo cabang, alamat singkat, tiga ikon bulat bergaris satu warna (Google Maps, WhatsApp admin, Instagram). Ikon diberi label untuk pembaca layar.
 - Data dari lembar Cabang (alamat, link_maps, wa_admin, instagram); kartu tanpa data disembunyikan.
+
+### Prestasi siswa Genio
+Pratinjau: `docs/pratinjau/prestasi.png`.
+
+- Ringkasan jumlah medali (Emas, Perak, Perunggu). Tanpa filter bidang.
+- Wadah setinggi sekitar 5 baris berisi paling banyak 10 prestasi (sorotan di atas, lalu tahun terbaru) yang bergulir pelan ke atas tanpa putus (sekitar 40 detik per putaran), berhenti saat disentuh atau disorot kursor, tepi atas-bawah memudar. Bila 5 data atau kurang, atau pengunjung memilih kurangi gerakan, daftar diam.
+- Ikon jenis prestasi sama dengan tutor: Emas, Perak, Perunggu, Lainnya (cyan dengan bintang).
+- Tombol kecil "Lihat selengkapnya" (gradien biru) membuka popup di tengah: pilihan tahun dibuat otomatis dari data (misalnya 2026, 2025, Semua), daftar lengkap tanpa batas, dikelompokkan per tahun bila "Semua".
