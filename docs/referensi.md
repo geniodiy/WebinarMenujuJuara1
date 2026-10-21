@@ -57,7 +57,7 @@ Pratinjau: `docs/pratinjau/tutor-kartu.png`.
 ### Data dan edit tutor
 Pratinjau: `docs/pratinjau/tutor-admin.png`.
 
-- Jenis prestasi dan ikonnya: Emas (bulatan emas), Perak (bulatan perak), Perunggu (bulatan perunggu), Lainnya (bulatan gradien cyan ke teal dengan bintang putih; untuk finalis, best theory, harapan, dan penghargaan lain).
+- Jenis prestasi dan ikonnya: Emas (bulatan emas), Perak (bulatan perak), Perunggu (bulatan perunggu), Lainnya (bulatan hitam palet bergradien halus dengan bintang putih; untuk finalis, best theory, harapan, dan penghargaan lain).
 - Lembar baru `Prestasi_Tutor` di Konten Website: urutan, nama_tutor, jenis (dropdown Emas/Perak/Perunggu/Lainnya), prestasi. Satu baris satu prestasi.
 - Panel admin tab "Tutor": ubah nama, jabatan, foto (pilih dari file di folder Gambar Web), dan daftar prestasi (pilih jenis, teks, hapus, tambah). Data yang sama dengan spreadsheet. Unggah foto langsung dari web tidak disertakan karena butuh izin tulis Google Drive.
 
@@ -81,8 +81,8 @@ Pratinjau: `docs/pratinjau/prestasi.png`.
 
 - Ringkasan jumlah medali (Emas, Perak, Perunggu). Tanpa filter bidang.
 - Wadah setinggi sekitar 5 baris berisi paling banyak 10 prestasi (sorotan di atas, lalu tahun terbaru) yang bergulir pelan ke atas tanpa putus (sekitar 40 detik per putaran), berhenti saat disentuh atau disorot kursor, tepi atas-bawah memudar. Bila 5 data atau kurang, atau pengunjung memilih kurangi gerakan, daftar diam.
-- Ikon jenis prestasi sama dengan tutor: Emas, Perak, Perunggu, Lainnya (cyan dengan bintang).
+- Ikon jenis prestasi sama dengan tutor: Emas, Perak, Perunggu, Lainnya (hitam palet bergradien dengan bintang putih).
 - Tombol kecil "Lihat selengkapnya" (gradien biru) membuka popup di tengah: pilihan tahun dibuat otomatis dari data (misalnya 2026, 2025, Semua), daftar lengkap tanpa batas, dikelompokkan per tahun bila "Semua".
-- Data asli dari `Prestasi_Genio.pdf` (103 baris, 2011 sampai 2026) disiapkan sebagai berkas impor untuk lembar Prestasi; berkas tidak disimpan di repo karena berisi nama siswa.
+- Data asli dari `Prestasi_Genio.pdf` (103 baris, 2011 sampai 2026; nama Moch Reza Azhar Habibie diseragamkan) disiapkan sebagai berkas impor untuk lembar Prestasi; berkas tidak disimpan di repo karena berisi nama siswa.
 - Kolom lembar Prestasi: urutan, tampil, data_contoh, tahun, nama_siswa, sekolah, jenjang, bidang, lomba, tingkat, medali (Emas/Perak/Perunggu/Lainnya), sorotan, **prestasi** (teks lengkap seperti di sertifikat; kolom baru, ditambahkan ke daftar kolom saat Fase 5 dipasang).
 - Urutan (kolom `urutan`): IMSO dulu, lalu OSN (termasuk KSN, nama OSN tahun 2020-2021), lalu lomba internasional lain, lalu lainnya; di dalam tiap kelompok tahun terbaru lalu Emas, Perak, Perunggu, Lainnya. Daftar bergulir mengambil 10 urutan teratas. Juara I/II/III dipetakan ke Emas/Perak/Perunggu; finalis, harapan, peringkat, honorable, dan best theory ke Lainnya.
