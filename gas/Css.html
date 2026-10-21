@@ -500,13 +500,26 @@
   .fd-kotak-galat { background: #FDECEA; border: 1px solid #E6A39C; color: #7A1A12; }
   .fd-hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
 
-  .fd-kotak-id { margin: 8px 0 16px; padding: 16px; border-radius: 14px; background: var(--gradien); color: #fff; display: flex; flex-direction: column; }
+  .fd-kotak-id { margin: 8px 0 16px; padding: 16px; border-radius: 14px; background: var(--gradien); color: #fff; display: flex; flex-direction: column; position: relative; overflow: hidden; }
+  .fd-kotak-id > * { position: relative; z-index: 1; }
+  /* Ikon tiket putih samar di latar, seperti ikon kalender pada strip Pelaksanaan. */
+  .fd-kotak-id::after {
+    content: ""; position: absolute; right: 14px; top: 50%; width: 112px; height: 112px; transform: translateY(-50%) rotate(-12deg);
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v3a2 2 0 0 0 0 4v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-3a2 2 0 0 0 0-4z'/%3E%3Cpath d='M15 5.5v2M15 11v2M15 16.5v2'/%3E%3C/svg%3E") center / contain no-repeat; opacity: .22; pointer-events: none;
+  }
   .fd-kotak-id span { font-size: 14px; font-weight: 600; }
   .fd-kotak-id strong { font-size: 22px; font-weight: 700; letter-spacing: .5px; }
   .fd-daftar-peserta { list-style: none; margin: 0 0 16px; padding: 0; border-top: 1px solid var(--garis); }
   .fd-daftar-peserta li { padding: 10px 0; border-bottom: 1px solid var(--garis); display: flex; flex-direction: column; }
   .fd-daftar-peserta li span { font-size: 14px; color: var(--redup); }
-  .fd-aksi-berhasil { display: flex; flex-direction: column; gap: 10px; margin: 16px 0; }
+  .fd-aksi-berhasil { display: flex; flex-direction: column; gap: 10px; margin: 14px 0 12px; }
+  .fd-tombol-ikon { gap: 8px; border: 0; color: #fff; }
+  .fd-tombol-ikon svg { width: 20px; height: 20px; flex-shrink: 0; }
+  /* Hijau WhatsApp agar langsung dikenali; Calendar oranye seperti tombol Daftar. */
+  .fd-tombol-wa { background: linear-gradient(90deg, #25D366, #12A150) border-box; text-shadow: 0 1px 2px rgba(0, 70, 30, .3); }
+  .fd-tombol-kalender { background: linear-gradient(90deg, var(--coral), var(--gold)) border-box; text-shadow: 0 1px 2px rgba(150, 60, 20, .35); }
+  .fd-tanya { margin: 0 0 4px; font-size: 13px; color: var(--redup); }
+  .fd-tanya a { color: var(--item); font-weight: 600; }
 
 
   @media (max-width: 420px) {
