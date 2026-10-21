@@ -68,3 +68,10 @@ Pratinjau: `docs/pratinjau/profil.png`.
 - Strip empat angka (angka berwarna indigo): 2010 Berdiri, 50+ Pembimbing, 100+ Sekolah mitra, 2 Cabang.
 - Paragraf rata kanan-kiri: "Dengan metode GENIO Problem Solving, Genio mendampingi ratusan siswa menghadapi OSN/KSN, OMI, dan kompetisi lainnya. Genio hadir di dua cabang, Semarang dan Yogyakarta, dengan kelas yang bisa diikuti secara online maupun offline."
 - Daftar program (TKA, International Curriculum, dan lain-lain) tidak ditampilkan dulu.
+
+### Cabang Genio
+Pratinjau: `docs/pratinjau/cabang.png`.
+
+- Judul "Cabang Genio" dan subjudul "Datang langsung atau hubungi admin cabang terdekat."
+- Dua kartu sebaris (Semarang dan Yogyakarta): logo cabang, alamat singkat, tiga ikon bulat bergaris satu warna (Google Maps, WhatsApp admin, Instagram). Ikon diberi label untuk pembaca layar.
+- Data dari lembar Cabang (alamat, link_maps, wa_admin, instagram); kartu tanpa data disembunyikan.
