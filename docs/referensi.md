@@ -40,3 +40,15 @@ Yang tidak diambil: latar gelap (halaman kita terang seperti poster, PRD 7.1), l
 | R3 | Teks persetujuan | | PDF: "Genio Yogyakarta" | **Diputuskan: "Genio Institute"** (K2) |
 | R4 | Gradien | Poster memakai gradien Cyan ke Teal | | **Diputuskan: dipakai di beberapa tempat seperti poster** (PRD 7.1) |
 | R5 | Isian "Pertanyaan untuk Mas Indro" di langkah Penutup | | PRD Bagian 8 (`pertanyaan_narsum`) | **Diputuskan pemilik: dihapus dari form.** Kolom tetap ada di database dan terkirim kosong |
+
+## Keputusan desain Fase 5 (disepakati pemilik, belum dipasang ke kode)
+
+### Tutor kelas simulasi
+Pratinjau: `docs/pratinjau/tutor-kartu.png`.
+
+- Kartu bergaya poster tinggi, sudut membulat besar. Latar atas warna muda; blok gradien membulat di belakang bagian bawah foto potongan (PNG tanpa latar).
+- Warna per bidang: Matematika oranye (coral ke gold), IPA cyan (cyan ke teal), IPS biru (indigo ke cyan). Gradien dipakai di blok foto, teks nama, dan tombol.
+- Kiri atas: nama (besar, teks bergradien) dan jabatan, misalnya "Tutor Matematika SD". Kanan atas: hiasan panah "<<<". Label room tidak ditampilkan di kartu.
+- Di bawah poster (diberi jarak 12 px kiri-kanan): judul kecil "Prestasi siswa binaan", daftar prestasi dengan ikon bulat sesuai jenis, garis putus-putus, lalu tombol kecil "Lihat selengkapnya" di tengah. Semua kartu sama tinggi.
+- Slider: desktop 3 kartu sekaligus, ponsel 1 kartu dengan kartu berikutnya terlihat di tepi; panah bulat putih berbayang di kiri-kanan, memudar di ujung; titik penanda di bawah.
+- Popup "Lihat selengkapnya" muncul di tengah layar: foto, nama, jabatan, room, ringkasan, daftar lengkap prestasi siswa binaan.
