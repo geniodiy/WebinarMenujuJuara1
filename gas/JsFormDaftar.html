@@ -554,7 +554,7 @@
       var g = el('section', 'fd-ringkas-grup');
       var kepala = el('div', 'fd-ringkas-kepala');
       kepala.appendChild(el('h3', null, judul));
-      var ubah = el('button', 'fd-tombol fd-tombol-teks', 'Ubah');
+      var ubah = el('button', 'fd-tombol fd-pil', 'Ubah');
       ubah.type = 'button';
       ubah.setAttribute('aria-label', 'Ubah ' + judul.toLowerCase());
       ubah.addEventListener('click', function () { keLangkah(ke); });
@@ -1140,6 +1140,7 @@
 
     function buka() {
       if (!akar) bangunKerangka();
+      if (akar.classList.contains('fd-keluar')) selesaiTutup();
       pemicu = document.activeElement;
       var c = config();
       if (!S || S.mode === 'berhasil') {
@@ -1156,14 +1157,30 @@
       fokusJudul();
     }
 
+    var jedaTutup = null;
+
     function tutup() {
-      if (!akar) return;
+      if (!akar || akar.hidden || akar.classList.contains('fd-keluar')) return;
+      document.documentElement.classList.remove('fd-terbuka');
+      if (gerakDikurangi && gerakDikurangi.matches) selesaiTutup();
+      else {
+        // Popup turun sambil memudar, baru disembunyikan setelah animasi selesai.
+        selesaikanTransisi();
+        akar.classList.add('fd-keluar');
+        latarFd.classList.add('fd-keluar');
+        jedaTutup = setTimeout(selesaiTutup, 240);
+      }
+      if (S && S.mode === 'berhasil') S = null;
+      if (pemicu && pemicu.focus) pemicu.focus();
+    }
+
+    function selesaiTutup() {
+      clearTimeout(jedaTutup);
+      akar.classList.remove('fd-keluar');
+      latarFd.classList.remove('fd-keluar');
       akar.hidden = true;
       latarFd.hidden = true;
       turunkanPopup();
-      document.documentElement.classList.remove('fd-terbuka');
-      if (S && S.mode === 'berhasil') S = null;
-      if (pemicu && pemicu.focus) pemicu.focus();
     }
 
     return { buka: buka, tutup: tutup };

@@ -360,6 +360,11 @@
     animation: naikBawah .35s cubic-bezier(.2, .8, .3, 1);
   }
   .fd[hidden], .fd-latar[hidden] { display: none; }
+  /* Saat ditutup, popup turun sambil memudar dan latar ikut memudar. */
+  .fd.fd-keluar { animation: turunKeluar .24s ease-in forwards; pointer-events: none; }
+  .fd-latar.fd-keluar { animation: pudarKeluar .24s ease-in forwards; pointer-events: none; }
+  @keyframes turunKeluar { from { transform: none; opacity: 1; } to { transform: translateY(60%); opacity: 0; } }
+  @keyframes pudarKeluar { from { opacity: 1; } to { opacity: 0; } }
   /* Pegangan kecil di atas sebagai tanda popup. */
   .fd::before { content: ""; display: block; flex-shrink: 0; width: 40px; height: 4px; margin: 8px auto 0; border-radius: 2px; background: #C9D3DC; }
   @keyframes naikBawah { from { transform: translateY(100%); } to { transform: none; } }
@@ -403,7 +408,7 @@
     background: var(--latar); border: 1.5px solid #C9D3DC; border-radius: 12px;
   }
   textarea.fd-input { min-height: 112px; resize: vertical; }
-  .fd-input:focus { border-color: var(--indigo); outline: 3px solid rgba(47, 55, 126, .18); outline-offset: 0; }
+  .fd-input:focus { border-color: var(--item); outline: 3px solid rgba(84, 86, 59, .15); outline-offset: 0; }
   .ada-galat .fd-input { border-color: #B42318; }
 
   .fd-pilihan { border: 0; margin: 0; padding: 0; min-width: 0; display: flex; flex-direction: column; gap: 6px; outline: none; }
@@ -413,9 +418,18 @@
     min-height: 42px; padding: 9px 12px; cursor: pointer; font-size: 13px;
     border: 1.5px solid #C9D3DC; border-radius: 12px; background: var(--latar);
   }
-  .fd-kartu input { width: 20px; height: 20px; margin: 2px 0 0; flex-shrink: 0; accent-color: var(--indigo); }
-  .fd-kartu.terpilih { border-color: var(--indigo); background: #F1F3FB; }
-  .fd-kartu:focus-within { outline: 3px solid rgba(47, 55, 126, .25); outline-offset: 1px; }
+  /* Pilihan dan centang berbentuk bulat; saat dipilih terisi gradien cyan. */
+  .fd-kartu input {
+    -webkit-appearance: none; appearance: none; width: 20px; height: 20px; margin: 1px 0 0; flex-shrink: 0;
+    border: 1.5px solid #B8C4CE; border-radius: 50%; background: #fff; cursor: pointer;
+    transition: background-color .15s ease, border-color .15s ease, transform .15s ease;
+  }
+  .fd-kartu input:checked { border-color: transparent; background: linear-gradient(135deg, var(--cyan), var(--teal)); animation: centangMasuk .22s ease-out; }
+  .fd-kartu input[type="checkbox"]:checked { background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center / 13px no-repeat, linear-gradient(135deg, var(--cyan), var(--teal)); }
+  .fd-kartu input[type="radio"]:checked { background: radial-gradient(circle, #fff 0 3.5px, transparent 4.5px), linear-gradient(135deg, var(--cyan), var(--teal)); }
+  @keyframes centangMasuk { 0% { transform: scale(.7); } 60% { transform: scale(1.12); } 100% { transform: scale(1); } }
+  .fd-kartu.terpilih { border-color: var(--item); background: #F6F7F2; }
+  .fd-kartu:focus-within { outline: 3px solid rgba(84, 86, 59, .18); outline-offset: 1px; }
   .ada-galat .fd-kartu { border-color: #E6A39C; }
   .fd-kartu-teks { display: flex; flex-direction: column; gap: 2px; }
   .fd-kartu-judul { font-weight: 500; }
@@ -428,7 +442,7 @@
     display: inline-flex; align-items: center; justify-content: center;
     min-height: 42px; padding: 8px 16px; border-radius: 12px;
     font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none;
-    border: 2px solid transparent; background: none; color: var(--indigo);
+    border: 2px solid transparent; background: none; color: var(--item);
   }
   /* Tombol utama form senada dengan tombol Daftar: gradien oranye ke kuning, tulisan putih. */
   .fd-tombol-utama { background: linear-gradient(90deg, var(--coral), var(--gold)) border-box; color: #fff; text-shadow: 0 1px 2px rgba(150, 60, 20, .35); }
@@ -439,10 +453,10 @@
   .fd-tombol[disabled] { opacity: .65; cursor: progress; }
   .fd-lebar { width: 100%; }
   /* Mulai ulang: pil gelap bertulisan putih. */
-  .fd-tombol.fd-mulai-ulang { flex-shrink: 0; min-height: 30px; padding: 4px 14px; border: 0; border-radius: 999px; background: var(--item); color: #fff; font-size: 12px; font-weight: 600; text-decoration: none; }
+  .fd-tombol.fd-mulai-ulang, .fd-tombol.fd-pil { flex-shrink: 0; min-height: 30px; padding: 4px 14px; border: 0; border-radius: 999px; background: var(--item); color: #fff; font-size: 12px; font-weight: 600; text-decoration: none; }
 
   .fd-blok { border: 1.5px solid var(--garis); border-radius: 14px; overflow: hidden; }
-  .fd-blok.terbuka { border-color: var(--indigo); }
+  .fd-blok.terbuka { border-color: var(--item); }
   .fd-blok-kepala {
     width: 100%; min-height: 48px; padding: 10px 12px; border: 0; background: #F7FAFC; font-size: 14px;
     display: flex; align-items: center; justify-content: space-between; gap: 12px;
