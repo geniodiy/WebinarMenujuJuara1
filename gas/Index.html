@@ -75,6 +75,59 @@
           <div id="daftar-narasumber" class="daftar-narasumber"></div>
         </section>
 
+        <section class="bagian" id="bagian-tutor" aria-labelledby="judul-tutor" hidden>
+          <h2 id="judul-tutor">Tutor kelas simulasi</h2>
+          <p class="bagian-sub">Satu tutor untuk tiap room, sesuai jenjang dan bidang.</p>
+          <div class="tutor-slider">
+            <button type="button" class="tutor-panah kiri" id="tutor-kiri" aria-label="Tutor sebelumnya"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg></button>
+            <div class="tutor-geser" id="daftar-tutor"></div>
+            <button type="button" class="tutor-panah kanan" id="tutor-kanan" aria-label="Tutor berikutnya"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></button>
+          </div>
+          <div class="tutor-titik" id="tutor-titik" aria-hidden="true"></div>
+        </section>
+
+        <section class="bagian" id="bagian-profil" aria-labelledby="judul-profil" hidden>
+          <div class="profil-kepala">
+            <h2 id="judul-profil">Apa itu Genio Institute?</h2>
+            <p id="profil-inti"></p>
+          </div>
+          <dl class="profil-angka" id="profil-angka"></dl>
+          <p class="profil-teks" id="profil-teks" lang="id"></p>
+        </section>
+
+        <section class="bagian" id="bagian-cabang" aria-labelledby="judul-cabang" hidden>
+          <h2 id="judul-cabang">Cabang Genio</h2>
+          <p class="bagian-sub">Datang langsung atau hubungi admin cabang terdekat.</p>
+          <div class="cabang-kisi" id="daftar-cabang"></div>
+        </section>
+
+        <section class="bagian" id="bagian-prestasi" aria-labelledby="judul-prestasi" hidden>
+          <h2 id="judul-prestasi">Prestasi siswa Genio</h2>
+          <p class="bagian-sub">Prestasi siswa binaan Genio dalam 3 tahun terakhir.</p>
+          <div class="prestasi-ringkas" id="prestasi-ringkas"></div>
+          <div class="prestasi-jendela" id="prestasi-jendela"></div>
+          <div class="prestasi-bawah"><button type="button" class="tombol-mini gradien-biru" id="tombol-prestasi">Lihat selengkapnya</button></div>
+        </section>
+
+        <section class="bagian" id="bagian-testimoni" aria-labelledby="judul-testimoni" hidden>
+          <h2 id="judul-testimoni">Apa kata orang tua</h2>
+          <p class="bagian-sub">Cerita orang tua siswa binaan Genio.</p>
+          <div class="testi-jalur" id="testi-jalur"></div>
+        </section>
+
+        <section class="bagian" id="bagian-ajakan" aria-labelledby="judul-ajakan" hidden>
+          <div class="ajakan">
+            <div class="ajakan-atas">
+              <span class="ajakan-ikon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"></path><path d="M8 10h8M8 13h5"></path></svg></span>
+              <div>
+                <h2 id="judul-ajakan">Tertarik bergabung dengan Genio?</h2>
+                <p id="ajakan-kalimat">Konsultasi gratis via WhatsApp dengan admin cabang.</p>
+              </div>
+            </div>
+            <div class="ajakan-cabang" id="ajakan-cabang"></div>
+          </div>
+        </section>
+
         <section class="bagian bagian-penutup" aria-label="Pendaftaran dan narahubung">
           <div class="hitung-mundur" id="hitung-mundur" role="timer" hidden>
             <p class="hm-judul">Pendaftaran ditutup dalam</p>
@@ -123,10 +176,19 @@
     </div>
   </div>
 
-  <div class="lapisan" id="lapisan-detail" hidden>
-    <div class="lembar" role="dialog" aria-modal="true" aria-labelledby="detail-nama">
-      <button type="button" class="tombol-tutup-lapisan" data-tutup aria-label="Tutup"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+  <div class="lapisan lapisan-tengah" id="lapisan-detail" hidden>
+    <div class="kotak-tengah" role="dialog" aria-modal="true" aria-labelledby="detail-nama">
+      <button type="button" class="tombol-tutup-kecil" data-tutup aria-label="Tutup"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
       <div id="detail-isi"></div>
+    </div>
+  </div>
+
+  <div class="lapisan lapisan-tengah" id="lapisan-prestasi" hidden>
+    <div class="kotak-tengah" role="dialog" aria-modal="true" aria-labelledby="judul-popup-prestasi">
+      <button type="button" class="tombol-tutup-kecil" data-tutup aria-label="Tutup"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+      <h2 id="judul-popup-prestasi">Prestasi siswa Genio</h2>
+      <div class="pp-tahun" id="pp-tahun" role="group" aria-label="Pilih tahun"></div>
+      <div id="pp-isi"></div>
     </div>
   </div>
 

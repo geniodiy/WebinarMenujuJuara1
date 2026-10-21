@@ -1,7 +1,8 @@
 /**
  * Isi awal spreadsheet Konten Website untuk menu "Isi data contoh".
  * Agenda dan narasumber diambil dari poster (data asli, data_contoh = TIDAK).
- * Selebihnya contoh (data_contoh = YA) dan wajib diganti atau disembunyikan sebelum tayang.
+ * Profil berisi teks yang disepakati pemilik. Selebihnya contoh (data_contoh = YA) dan wajib diganti
+ * atau disembunyikan sebelum tayang.
  */
 
 var DATA_CONTOH_ = {
@@ -21,23 +22,39 @@ var DATA_CONTOH_ = {
       ringkasan: 'Pembimbing siswa peraih Gold Medal & Best Overall SMP OSN Matematika 2026.',
       prestasi_binaan: 'Gold Medal & Best Overall SMP OSN Matematika 2026' },
     { urutan: 2, tampil: 'YA', data_contoh: 'YA', peran: 'Tutor', nama_lengkap: 'Tutor Contoh 1', jabatan: 'Tutor Matematika SD',
-      room: 'SD Matematika', foto: 'tutor-01-contoh.jpg', ringkasan: 'Membimbing siswa SD menghadapi soal penalaran matematika.',
-      prestasi_binaan: 'Medali Perak OSN Matematika SD 2025 (contoh)\nMedali Perunggu OSN Matematika SD 2024 (contoh)' },
+      room: 'SD Matematika', foto: '', ringkasan: 'Membimbing siswa SD menghadapi soal penalaran matematika.',
+      prestasi_binaan: '' },
     { urutan: 3, tampil: 'YA', data_contoh: 'YA', peran: 'Tutor', nama_lengkap: 'Tutor Contoh 2', jabatan: 'Tutor IPA SD',
-      room: 'SD IPA', foto: 'tutor-02-contoh.jpg', ringkasan: 'Mengajak siswa SD memahami sains lewat percobaan sederhana.',
-      prestasi_binaan: 'Medali Emas OSN IPA SD 2025 (contoh)\nMedali Perak OSN IPA SD 2024 (contoh)' },
+      room: 'SD IPA', foto: '', ringkasan: 'Mengajak siswa SD memahami sains lewat percobaan sederhana.',
+      prestasi_binaan: '' },
     { urutan: 4, tampil: 'YA', data_contoh: 'YA', peran: 'Tutor', nama_lengkap: 'Tutor Contoh 3', jabatan: 'Tutor IPS SD',
-      room: 'SD IPS', foto: 'tutor-03-contoh.jpg', ringkasan: 'Melatih siswa SD membaca peta, data, dan peristiwa sosial.',
-      prestasi_binaan: 'Medali Perunggu OSN IPS SD 2025 (contoh)' },
+      room: 'SD IPS', foto: '', ringkasan: 'Melatih siswa SD membaca peta, data, dan peristiwa sosial.',
+      prestasi_binaan: '' },
     { urutan: 5, tampil: 'YA', data_contoh: 'YA', peran: 'Tutor', nama_lengkap: 'Tutor Contoh 4', jabatan: 'Tutor Matematika SMP',
-      room: 'SMP Matematika', foto: 'tutor-04-contoh.jpg', ringkasan: 'Fokus pada teori bilangan dan kombinatorika tingkat SMP.',
-      prestasi_binaan: 'Medali Emas OSN Matematika SMP 2025 (contoh)\nMedali Perak OSN Matematika SMP 2024 (contoh)' },
+      room: 'SMP Matematika', foto: '', ringkasan: 'Fokus pada teori bilangan dan kombinatorika tingkat SMP.',
+      prestasi_binaan: '' },
     { urutan: 6, tampil: 'YA', data_contoh: 'YA', peran: 'Tutor', nama_lengkap: 'Tutor Contoh 5', jabatan: 'Tutor IPA SMP',
-      room: 'SMP IPA', foto: 'tutor-05-contoh.jpg', ringkasan: 'Membahas fisika, kimia, dan biologi dasar untuk OSN SMP.',
-      prestasi_binaan: 'Medali Perak OSN IPA SMP 2025 (contoh)' },
+      room: 'SMP IPA', foto: '', ringkasan: 'Membahas fisika, kimia, dan biologi dasar untuk OSN SMP.',
+      prestasi_binaan: '' },
     { urutan: 7, tampil: 'YA', data_contoh: 'YA', peran: 'Tutor', nama_lengkap: 'Tutor Contoh 6', jabatan: 'Tutor IPS SMP',
-      room: 'SMP IPS', foto: 'tutor-06-contoh.jpg', ringkasan: 'Melatih analisis ekonomi, geografi, dan sejarah untuk OSN SMP.',
-      prestasi_binaan: 'Medali Perunggu OSN IPS SMP 2025 (contoh)\nFinalis OSN IPS SMP 2024 (contoh)' }
+      room: 'SMP IPS', foto: '', ringkasan: 'Melatih analisis ekonomi, geografi, dan sejarah untuk OSN SMP.',
+      prestasi_binaan: '' }
+  ],
+
+  // Satu baris satu prestasi; nama_tutor harus sama dengan nama_lengkap di Narasumber_Tutor.
+  Prestasi_Tutor: [
+    { urutan: 1, tampil: 'YA', data_contoh: 'YA', nama_tutor: 'Tutor Contoh 1', jenis: 'Perak', prestasi: 'Medali Perak OSN Matematika SD 2025 (contoh)' },
+    { urutan: 2, tampil: 'YA', data_contoh: 'YA', nama_tutor: 'Tutor Contoh 1', jenis: 'Perunggu', prestasi: 'Medali Perunggu OSN Matematika SD 2024 (contoh)' },
+    { urutan: 3, tampil: 'YA', data_contoh: 'YA', nama_tutor: 'Tutor Contoh 1', jenis: 'Lainnya', prestasi: 'Finalis KSN Matematika SD 2024 (contoh)' },
+    { urutan: 4, tampil: 'YA', data_contoh: 'YA', nama_tutor: 'Tutor Contoh 1', jenis: 'Emas', prestasi: 'Medali Emas OSN Matematika Kabupaten 2023 (contoh)' },
+    { urutan: 5, tampil: 'YA', data_contoh: 'YA', nama_tutor: 'Tutor Contoh 2', jenis: 'Emas', prestasi: 'Medali Emas OSN IPA SD 2025 (contoh)' },
+    { urutan: 6, tampil: 'YA', data_contoh: 'YA', nama_tutor: 'Tutor Contoh 2', jenis: 'Perak', prestasi: 'Medali Perak OSN IPA SD 2024 (contoh)' },
+    { urutan: 7, tampil: 'YA', data_contoh: 'YA', nama_tutor: 'Tutor Contoh 3', jenis: 'Perunggu', prestasi: 'Medali Perunggu OSN IPS SD 2025 (contoh)' },
+    { urutan: 8, tampil: 'YA', data_contoh: 'YA', nama_tutor: 'Tutor Contoh 4', jenis: 'Emas', prestasi: 'Medali Emas OSN Matematika SMP 2025 (contoh)' },
+    { urutan: 9, tampil: 'YA', data_contoh: 'YA', nama_tutor: 'Tutor Contoh 4', jenis: 'Perak', prestasi: 'Medali Perak OSN Matematika SMP 2024 (contoh)' },
+    { urutan: 10, tampil: 'YA', data_contoh: 'YA', nama_tutor: 'Tutor Contoh 5', jenis: 'Perak', prestasi: 'Medali Perak OSN IPA SMP 2025 (contoh)' },
+    { urutan: 11, tampil: 'YA', data_contoh: 'YA', nama_tutor: 'Tutor Contoh 6', jenis: 'Perunggu', prestasi: 'Medali Perunggu OSN IPS SMP 2025 (contoh)' },
+    { urutan: 12, tampil: 'YA', data_contoh: 'YA', nama_tutor: 'Tutor Contoh 6', jenis: 'Lainnya', prestasi: 'Finalis OSN IPS SMP 2024 (contoh)' }
   ],
 
   Cabang: [
@@ -51,26 +68,30 @@ var DATA_CONTOH_ = {
 
   Prestasi: [
     { urutan: 1, tampil: 'YA', data_contoh: 'YA', tahun: '2026', nama_siswa: 'Siswa Contoh A', sekolah: 'SMP Contoh 1', jenjang: 'SMP',
-      bidang: 'Matematika', lomba: 'OSN', tingkat: 'Nasional', medali: 'Emas', sorotan: 'YA' },
+      bidang: 'Matematika', lomba: 'OSN', tingkat: 'Nasional', medali: 'Emas', prestasi: 'Medali Emas OSN Matematika SMP 2026 (contoh)', sorotan: 'YA' },
     { urutan: 2, tampil: 'YA', data_contoh: 'YA', tahun: '2026', nama_siswa: 'Siswa Contoh B', sekolah: 'SD Contoh 2', jenjang: 'SD',
-      bidang: 'IPA', lomba: 'OSN', tingkat: 'Provinsi', medali: 'Perak', sorotan: 'TIDAK' },
+      bidang: 'IPA', lomba: 'OSN', tingkat: 'Provinsi', medali: 'Perak', prestasi: 'Medali Perak OSN IPA SD 2026 (contoh)', sorotan: 'TIDAK' },
     { urutan: 3, tampil: 'YA', data_contoh: 'YA', tahun: '2026', nama_siswa: 'Siswa Contoh C', sekolah: 'SMP Contoh 3', jenjang: 'SMP',
-      bidang: 'IPS', lomba: 'OSN', tingkat: 'Kabupaten/Kota', medali: 'Perunggu', sorotan: 'TIDAK' },
+      bidang: 'IPS', lomba: 'OSN', tingkat: 'Kabupaten/Kota', medali: 'Perunggu', prestasi: 'Medali Perunggu OSN IPS SMP 2026 (contoh)', sorotan: 'TIDAK' },
     { urutan: 4, tampil: 'YA', data_contoh: 'YA', tahun: '2025', nama_siswa: 'Siswa Contoh D', sekolah: 'SD Contoh 4', jenjang: 'SD',
-      bidang: 'Matematika', lomba: 'OSN', tingkat: 'Nasional', medali: 'Perak', sorotan: 'TIDAK' },
+      bidang: 'Matematika', lomba: 'OSN', tingkat: 'Nasional', medali: 'Perak', prestasi: 'Medali Perak OSN Matematika SD 2025 (contoh)', sorotan: 'TIDAK' },
     { urutan: 5, tampil: 'YA', data_contoh: 'YA', tahun: '2025', nama_siswa: 'Siswa Contoh E', sekolah: 'SMP Contoh 5', jenjang: 'SMP',
-      bidang: 'IPA', lomba: 'OSN', tingkat: 'Provinsi', medali: 'Emas', sorotan: 'TIDAK' },
+      bidang: 'IPA', lomba: 'OSN', tingkat: 'Provinsi', medali: 'Emas', prestasi: 'Medali Emas OSN IPA SMP 2025 (contoh)', sorotan: 'TIDAK' },
     { urutan: 6, tampil: 'YA', data_contoh: 'YA', tahun: '2025', nama_siswa: 'Siswa Contoh F', sekolah: 'SD Contoh 6', jenjang: 'SD',
-      bidang: 'IPS', lomba: 'OSN', tingkat: 'Kabupaten/Kota', medali: 'Harapan', sorotan: 'TIDAK' }
+      bidang: 'IPS', lomba: 'OSN', tingkat: 'Kabupaten/Kota', medali: 'Lainnya', prestasi: 'Harapan OSN IPS SD 2025 (contoh)', sorotan: 'TIDAK' }
   ],
 
   Testimoni: [
-    { urutan: 1, tampil: 'YA', data_contoh: 'YA', nama: 'Orang Tua Contoh 1', keterangan: 'Orang tua siswa SMP',
-      kutipan: 'Anak saya jadi lebih percaya diri mengerjakan soal olimpiade. (contoh)', foto: '' },
-    { urutan: 2, tampil: 'YA', data_contoh: 'YA', nama: 'Orang Tua Contoh 2', keterangan: 'Orang tua siswa SD',
-      kutipan: 'Tutor sabar menjelaskan dan rutin memberi kabar perkembangan. (contoh)', foto: '' },
-    { urutan: 3, tampil: 'YA', data_contoh: 'YA', nama: 'Orang Tua Contoh 3', keterangan: 'Orang tua siswa SMP',
-      kutipan: 'Latihan soalnya terarah sehingga persiapan OSN lebih tenang. (contoh)', foto: '' }
+    { urutan: 1, tampil: 'YA', data_contoh: 'YA', nama: 'Ibu Contoh Rahma', keterangan: 'Orang tua siswa SMP', jam: '09.12', foto: '',
+      kutipan: 'Anak saya jadi lebih percaya diri mengerjakan soal olimpiade. Terima kasih Genio! (contoh)' },
+    { urutan: 2, tampil: 'YA', data_contoh: 'YA', nama: 'Bapak Contoh Hadi', keterangan: 'Orang tua siswa SD', jam: '13.40', foto: '',
+      kutipan: 'Tutornya sabar menjelaskan dan rutin memberi kabar perkembangan anak. (contoh)' },
+    { urutan: 3, tampil: 'YA', data_contoh: 'YA', nama: 'Ibu Contoh Sari', keterangan: 'Orang tua siswa SMP', jam: '19.05', foto: '',
+      kutipan: 'Latihan soalnya terarah sehingga persiapan OSN lebih tenang. (contoh)' },
+    { urutan: 4, tampil: 'YA', data_contoh: 'YA', nama: 'Bapak Contoh Wibowo', keterangan: 'Orang tua siswa SD', jam: '20.21', foto: '',
+      kutipan: 'Kelas online-nya enak diikuti dari rumah, anak tetap semangat belajar. (contoh)' },
+    { urutan: 5, tampil: 'YA', data_contoh: 'YA', nama: 'Ibu Contoh Lestari', keterangan: 'Orang tua siswa SMP', jam: '07.48', foto: '',
+      kutipan: 'Pembahasan soalnya runtut, anak jadi paham cara berpikirnya, bukan hanya jawabannya. (contoh)' }
   ],
 
   FAQ: [
@@ -89,13 +110,14 @@ var DATA_CONTOH_ = {
   ]
 };
 
-var PROFIL_CONTOH_ = [
-  ['data_contoh', 'YA', ''],
+// Teks profil yang disepakati pemilik (docs/referensi.md), bukan contoh. Tanda **...** dicetak tebal di halaman.
+var PROFIL_GENIO_ = [
+  ['data_contoh', 'TIDAK', 'YA bila isi profil masih contoh'],
   ['judul', 'Apa itu Genio Institute?', ''],
-  ['paragraf_1', 'Genio Institute adalah lembaga pendampingan olimpiade sains untuk siswa SD dan SMP. (contoh, ganti dengan profil asli)', ''],
-  ['paragraf_2', 'Bersama tutor berpengalaman, Genio membantu siswa menyiapkan OSN secara terarah. (contoh)', ''],
-  ['angka_1', '500+', ''], ['label_1', 'Siswa binaan (contoh)', ''],
-  ['angka_2', '120+', ''], ['label_2', 'Medali olimpiade (contoh)', ''],
-  ['angka_3', '2', ''], ['label_3', 'Cabang: Semarang dan Yogyakarta', ''],
-  ['program', 'Kelas OSN Matematika, Kelas OSN IPA, Kelas OSN IPS, Try Out Olimpiade', '']
+  ['paragraf_1', 'Lembaga pembinaan olimpiade SD, SMP, dan SMA sejak 2010 dengan semangat "Semua siswa bisa menjadi juara".', 'Kalimat inti di kotak judul'],
+  ['paragraf_2', 'Dengan metode GENIO Problem Solving, Genio mendampingi ratusan siswa menghadapi OSN/KSN, OMI, dan kompetisi lainnya. Genio hadir di dua cabang, **Semarang** dan **Yogyakarta**, dengan kelas yang bisa diikuti secara **online maupun offline**.', 'Paragraf di bawah angka. **teks** dicetak tebal'],
+  ['angka_1', '2010', ''], ['label_1', 'Berdiri', ''],
+  ['angka_2', '50+', ''], ['label_2', 'Pembimbing', ''],
+  ['angka_3', '100+', ''], ['label_3', 'Sekolah mitra', ''],
+  ['angka_4', '2', ''], ['label_4', 'Cabang', '']
 ];

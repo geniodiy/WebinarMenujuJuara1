@@ -41,7 +41,7 @@ Yang tidak diambil: latar gelap (halaman kita terang seperti poster, PRD 7.1), l
 | R4 | Gradien | Poster memakai gradien Cyan ke Teal | | **Diputuskan: dipakai di beberapa tempat seperti poster** (PRD 7.1) |
 | R5 | Isian "Pertanyaan untuk Mas Indro" di langkah Penutup | | PRD Bagian 8 (`pertanyaan_narsum`) | **Diputuskan pemilik: dihapus dari form.** Kolom tetap ada di database dan terkirim kosong |
 
-## Keputusan desain Fase 5 (disepakati pemilik, belum dipasang ke kode)
+## Keputusan desain Fase 5 (disepakati pemilik, sudah dipasang ke kode)
 
 ### Tutor kelas simulasi
 Pratinjau: `docs/pratinjau/tutor-kartu.png`.
@@ -84,7 +84,7 @@ Pratinjau: `docs/pratinjau/prestasi.png`.
 - Ikon jenis prestasi sama dengan tutor: Emas, Perak, Perunggu, Lainnya (hitam palet bergradien dengan bintang putih).
 - Tombol kecil "Lihat selengkapnya" (gradien biru) membuka popup di tengah: pilihan tahun dibuat otomatis dari data (misalnya 2026, 2025, Semua), daftar lengkap tanpa batas, dikelompokkan per tahun bila "Semua".
 - Data asli dari `Prestasi_Genio.pdf`, dibatasi 3 tahun terakhir (2024 sampai 2026): 42 baris (PDF tidak memuat prestasi 2024). Nama Moch Reza Azhar Habibie diseragamkan. Subjudul bagian: "Prestasi siswa binaan Genio dalam 3 tahun terakhir." disiapkan sebagai berkas impor untuk lembar Prestasi; berkas tidak disimpan di repo karena berisi nama siswa.
-- Kolom lembar Prestasi: urutan, tampil, data_contoh, tahun, nama_siswa, sekolah, jenjang, bidang, lomba, tingkat, medali (Emas/Perak/Perunggu/Lainnya), sorotan, **prestasi** (teks lengkap seperti di sertifikat; kolom baru, ditambahkan ke daftar kolom saat Fase 5 dipasang).
+- Kolom lembar Prestasi: urutan, tampil, data_contoh, tahun, nama_siswa, sekolah, jenjang, bidang, lomba, tingkat, medali (Emas/Perak/Perunggu/Lainnya), sorotan, **prestasi** (teks lengkap seperti di sertifikat). Daftar bergulir menampilkan nama siswa dan teks prestasi; bila teks prestasi kosong, dipakai lomba, bidang, jenjang, dan tingkat.
 - Urutan (kolom `urutan`): IMSO dulu, lalu OSN (termasuk KSN, nama OSN tahun 2020-2021), lalu lomba internasional lain, lalu lainnya; di dalam tiap kelompok tahun terbaru lalu Emas, Perak, Perunggu, Lainnya. Daftar bergulir mengambil 10 urutan teratas. Juara I/II/III dipetakan ke Emas/Perak/Perunggu; finalis, harapan, peringkat, honorable, dan best theory ke Lainnya.
 - Admin dapat mengedit prestasi lewat panel admin (tab "Prestasi": tambah, ubah, hapus, atur urutan, pilih jenis medali, pilih tampil) maupun langsung di lembar Prestasi; keduanya memakai data yang sama dan tercatat di Log_Admin.
 
@@ -99,6 +99,11 @@ Pratinjau: `docs/pratinjau/ajakan.png`.
 
 - Kartu putih bergaris tipis: ikon chat bergradien oranye, judul `cta_judul` ("Tertarik bergabung dengan Genio?"), keterangan singkat ("Konsultasi gratis via WhatsApp dengan admin cabang.").
 - Dua tombol hijau WhatsApp berdampingan, satu per cabang (Semarang, Yogyakarta), langsung membuka WhatsApp admin cabang (`wa_admin` di lembar Cabang) dengan pesan `cta_pesan_wa`. Cabang tanpa nomor tidak ditampilkan tombolnya.
+
+### Catatan pemasangan
+- Profil memakai kunci lembar Profil yang sudah ada: `paragraf_1` = kalimat inti di kotak judul, `paragraf_2` = paragraf di bawah angka (tanda `**teks**` dicetak tebal), `angka_1..4` dan `label_1..4`. Kunci `program` tidak dipakai.
+- Testimoni contoh (5 orang tua fiktif, `data_contoh` = YA) dan prestasi tutor contoh diisi lewat fungsi panitia `isiKontenFase5`. Foto tutor dibiarkan kosong; kartu menampilkan siluet sampai foto diunggah.
+- Warna kartu tutor ditentukan dari kata Matematika, IPA, atau IPS di kolom jabatan.
 
 ### FAQ
 - Diputuskan pemilik: bagian FAQ tidak ditampilkan. Lembar FAQ tetap ada tetapi tidak dipakai halaman.

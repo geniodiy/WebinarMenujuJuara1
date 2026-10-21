@@ -40,7 +40,7 @@ var PENGATURAN_KONTEN_AWAL_ = [
   ['instagram_1', 'genio_institute', 'Tanpa @'],
   ['instagram_2', 'genio.diy', 'Tanpa @'],
   ['cta_judul', 'Tertarik bergabung dengan Genio?', ''],
-  ['cta_kalimat', '', 'Satu kalimat pendukung'],
+  ['cta_kalimat', 'Konsultasi gratis via WhatsApp dengan admin cabang.', 'Satu kalimat pendukung'],
   ['cta_teks_tombol', 'Konsultasi Gratis via WhatsApp', ''],
   ['cta_pesan_wa', 'Halo Genio, saya tertarik dengan program olimpiade setelah melihat webinar Menuju Juara.', '']
 ];
@@ -115,6 +115,10 @@ function siapkanLembar() {
   Object.keys(LEMBAR_DAFTAR_KONTEN_).forEach(function (nama) {
     var lembar = pastikanLembar_(konten, nama, KOLOM_BERSAMA_.concat(LEMBAR_DAFTAR_KONTEN_[nama]));
     formatTeks_(lembar, ['jam', 'wa_admin', 'tahun']);
+    aturPilihan_(lembar, 'tampil', ['YA', 'TIDAK']);
+    aturPilihan_(lembar, 'data_contoh', ['YA', 'TIDAK']);
+    aturPilihan_(lembar, 'jenis', JENIS_PRESTASI_);
+    aturPilihan_(lembar, 'medali', JENIS_PRESTASI_);
   });
   var profil = pastikanLembar_(konten, 'Profil', KOLOM_KUNCI_NILAI_);
   formatTeks_(profil, ['nilai']);
@@ -152,6 +156,28 @@ function formatTeks_(lembar, namaKolom) {
     var i = judul.indexOf(n);
     if (i >= 0) lembar.getRange(1, i + 1, lembar.getMaxRows(), 1).setNumberFormat('@');
   });
+}
+
+/** Dropdown pilihan untuk satu kolom (bila kolomnya ada), dari baris 2 sampai bawah. */
+function aturPilihan_(lembar, namaKolom, pilihan) {
+  var judul = lembar.getRange(1, 1, 1, lembar.getLastColumn()).getValues()[0];
+  var i = judul.indexOf(namaKolom);
+  if (i < 0 || lembar.getMaxRows() < 2) return;
+  var aturan = SpreadsheetApp.newDataValidation().requireValueInList(pilihan, true).setAllowInvalid(false).build();
+  lembar.getRange(2, i + 1, lembar.getMaxRows() - 1, 1).setDataValidation(aturan);
+}
+
+/** Menulis daftar objek sebagai baris sesuai judul kolom. Bila ganti, isi lama dihapus dulu. */
+function tulisBarisObjek_(lembar, daftar, ganti) {
+  var judul = lembar.getRange(1, 1, 1, lembar.getLastColumn()).getValues()[0].map(function (j) { return String(j).trim(); });
+  if (ganti && lembar.getLastRow() > 1) lembar.getRange(2, 1, lembar.getLastRow() - 1, judul.length).clearContent();
+  if (!daftar.length) return;
+  var baris = daftar.map(function (obj) {
+    return judul.map(function (j) { return obj[j] == null ? '' : sanitasiSel_(obj[j]); });
+  });
+  var mulai = ganti ? 2 : lembar.getLastRow() + 1;
+  if (lembar.getMaxRows() < mulai + baris.length - 1) lembar.insertRowsAfter(lembar.getMaxRows(), mulai + baris.length - 1 - lembar.getMaxRows());
+  lembar.getRange(mulai, 1, baris.length, judul.length).setValues(baris);
 }
 
 /**
@@ -200,26 +226,85 @@ function isiDataContoh() {
       dilewati.push(nama);
       return;
     }
-    var judul = lembar.getRange(1, 1, 1, lembar.getLastColumn()).getValues()[0];
-    var baris = DATA_CONTOH_[nama].map(function (obj) {
-      return judul.map(function (j) { return obj[j] == null ? '' : obj[j]; });
-    });
-    lembar.getRange(2, 1, baris.length, judul.length).setValues(baris);
+    tulisBarisObjek_(lembar, DATA_CONTOH_[nama], false);
     terisi.push(nama);
   });
 
   var pk = konten.getSheetByName('Pengaturan_Konten');
   tambahKunci_(pk, PENGATURAN_KONTEN_AWAL_, true);
   aturKunci_(pk, 'tampilkan_data_contoh', 'YA');
-  var profil = konten.getSheetByName('Profil');
-  // Profil berisi satu kunci data_contoh untuk seluruh bagian; begitu ada isi contoh, bagian ini ditandai contoh.
-  if (tambahKunci_(profil, PROFIL_CONTOH_, true) > 0) aturKunci_(profil, 'data_contoh', 'YA');
+  // Profil berisi teks yang sudah disepakati (bukan contoh), jadi hanya kunci yang masih kosong yang diisi.
+  tambahKunci_(konten.getSheetByName('Profil'), PROFIL_GENIO_, true);
 
   bersihkanCache_();
   return lapor_('Data contoh. Diisi: ' + (terisi.join(', ') || '-') +
     '. Dilewati karena sudah berisi: ' + (dilewati.join(', ') || '-') +
     '. Profil dan Pengaturan_Konten: hanya kunci yang masih kosong yang diisi.' +
     ' tampilkan_data_contoh sekarang YA; ubah menjadi TIDAK sebelum tayang.');
+}
+
+/**
+ * Fungsi panitia untuk Fase 5: mengisi teks profil yang disepakati, testimoni contoh (data_contoh YA),
+ * dan contoh prestasi tutor. Data asli yang sudah ada tidak ditimpa: profil hanya ditulis bila masih
+ * kosong atau masih contoh, testimoni hanya bila lembarnya kosong atau isinya contoh semua, dan
+ * Prestasi_Tutor hanya bila kosong.
+ */
+function isiKontenFase5() {
+  penjagaPanitia_();
+  var konten = bukaKonten_();
+  if (!konten.getSheetByName('Prestasi_Tutor')) throw new Error('Lembar Prestasi_Tutor belum ada. Jalankan siapkanLembar dulu.');
+  var hasil = [];
+
+  tambahKunci_(konten.getSheetByName('Pengaturan_Konten'), PENGATURAN_KONTEN_AWAL_, true);
+
+  var lembarProfil = konten.getSheetByName('Profil');
+  var profil = kunciNilai_(bacaLembar_(lembarProfil));
+  var profilKosong = !PROFIL_GENIO_.some(function (p) { return p[0] !== 'data_contoh' && profil[p[0]]; });
+  if (profilKosong || yaTidak_(profil.data_contoh)) {
+    tambahKunci_(lembarProfil, PROFIL_GENIO_, false);
+    PROFIL_GENIO_.forEach(function (p) { aturKunci_(lembarProfil, p[0], p[1]); });
+    hasil.push('Profil diisi teks yang disepakati');
+  } else {
+    hasil.push('Profil dilewati karena sudah berisi data asli');
+  }
+
+  var testi = konten.getSheetByName('Testimoni');
+  var barisTesti = bacaLembar_(testi);
+  if (barisTesti.every(function (b) { return yaTidak_(b.data_contoh); })) {
+    tulisBarisObjek_(testi, DATA_CONTOH_.Testimoni, true);
+    hasil.push('Testimoni diisi ' + DATA_CONTOH_.Testimoni.length + ' contoh');
+  } else {
+    hasil.push('Testimoni dilewati karena berisi data asli');
+  }
+
+  var pt = konten.getSheetByName('Prestasi_Tutor');
+  if (pt.getLastRow() < 2) {
+    tulisBarisObjek_(pt, DATA_CONTOH_.Prestasi_Tutor, true);
+    hasil.push('Prestasi_Tutor diisi ' + DATA_CONTOH_.Prestasi_Tutor.length + ' contoh');
+  } else {
+    hasil.push('Prestasi_Tutor dilewati karena sudah berisi');
+  }
+
+  // Nama foto contoh yang tidak ada di folder dikosongkan, agar tidak memicu pemindaian folder berulang.
+  var nt = konten.getSheetByName('Narasumber_Tutor');
+  var peta = petaGambar_(konten);
+  var dikosongkan = 0;
+  if (nt.getLastRow() > 1) {
+    var data = nt.getDataRange().getValues();
+    var iFoto = data[0].indexOf('foto');
+    var iContoh = data[0].indexOf('data_contoh');
+    for (var i = 1; i < data.length && iFoto >= 0 && iContoh >= 0; i++) {
+      var foto = String(data[i][iFoto]).trim();
+      if (foto && yaTidak_(data[i][iContoh]) && !peta[foto.toLowerCase()]) {
+        nt.getRange(i + 1, iFoto + 1).setValue('');
+        dikosongkan++;
+      }
+    }
+  }
+  if (dikosongkan) hasil.push(dikosongkan + ' nama foto contoh yang tidak ada di folder dikosongkan');
+
+  bersihkanCache_();
+  return lapor_(hasil.join('. ') + '. Untuk melihat data contoh, ubah tampilkan_data_contoh menjadi YA (di panel admin atau lembar Pengaturan_Konten).');
 }
 
 function aturKunci_(lembar, kunci, nilai) {

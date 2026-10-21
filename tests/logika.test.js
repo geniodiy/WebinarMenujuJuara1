@@ -99,7 +99,7 @@ test('data contoh cocok dengan kolom lembar', () => {
     }
   }
   const kunciProfil = g.PROFIL_AWAL_.map((p) => p[0]);
-  for (const p of g.PROFIL_CONTOH_) assert.ok(kunciProfil.includes(p[0]), 'Profil: kunci ' + p[0] + ' tidak dikenal');
+  for (const p of g.PROFIL_GENIO_) assert.ok(kunciProfil.includes(p[0]), 'Profil: kunci ' + p[0] + ' tidak dikenal');
   const tutor = g.DATA_CONTOH_.Narasumber_Tutor.filter((b) => b.peran === 'Tutor');
   assert.strictEqual(new Set(tutor.map((t) => t.room)).size, 6);
 });

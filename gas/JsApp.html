@@ -290,27 +290,6 @@
       window.requestAnimationFrame(ukurAlur);
     }
 
-    function daftarPrestasi(item, batas) {
-      var ul = el('ul', 'daftar-prestasi');
-      (item.prestasi_binaan || []).slice(0, batas).forEach(function (p) { ul.appendChild(el('li', null, p)); });
-      return ul;
-    }
-
-    function bukaDetail(item, pemicu) {
-      var isi = $('detail-isi');
-      isi.textContent = '';
-      var h = el('h2', null, item.nama_lengkap);
-      h.id = 'detail-nama';
-      isi.appendChild(h);
-      isi.appendChild(el('p', 'jabatan', [item.jabatan, item.room ? 'Room ' + item.room : ''].filter(Boolean).join(' · ')));
-      if (item.ringkasan) isi.appendChild(el('p', null, item.ringkasan));
-      if ((item.prestasi_binaan || []).length) {
-        isi.appendChild(el('h3', null, 'Prestasi siswa binaan'));
-        isi.appendChild(daftarPrestasi(item, 100));
-      }
-      bukaLapisan('lapisan-detail', pemicu);
-    }
-
     /* Kata medali dan gelar dipisah dari nama ajang supaya bisa ditonjolkan sebagai lencana. */
     var POLA_SOROT = /gold medal|silver medal|bronze medal|best overall|absolute winner|medali emas|medali perak|medali perunggu|juara umum|juara \d+/gi;
     function pecahPrestasi(teks) {
@@ -375,6 +354,499 @@
         if (teks.children.length) kartu.appendChild(teks);
         wadah.appendChild(kartu);
       });
+    }
+
+    /* ---------- Ikon dan bantuan bersama bagian Fase 5 ---------- */
+
+    var NS_SVG = 'http://www.w3.org/2000/svg';
+
+    /** SVG garis satu warna dari daftar path; dibuat lewat DOM agar tidak perlu innerHTML. */
+    function ikonGaris(paths, kelas) {
+      var svg = document.createElementNS(NS_SVG, 'svg');
+      svg.setAttribute('viewBox', '0 0 24 24');
+      svg.setAttribute('fill', 'none');
+      svg.setAttribute('stroke', 'currentColor');
+      svg.setAttribute('stroke-width', '2');
+      svg.setAttribute('stroke-linecap', 'round');
+      svg.setAttribute('stroke-linejoin', 'round');
+      svg.setAttribute('aria-hidden', 'true');
+      if (kelas) svg.setAttribute('class', kelas);
+      paths.forEach(function (d) {
+        var bentuk = d.charAt(0) === '@' ? d.slice(1).split(',') : null;
+        var p;
+        if (bentuk && bentuk[0] === 'c') {
+          p = document.createElementNS(NS_SVG, 'circle');
+          p.setAttribute('cx', bentuk[1]); p.setAttribute('cy', bentuk[2]); p.setAttribute('r', bentuk[3]);
+        } else if (bentuk && bentuk[0] === 'r') {
+          p = document.createElementNS(NS_SVG, 'rect');
+          p.setAttribute('x', bentuk[1]); p.setAttribute('y', bentuk[2]); p.setAttribute('width', bentuk[3]); p.setAttribute('height', bentuk[3]); p.setAttribute('rx', bentuk[4]);
+        } else {
+          p = document.createElementNS(NS_SVG, 'path');
+          p.setAttribute('d', d);
+        }
+        svg.appendChild(p);
+      });
+      return svg;
+    }
+
+    var IKON = {
+      maps: ['M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z', '@c,12,9.5,2.5'],
+      wa: ['M4 20l1.3-3.9A8 8 0 1 1 8 19z'],
+      ig: ['@r,4,4,16,5', '@c,12,12,3.6'],
+      kanan: ['M9 6l6 6-6 6'],
+      panahHias: ['M8 2L3 6l5 4M16 2l-5 4 5 4M24 2l-5 4 5 4']
+    };
+
+    /** Ikon bulat jenis prestasi: Emas, Perak, Perunggu, atau Lainnya (bintang putih). */
+    function ikonJenis(jenis) {
+      var j = String(jenis || '').toLowerCase();
+      var kelas = ['emas', 'perak', 'perunggu'].indexOf(j) >= 0 ? j : 'lainnya';
+      var i = el('i', 'ikon-jenis ' + kelas);
+      i.setAttribute('aria-hidden', 'true');
+      if (kelas === 'lainnya') {
+        var svg = document.createElementNS(NS_SVG, 'svg');
+        svg.setAttribute('viewBox', '0 0 24 24');
+        var p = document.createElementNS(NS_SVG, 'path');
+        p.setAttribute('d', 'M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6L3.3 9.3l6.1-.7z');
+        p.setAttribute('fill', '#fff');
+        svg.appendChild(p);
+        i.appendChild(svg);
+      }
+      return i;
+    }
+
+    function itemPrestasi(p) {
+      var li = el('li');
+      li.appendChild(ikonJenis(p.jenis));
+      var t = el('span', null, p.teks);
+      li.appendChild(t);
+      return li;
+    }
+
+    /** Siluet pengganti bila foto belum ada. */
+    function siluet(kelas) {
+      var svg = document.createElementNS(NS_SVG, 'svg');
+      svg.setAttribute('viewBox', '0 0 96 110');
+      svg.setAttribute('class', kelas);
+      svg.setAttribute('aria-hidden', 'true');
+      var kepala = document.createElementNS(NS_SVG, 'circle');
+      kepala.setAttribute('cx', '48'); kepala.setAttribute('cy', '34'); kepala.setAttribute('r', '22');
+      var badan = document.createElementNS(NS_SVG, 'path');
+      badan.setAttribute('d', 'M8 110c2-26 18-44 40-44s38 18 40 44z');
+      svg.appendChild(kepala);
+      svg.appendChild(badan);
+      return svg;
+    }
+
+    function gerakDikurangi() {
+      return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    }
+
+    /** Animasi berhenti selama disentuh; dilanjutkan sesaat setelah jari dilepas. */
+    function jedaSaatDisentuh(wadah) {
+      if (wadah.getAttribute('data-jeda-siap')) return;
+      wadah.setAttribute('data-jeda-siap', '1');
+      var tunda = null;
+      wadah.addEventListener('touchstart', function () { clearTimeout(tunda); wadah.classList.add('jeda'); }, { passive: true });
+      wadah.addEventListener('touchend', function () {
+        clearTimeout(tunda);
+        tunda = setTimeout(function () { wadah.classList.remove('jeda'); }, 1500);
+      }, { passive: true });
+    }
+
+    function judulDenganContoh(tag, kelas, teks, contoh) {
+      var h = el(tag, kelas, teks);
+      if (contoh) { h.appendChild(document.createTextNode(' ')); h.appendChild(labelContoh()); }
+      return h;
+    }
+
+    /* ---------- Tutor ---------- */
+
+    var BATAS_PRESTASI_KARTU = 3;
+
+    function fotoTutor(t, wadah, sizes) {
+      if (t.foto_url) {
+        var img = el('img');
+        img.alt = 'Foto ' + t.nama_lengkap;
+        img.loading = 'lazy';
+        img.decoding = 'async';
+        aturGambar(img, t.foto_url, [300, 600], sizes);
+        wadah.appendChild(img);
+      } else {
+        wadah.appendChild(siluet('siluet'));
+      }
+    }
+
+    function kartuTutor(t) {
+      var kartu = el('article', 'tutor-kartu bidang-' + (t.bidang || 'ipa'));
+      var poster = el('div', 'tutor-poster');
+      var judul = el('div', 'tutor-judul');
+      judul.appendChild(judulDenganContoh('h3', null, t.nama_lengkap, t.contoh));
+      if (t.jabatan) judul.appendChild(el('p', 'tutor-jabatan', t.jabatan));
+      poster.appendChild(judul);
+      var hias = el('span', 'tutor-hias');
+      var svgHias = ikonGaris(IKON.panahHias);
+      svgHias.setAttribute('viewBox', '0 0 30 12');
+      hias.appendChild(svgHias);
+      poster.appendChild(hias);
+      poster.appendChild(el('span', 'tutor-blok'));
+      fotoTutor(t, poster, '(min-width: 640px) 230px, 60vw');
+      kartu.appendChild(poster);
+
+      var prestasi = t.prestasi || [];
+      if (prestasi.length) {
+        kartu.appendChild(el('p', 'tutor-label', 'Prestasi siswa binaan'));
+        var ul = el('ul', 'tutor-prestasi');
+        prestasi.slice(0, BATAS_PRESTASI_KARTU).forEach(function (p) { ul.appendChild(itemPrestasi(p)); });
+        kartu.appendChild(ul);
+      }
+      var tombol = el('button', 'tutor-lagi', 'Lihat selengkapnya');
+      tombol.type = 'button';
+      tombol.appendChild(ikonGaris(IKON.kanan));
+      tombol.addEventListener('click', function () { bukaDetailTutor(t, tombol); });
+      kartu.appendChild(tombol);
+      return kartu;
+    }
+
+    function bukaDetailTutor(t, pemicu) {
+      var isi = $('detail-isi');
+      isi.textContent = '';
+      var kepala = el('div', 'td-kepala bidang-' + (t.bidang || 'ipa'));
+      var foto = el('div', 'td-foto');
+      fotoTutor(t, foto, '96px');
+      kepala.appendChild(foto);
+      var nama = el('div');
+      var h = el('h2', null, t.nama_lengkap);
+      h.id = 'detail-nama';
+      nama.appendChild(h);
+      if (t.jabatan) nama.appendChild(el('p', 'td-jabatan', t.jabatan));
+      if (t.room) nama.appendChild(el('span', 'td-room', 'Room ' + t.room));
+      kepala.appendChild(nama);
+      isi.appendChild(kepala);
+      if (t.ringkasan) isi.appendChild(el('p', 'td-ringkasan', t.ringkasan));
+      if ((t.prestasi || []).length) {
+        isi.appendChild(el('h3', 'td-subjudul', 'Prestasi siswa binaan'));
+        var ul = el('ul', 'td-prestasi');
+        t.prestasi.forEach(function (p) { ul.appendChild(itemPrestasi(p)); });
+        isi.appendChild(ul);
+      }
+      bukaLapisan('lapisan-detail', pemicu);
+    }
+
+    var slider = { geser: null, siap: false };
+
+    function lebarLangkah() {
+      var k = slider.geser.firstElementChild;
+      var jarak = parseFloat(getComputedStyle(slider.geser).columnGap);
+      return k ? k.getBoundingClientRect().width + (isNaN(jarak) ? 12 : jarak) : 1;
+    }
+
+    function perbaruiSlider() {
+      var g = slider.geser;
+      if (!g || !g.firstElementChild) return;
+      var langkah = lebarLangkah();
+      var maks = g.scrollWidth - g.clientWidth;
+      var jumlah = maks > 4 ? Math.round(maks / langkah) + 1 : 1;
+      var titik = $('tutor-titik');
+      if (titik.children.length !== jumlah) {
+        titik.textContent = '';
+        for (var i = 0; i < jumlah; i++) titik.appendChild(el('span'));
+      }
+      var aktif = Math.min(jumlah - 1, Math.round(g.scrollLeft / langkah));
+      Array.prototype.forEach.call(titik.children, function (d, j) { d.classList.toggle('aktif', j === aktif); });
+      titik.hidden = jumlah < 2;
+      $('tutor-kiri').disabled = g.scrollLeft < 4;
+      $('tutor-kanan').disabled = g.scrollLeft > maks - 4;
+      $('tutor-kiri').hidden = $('tutor-kanan').hidden = jumlah < 2;
+    }
+
+    function siapkanSlider() {
+      slider.geser = $('daftar-tutor');
+      if (slider.siap) return;
+      slider.siap = true;
+      var tunggu = false;
+      slider.geser.addEventListener('scroll', function () {
+        if (tunggu) return;
+        tunggu = true;
+        window.requestAnimationFrame(function () { tunggu = false; perbaruiSlider(); });
+      }, { passive: true });
+      $('tutor-kiri').addEventListener('click', function () { slider.geser.scrollBy({ left: -lebarLangkah(), behavior: 'smooth' }); });
+      $('tutor-kanan').addEventListener('click', function () { slider.geser.scrollBy({ left: lebarLangkah(), behavior: 'smooth' }); });
+      window.addEventListener('resize', perbaruiSlider);
+    }
+
+    function renderTutor() {
+      var daftar = konten && konten.tutor ? konten.tutor : [];
+      $('bagian-tutor').hidden = !daftar.length;
+      var wadah = $('daftar-tutor');
+      wadah.textContent = '';
+      daftar.forEach(function (t) { wadah.appendChild(kartuTutor(t)); });
+      siapkanSlider();
+      window.requestAnimationFrame(perbaruiSlider);
+    }
+
+    /* ---------- Apa itu Genio ---------- */
+
+    /** Teks dengan tanda **...** menjadi teks biasa dan huruf tebal, tanpa innerHTML. */
+    function isiTeksTebal(wadah, teks) {
+      wadah.textContent = '';
+      String(teks).split('**').forEach(function (bagian, i) {
+        if (!bagian) return;
+        wadah.appendChild(i % 2 ? el('b', null, bagian) : document.createTextNode(bagian));
+      });
+    }
+
+    function renderProfil() {
+      var p = konten ? konten.profil : null;
+      $('bagian-profil').hidden = !p;
+      if (!p) return;
+      var judul = $('judul-profil');
+      judul.textContent = p.judul || 'Apa itu Genio Institute?';
+      if (p.contoh) { judul.appendChild(document.createTextNode(' ')); judul.appendChild(labelContoh()); }
+      $('profil-inti').textContent = p.paragraf_1 || '';
+      $('profil-inti').hidden = !p.paragraf_1;
+      var dl = $('profil-angka');
+      dl.textContent = '';
+      [1, 2, 3, 4].forEach(function (n) {
+        if (!p['angka_' + n]) return;
+        var div = el('div');
+        div.appendChild(el('dt', null, p['label_' + n] || ''));
+        div.appendChild(el('dd', null, p['angka_' + n]));
+        dl.appendChild(div);
+      });
+      dl.hidden = !dl.children.length;
+      dl.style.setProperty('--kolom', String(Math.max(1, dl.children.length)));
+      isiTeksTebal($('profil-teks'), p.paragraf_2 || '');
+      $('profil-teks').hidden = !p.paragraf_2;
+    }
+
+    /* ---------- Cabang ---------- */
+
+    function tautanIkon(href, label, ikon) {
+      var a = tautanLuar('', href, 'ikon-bulat');
+      a.setAttribute('aria-label', label);
+      a.appendChild(ikonGaris(ikon));
+      return a;
+    }
+
+    function namaPendekCabang(nama) {
+      return String(nama || '').replace(/^genio( institute)?\s*/i, '') || nama;
+    }
+
+    function renderCabang() {
+      var daftar = (konten && konten.cabang ? konten.cabang : []).filter(function (c) { return c.nama && (c.alamat || c.link_maps || c.wa_admin || c.instagram); });
+      $('bagian-cabang').hidden = !daftar.length;
+      var wadah = $('daftar-cabang');
+      wadah.textContent = '';
+      daftar.forEach(function (c) {
+        var kartu = el('article', 'cabang-kartu');
+        if (c.logo_url) {
+          var img = el('img', 'cabang-logo');
+          img.alt = c.nama;
+          img.loading = 'lazy';
+          aturGambar(img, c.logo_url, [300], '140px');
+          kartu.appendChild(img);
+          if (c.contoh) kartu.appendChild(labelContoh());
+        } else {
+          kartu.appendChild(judulDenganContoh('h3', null, c.nama, c.contoh));
+        }
+        if (c.alamat) kartu.appendChild(el('p', 'cabang-alamat', c.alamat));
+        var aksi = el('div', 'cabang-aksi');
+        var pendek = namaPendekCabang(c.nama);
+        if (/^https:\/\//.test(c.link_maps)) aksi.appendChild(tautanIkon(c.link_maps, 'Buka lokasi ' + pendek + ' di Google Maps', IKON.maps));
+        if (c.wa_admin) aksi.appendChild(tautanIkon(tautanWa(c.wa_admin), 'WhatsApp admin ' + pendek, IKON.wa));
+        if (c.instagram) aksi.appendChild(tautanIkon('https://www.instagram.com/' + encodeURIComponent(String(c.instagram).replace(/^@/, '')) + '/', 'Instagram ' + pendek, IKON.ig));
+        if (aksi.children.length) kartu.appendChild(aksi);
+        wadah.appendChild(kartu);
+      });
+    }
+
+    /* ---------- Prestasi siswa ---------- */
+
+    var BATAS_PRESTASI_GULIR = 10;
+    var BARIS_JENDELA = 5;
+
+    function teksPrestasi(p) {
+      return p.prestasi || [p.lomba, p.bidang, p.jenjang, p.tingkat].filter(Boolean).join(' ');
+    }
+
+    function barisPrestasi(p, denganTahun) {
+      var li = el('li');
+      li.appendChild(ikonJenis(p.medali));
+      var t = el('div', 'pr-teks');
+      t.appendChild(judulDenganContoh('strong', null, p.nama_siswa, p.contoh));
+      t.appendChild(el('span', null, teksPrestasi(p)));
+      if (!denganTahun && p.sekolah) t.appendChild(el('small', null, p.sekolah));
+      li.appendChild(t);
+      if (denganTahun && p.tahun) li.appendChild(el('span', 'pr-tahun', p.tahun));
+      return li;
+    }
+
+    function renderPrestasi() {
+      var daftar = konten && konten.prestasi ? konten.prestasi : [];
+      $('bagian-prestasi').hidden = !daftar.length;
+      if (!daftar.length) return;
+
+      var hitung = { Emas: 0, Perak: 0, Perunggu: 0 };
+      daftar.forEach(function (p) { if (hitung[p.medali] != null) hitung[p.medali]++; });
+      var ringkas = $('prestasi-ringkas');
+      ringkas.textContent = '';
+      Object.keys(hitung).forEach(function (k) {
+        var d = el('div');
+        d.appendChild(el('strong', null, String(hitung[k])));
+        var label = el('span');
+        label.appendChild(ikonJenis(k));
+        label.appendChild(document.createTextNode(k));
+        d.appendChild(label);
+        ringkas.appendChild(d);
+      });
+
+      var teratas = daftar.slice(0, BATAS_PRESTASI_GULIR);
+      var jendela = $('prestasi-jendela');
+      jendela.textContent = '';
+      var gulir = teratas.length > BARIS_JENDELA && !gerakDikurangi();
+      jendela.classList.toggle('bergulir', gulir);
+      var pita = el('div', 'prestasi-pita');
+      var ul = el('ul', 'prestasi-daftar');
+      teratas.forEach(function (p) { ul.appendChild(barisPrestasi(p, true)); });
+      pita.appendChild(ul);
+      if (gulir) {
+        // Daftar digandakan agar putaran bersambung tanpa jeda (translateY -50%).
+        var salinan = ul.cloneNode(true);
+        salinan.setAttribute('aria-hidden', 'true');
+        pita.appendChild(salinan);
+        pita.style.animationDuration = Math.round(teratas.length * 4) + 's';
+        jedaSaatDisentuh(jendela);
+      }
+      jendela.appendChild(pita);
+    }
+
+    var tahunPrestasi = '';
+
+    function isiPopupPrestasi() {
+      var daftar = konten && konten.prestasi ? konten.prestasi : [];
+      var semuaTahun = [];
+      daftar.forEach(function (p) { if (p.tahun && semuaTahun.indexOf(p.tahun) < 0) semuaTahun.push(p.tahun); });
+      semuaTahun.sort().reverse();
+      var pilihan = semuaTahun.concat(['Semua']);
+      if (pilihan.indexOf(tahunPrestasi) < 0) tahunPrestasi = pilihan[0];
+
+      var wadahTahun = $('pp-tahun');
+      wadahTahun.textContent = '';
+      pilihan.forEach(function (th) {
+        var b = el('button', 'pp-pil', th);
+        b.type = 'button';
+        b.setAttribute('aria-pressed', String(th === tahunPrestasi));
+        b.addEventListener('click', function () { tahunPrestasi = th; isiPopupPrestasi(); });
+        wadahTahun.appendChild(b);
+      });
+
+      var isi = $('pp-isi');
+      isi.textContent = '';
+      var grup = tahunPrestasi === 'Semua' ? semuaTahun : [tahunPrestasi];
+      var tanpaTahun = daftar.filter(function (p) { return !p.tahun; });
+      grup.forEach(function (th) {
+        tampilGrup(isi, th, daftar.filter(function (p) { return p.tahun === th; }));
+      });
+      if (tahunPrestasi === 'Semua' && tanpaTahun.length) tampilGrup(isi, 'Lainnya', tanpaTahun);
+    }
+
+    function tampilGrup(isi, judul, baris) {
+      var h = el('h3', 'pp-grup');
+      h.appendChild(el('span', null, judul));
+      h.appendChild(el('span', null, baris.length + ' prestasi'));
+      isi.appendChild(h);
+      var ul = el('ul', 'pp-daftar');
+      baris.forEach(function (p) { ul.appendChild(barisPrestasi(p, false)); });
+      isi.appendChild(ul);
+    }
+
+    function bukaPopupPrestasi() {
+      tahunPrestasi = '';
+      isiPopupPrestasi();
+      bukaLapisan('lapisan-prestasi', $('tombol-prestasi'));
+    }
+
+    /* ---------- Testimoni ---------- */
+
+    function inisial(nama) {
+      var kata = String(nama || '').replace(/^(ibu|bapak|bu|pak)\s+/i, '').split(/\s+/).filter(Boolean);
+      return ((kata[0] || '?').charAt(0) + (kata[1] ? kata[1].charAt(0) : '')).toUpperCase();
+    }
+
+    function kartuTestimoni(t) {
+      var kartu = el('figure', 'testi-kartu');
+      var kepala = el('figcaption', 'testi-kepala');
+      var av = el('span', 'testi-av');
+      if (t.foto_url) {
+        var img = el('img');
+        img.alt = '';
+        img.loading = 'lazy';
+        aturGambar(img, t.foto_url, [96], '32px');
+        av.appendChild(img);
+      } else {
+        av.textContent = inisial(t.nama);
+      }
+      kepala.appendChild(av);
+      var nama = el('div');
+      nama.appendChild(judulDenganContoh('b', null, t.nama, t.contoh));
+      if (t.keterangan) nama.appendChild(el('small', null, t.keterangan));
+      kepala.appendChild(nama);
+      kartu.appendChild(kepala);
+      var isi = el('div', 'testi-isi');
+      var gelembung = el('blockquote', 'testi-gelembung', t.kutipan);
+      if (t.jam) gelembung.appendChild(el('span', 'testi-jam', t.jam));
+      isi.appendChild(gelembung);
+      kartu.appendChild(isi);
+      return kartu;
+    }
+
+    function renderTestimoni() {
+      var daftar = (konten && konten.testimoni ? konten.testimoni : []).filter(function (t) { return t.kutipan; });
+      $('bagian-testimoni').hidden = !daftar.length;
+      var jalur = $('testi-jalur');
+      jalur.textContent = '';
+      var gulir = daftar.length > 1 && !gerakDikurangi();
+      jalur.classList.toggle('bergulir', gulir);
+      var pita = el('div', 'testi-pita');
+      daftar.forEach(function (t) { pita.appendChild(kartuTestimoni(t)); });
+      if (gulir) {
+        daftar.forEach(function (t) {
+          var salinan = kartuTestimoni(t);
+          salinan.setAttribute('aria-hidden', 'true');
+          pita.appendChild(salinan);
+        });
+        pita.style.animationDuration = Math.round(daftar.length * 12) + 's';
+        jedaSaatDisentuh(jalur);
+      }
+      jalur.appendChild(pita);
+    }
+
+    /* ---------- Ajakan bergabung ---------- */
+
+    function renderAjakan() {
+      var cabang = (konten && konten.cabang ? konten.cabang : []).filter(function (c) { return c.wa_admin; });
+      $('bagian-ajakan').hidden = !cabang.length;
+      if (!cabang.length) return;
+      setTeks('judul-ajakan', peng('cta_judul'));
+      setTeks('ajakan-kalimat', peng('cta_kalimat'));
+      var wadah = $('ajakan-cabang');
+      wadah.textContent = '';
+      cabang.forEach(function (c) {
+        var a = tautanLuar('', tautanWa(c.wa_admin, peng('cta_pesan_wa')), 'ajakan-wa');
+        var svg = document.createElementNS(NS_SVG, 'svg');
+        svg.setAttribute('viewBox', '0 0 24 24');
+        svg.setAttribute('aria-hidden', 'true');
+        var p = document.createElementNS(NS_SVG, 'path');
+        p.setAttribute('d', 'M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2z');
+        p.setAttribute('fill', 'currentColor');
+        svg.appendChild(p);
+        a.appendChild(svg);
+        a.appendChild(document.createTextNode(namaPendekCabang(c.nama)));
+        a.setAttribute('aria-label', 'Chat WhatsApp admin ' + namaPendekCabang(c.nama));
+        wadah.appendChild(a);
+      });
+      wadah.classList.toggle('satu', cabang.length === 1);
     }
 
     /* ---------- Footer ---------- */
@@ -499,7 +971,8 @@
 
     /* ---------- Animasi muncul saat digulir ---------- */
 
-    var SASARAN_MUNCUL = '.strip-tanggal, .info-kartu, .hitung-mundur, .narahubung, .bagian > h2, .agenda li, .narasumber, .kaki';
+    var SASARAN_MUNCUL = '.strip-tanggal, .info-kartu, .hitung-mundur, .narahubung, .bagian > h2, .agenda li, .narasumber, ' +
+      '.tutor-slider, .profil-kepala, .profil-angka, .cabang-kartu, .prestasi-ringkas, .prestasi-jendela, .testi-jalur, .ajakan, .kaki';
 
     /** Hanya elemen yang awalnya di luar layar yang dianimasikan; yang sudah terlihat dibiarkan. */
     function siapkanMunculGulir() {
@@ -527,6 +1000,12 @@
       isiHitungMundur();
       renderAgenda();
       renderNarasumber();
+      renderTutor();
+      renderProfil();
+      renderCabang();
+      renderPrestasi();
+      renderTestimoni();
+      renderAjakan();
       renderKaki();
       renderBilah();
       $('pita-contoh').hidden = !(konten && konten.ada_contoh);
@@ -556,6 +1035,8 @@
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(pasTanggal);
     siapkanLapisan('lapisan-poster');
     siapkanLapisan('lapisan-detail');
+    siapkanLapisan('lapisan-prestasi');
+    $('tombol-prestasi').addEventListener('click', bukaPopupPrestasi);
     siapkanLapisan('lapisan-admin');
     siapkanAdmin();
     $('tombol-poster').addEventListener('click', function () {

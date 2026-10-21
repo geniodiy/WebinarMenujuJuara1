@@ -346,12 +346,13 @@ Kolom bersama: `urutan`, `tampil` (YA/TIDAK), `data_contoh` (YA/TIDAK).
 |---|---|
 | Pengaturan_Konten | kunci, nilai: tampilkan_data_contoh, judul_acara, tagline, tanggal_teks, jam_teks, media_teks, poster, bonus_teks, bonus_syarat, narahubung_nama, narahubung_wa, instagram_1, instagram_2, cta_judul, cta_kalimat, cta_teks_tombol, cta_pesan_wa |
 | Agenda | judul, deskripsi, sasaran (Semua peserta / Siswa / Orang Tua & Guru), jam |
-| Narasumber_Tutor | peran (Narasumber / Tutor), nama_lengkap, jabatan, room, foto, ringkasan, prestasi_binaan (satu per baris di dalam sel) |
+| Narasumber_Tutor | peran (Narasumber / Tutor), nama_lengkap, jabatan, room, foto, ringkasan, prestasi_binaan (satu per baris di dalam sel; untuk tutor dipakai hanya bila Prestasi_Tutor kosong) |
+| Prestasi_Tutor | nama_tutor (sama dengan nama_lengkap tutor), jenis (Emas / Perak / Perunggu / Lainnya), prestasi. Satu baris satu prestasi siswa binaan |
 | Profil | kunci, nilai: judul, paragraf_1, paragraf_2, angka_1 sampai angka_4, label_1 sampai label_4, program (dipisah koma) |
 | Cabang | nama, logo, alamat, link_maps, wa_admin, instagram |
-| Prestasi | tahun, nama_siswa, sekolah, jenjang, bidang, lomba, tingkat, medali (Emas / Perak / Perunggu / Harapan / Lainnya), sorotan (YA/TIDAK) |
-| Testimoni | nama, keterangan, kutipan, foto |
-| FAQ | pertanyaan, jawaban |
+| Prestasi | tahun, nama_siswa, sekolah, jenjang, bidang, lomba, tingkat, medali (Emas / Perak / Perunggu / Lainnya; harapan dan finalis masuk Lainnya), sorotan (YA/TIDAK), prestasi (teks lengkap) |
+| Testimoni | nama, keterangan, kutipan, foto, jam (opsional, tampil di gelembung obrolan) |
+| FAQ | pertanyaan, jawaban (tidak ditampilkan di halaman, keputusan pemilik) |
 | Gambar | nama_file, id_file, url, terakhir_diperbarui (diisi otomatis oleh menu "Perbarui daftar gambar") |
 
 Kolom `foto` berisi nama file di folder Gambar Web. Default `cta_teks_tombol`: "Konsultasi Gratis via WhatsApp". Default `cta_pesan_wa`: "Halo Genio, saya tertarik dengan program olimpiade setelah melihat webinar Menuju Juara."
@@ -414,13 +415,13 @@ Halaman memakai latar terang seperti poster, dengan latar `body` ditetapkan eksp
 2. **Poster dan info acara.** Paling atas langsung poster penuh lebar kolom (bisa diketuk untuk diperbesar). Di bawahnya strip "Pelaksanaan" (tanggal dan label Gratis), lalu kartu "Pukul" dan "Live di", lalu hitung mundur "Pendaftaran ditutup dalam X hari" selama fase daftar, dari jam server. Bila poster belum diunggah, tampil judul acara sebagai gantinya.
 3. **Agenda.** Timeline vertikal bernomor 1 sampai 3, dengan label sasaran dan jam bila diisi.
 4. **Narasumber.** Kartu besar Indro: foto, nama, jabatan, ringkasan, 3 prestasi teratas, "Lihat selengkapnya" membuka panel dari bawah layar.
-5. **Tutor.** Kartu geser horizontal (scroll-snap) di ponsel dengan kartu berikutnya terlihat di tepi dan indikator titik; grid 3 kolom di layar lebar. Tiap kartu: foto, nama, label room, ringkasan, 2 prestasi teratas, "Lihat selengkapnya" membuka panel dari bawah (bukan dropdown, agar tinggi kartu seragam).
-6. **Apa itu Genio.** Judul, 1 sampai 2 paragraf, 3 sampai 4 angka kunci, chip program.
-7. **Cabang.** Dua kartu sebaris (Semarang dan Jogja): logo, nama, alamat singkat, tautan Maps, WhatsApp admin, Instagram.
-8. **Prestasi terbaru.** Ringkasan jumlah medali per jenis (warna Gold), chip filter bidang (Semua, Matematika, IPA, IPS), daftar ringkas per baris (ikon medali, nama, sekolah, lomba, tingkat, tahun). Baris `sorotan` di atas, lalu tahun terbaru. Tampil 8, lalu "Tampilkan lebih banyak" menambah 8.
-9. **Apa kata orang tua.** Kartu geser: kutipan, nama, keterangan, foto bila ada.
-10. **Ajakan bergabung.** "Tertarik bergabung dengan Genio?", satu kalimat pendukung, tombol Indigo dengan teks `cta_teks_tombol`. Tombol membuka pilihan cabang, lalu WhatsApp admin cabang dengan pesan `cta_pesan_wa`.
-11. **FAQ.** Akordeon. Draf: apakah gratis, kapan link Zoom dibagikan, apakah ada sertifikat, bolehkah dua anak satu perangkat (kaitannya dengan room), syarat bonus materi, bagaimana bila siswa tidak punya WhatsApp.
+5. **Tutor.** Kartu poster tinggi berwarna per bidang (Matematika oranye, IPA cyan, IPS biru) dalam slider: ponsel satu kartu dengan kartu berikutnya terlihat di tepi, desktop tiga kartu, panah kiri-kanan dan titik penanda. Tiap kartu: foto potongan (siluet bila belum ada), nama, jabatan, paling banyak 3 prestasi siswa binaan dengan ikon jenis, "Lihat selengkapnya" membuka popup di tengah layar (foto, nama, jabatan, room, ringkasan, semua prestasi). Rincian di `docs/referensi.md`.
+6. **Apa itu Genio.** Kotak judul bergradien biru dengan kalimat inti, strip 4 angka kunci, satu paragraf rata kanan-kiri. Chip program tidak ditampilkan.
+7. **Cabang.** Dua kartu sebaris (Semarang dan Jogja): logo, alamat singkat, ikon bulat Maps, WhatsApp admin, Instagram.
+8. **Prestasi siswa Genio.** Ringkasan jumlah Emas, Perak, Perunggu (tanpa filter bidang). Jendela setinggi 5 baris berisi 10 prestasi teratas menurut `urutan`, bergulir pelan ke atas (diam bila 5 data atau kurang, atau pengunjung memilih kurangi gerakan). "Lihat selengkapnya" membuka popup dengan pilihan tahun dari data dan "Semua".
+9. **Apa kata orang tua.** Kartu bergaya obrolan WhatsApp yang bergeser pelan ke kiri: inisial atau foto, nama, keterangan, kutipan, jam bila diisi.
+10. **Ajakan bergabung.** Kartu dengan `cta_judul`, `cta_kalimat`, dan satu tombol WhatsApp hijau per cabang yang punya `wa_admin`, berisi pesan `cta_pesan_wa`. `cta_teks_tombol` tidak dipakai.
+11. **FAQ.** Tidak ditampilkan (keputusan pemilik).
 12. **Footer.** Narahubung, dua akun Instagram, hak cipta Genio Institute.
 
 Bagian 5 sampai 11 disembunyikan otomatis bila tidak ada data yang tampil. Bila server gagal dihubungi, bagian dinamis menampilkan pesan singkat dengan tombol "Muat ulang", dan tombol floating menampilkan "Hubungi narahubung".
@@ -549,6 +550,7 @@ Pembagian pengerjaan:
 | Fase | Bagian panel admin |
 |---|---|
 | Fase 4 | 13.1 (peran admin saja), 13.2 (angka pendaftaran dan kuota), 13.3 (kelompok Pendaftaran, Hari H, link grup WA, Kuota, Lainnya), 13.4, dan 13.7 (lembar Pendaftar, Rekap, dan prospek dari pendaftaran) |
+| Fase 5 | Tab Tutor (nama, jabatan, foto dari folder Gambar Web, ringkasan, prestasi siswa binaan) dan tab Prestasi (tambah, ubah, hapus, atur urutan, jenis, tampil, sorotan). Sama datanya dengan lembar Konten Website dan tercatat di Log_Admin |
 | Fase 6 | Pengaturan form presensi, tandai acara selesai, link materi bonus, angka presensi di Ringkasan, tab Feedback (13.5), data feedback di unduhan |
 | Fase 7 | Pengaturan form pertanyaan, tab Pertanyaan (13.6), peran moderator |
 
@@ -635,6 +637,9 @@ Semua fungsi mengembalikan `{ ok: true, data }` atau `{ ok: false, error: { code
 | `adminGetData(token, jenis, sertakanUji)` | jenis: ringkasan / pendaftar / feedback / pertanyaan / prospek | Baris data |
 | `adminTandaiPertanyaan(token, id, status)` | | ok |
 | `adminCatatUnduhan(token, jenis)` | | ok |
+| `adminGetKonten(token)` | | Tutor (beserta prestasi), prestasi siswa, sidik lembar Prestasi, daftar file Gambar Web |
+| `adminSimpanTutor(token, data)` | baris, nama_asal, nama_lengkap, jabatan, foto, ringkasan, prestasi | Data tab terbaru. Galat: `VALIDASI`, `BERUBAH` |
+| `adminSimpanPrestasi(token, daftar, sidik)` | Seluruh daftar prestasi berurutan | Data tab terbaru. Galat: `VALIDASI`, `BERUBAH` |
 
 `doGet` merender `Index.html` dengan data awal dari `getConfig()` dan `getContent()`. Tidak ada fungsi publik yang mengembalikan data peserta; semua fungsi `admin*` memeriksa token dan peran.
 

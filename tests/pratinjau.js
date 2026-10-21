@@ -26,19 +26,33 @@ for (const nama of Object.keys(g.DATA_CONTOH_)) {
     return s;
   }), true);
 }
-daftar.Narasumber_Tutor.forEach((b) => {
+daftar.Narasumber_Tutor.forEach((b, i) => {
+  if (b.peran === 'Tutor') {
+    b.prestasi = g.prestasiTutor_(b, daftar.Prestasi_Tutor);
+    b.bidang = g.bidangTutor_(b.jabatan);
+    if (i === 1 && process.env.PRATINJAU_TUTOR) b.foto_url = 'file://' + process.env.PRATINJAU_TUTOR + '#';
+  }
   b.prestasi_binaan = String(b.prestasi_binaan || '').split(/\r?\n/).filter(Boolean);
   // Akhiran # membuat =w<lebar> dari halaman jatuh ke fragmen URL dan diabaikan.
   if (b.peran === 'Narasumber' && process.env.PRATINJAU_FOTO) b.foto_url = 'file://' + process.env.PRATINJAU_FOTO + '#';
 });
+daftar.Prestasi.forEach((b) => { b.medali = g.jenisPrestasi_(b.medali, b.prestasi); });
+daftar.Cabang.forEach((b) => {
+  const logo = path.join(__dirname, '..', 'assets-raw', b.logo);
+  if (b.logo && fs.existsSync(logo)) b.logo_url = 'file://' + logo + '#';
+});
+const profil = {};
+g.PROFIL_GENIO_.forEach((p) => { profil[p[0]] = p[1]; });
+profil.contoh = false;
+delete profil.data_contoh;
 const konten = {
   poster_url: process.env.PRATINJAU_POSTER ? 'file://' + process.env.PRATINJAU_POSTER + '#' : '',
   pengaturan: pengKonten,
   agenda: daftar.Agenda,
   narasumber: daftar.Narasumber_Tutor.filter((b) => b.peran === 'Narasumber'),
   tutor: daftar.Narasumber_Tutor.filter((b) => b.peran === 'Tutor'),
-  profil: { judul: 'contoh', contoh: true },
-  cabang: daftar.Cabang, prestasi: daftar.Prestasi, testimoni: daftar.Testimoni, faq: daftar.FAQ,
+  profil,
+  cabang: daftar.Cabang, prestasi: daftar.Prestasi, testimoni: daftar.Testimoni,
   ada_contoh: true
 };
 const dataAwal = fase === 'galat' ? { config: null, konten: null, param } : { config, konten, param };

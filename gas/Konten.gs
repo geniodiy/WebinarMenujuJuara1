@@ -13,11 +13,13 @@ var URL_GAMBAR_ = 'https://lh3.googleusercontent.com/d/';
 var LEMBAR_DAFTAR_KONTEN_ = {
   Agenda: ['judul', 'deskripsi', 'sasaran', 'jam'],
   Narasumber_Tutor: ['peran', 'nama_lengkap', 'jabatan', 'room', 'foto', 'ringkasan', 'prestasi_binaan'],
+  Prestasi_Tutor: ['nama_tutor', 'jenis', 'prestasi'],
   Cabang: ['nama', 'logo', 'alamat', 'link_maps', 'wa_admin', 'instagram'],
-  Prestasi: ['tahun', 'nama_siswa', 'sekolah', 'jenjang', 'bidang', 'lomba', 'tingkat', 'medali', 'sorotan'],
-  Testimoni: ['nama', 'keterangan', 'kutipan', 'foto'],
+  Prestasi: ['tahun', 'nama_siswa', 'sekolah', 'jenjang', 'bidang', 'lomba', 'tingkat', 'medali', 'sorotan', 'prestasi'],
+  Testimoni: ['nama', 'keterangan', 'kutipan', 'foto', 'jam'],
   FAQ: ['pertanyaan', 'jawaban']
 };
+var JENIS_PRESTASI_ = ['Emas', 'Perak', 'Perunggu', 'Lainnya'];
 
 /**
  * Menyaring baris konten: hanya tampil = YA, baris contoh hanya bila diizinkan,
@@ -55,6 +57,47 @@ function kunciNilai_(baris) {
     if (b.kunci) obj[b.kunci] = b.nilai == null ? '' : b.nilai;
   });
   return obj;
+}
+
+/**
+ * Jenis prestasi dari isian kolom jenis/medali, atau dari teks prestasinya bila kolom itu kosong
+ * atau tidak dikenal. Juara I/II/III setara Emas/Perak/Perunggu; finalis, harapan, dan lainnya
+ * masuk Lainnya. Murni.
+ */
+function jenisPrestasi_(jenis, teks) {
+  var j = String(jenis == null ? '' : jenis).trim().toLowerCase();
+  for (var i = 0; i < JENIS_PRESTASI_.length; i++) {
+    if (j === JENIS_PRESTASI_[i].toLowerCase()) return JENIS_PRESTASI_[i];
+  }
+  var t = (j + ' ' + String(teks == null ? '' : teks)).toLowerCase();
+  if (/emas|gold|juara (i|1)\b|juara pertama/.test(t)) return 'Emas';
+  if (/perak|silver|juara (ii|2)\b|juara kedua/.test(t)) return 'Perak';
+  if (/perunggu|bronze|juara (iii|3)\b|juara ketiga/.test(t)) return 'Perunggu';
+  return 'Lainnya';
+}
+
+/** Bidang tutor dari jabatannya, untuk warna kartu: mat, ipa, ips, atau kosong. Murni. */
+function bidangTutor_(jabatan) {
+  var j = String(jabatan == null ? '' : jabatan).toLowerCase();
+  if (/matematika/.test(j)) return 'mat';
+  if (/\bipa\b|sains/.test(j)) return 'ipa';
+  if (/\bips\b|sosial/.test(j)) return 'ips';
+  return '';
+}
+
+/**
+ * Daftar prestasi siswa binaan tiap tutor: dari lembar Prestasi_Tutor bila ada baris untuk nama itu,
+ * selain itu dari kolom prestasi_binaan (satu per baris) dengan jenis ditebak dari teksnya. Murni.
+ */
+function prestasiTutor_(tutor, barisPrestasi) {
+  var milik = barisPrestasi.filter(function (p) {
+    return p.prestasi && namaKunci_(p.nama_tutor) === namaKunci_(tutor.nama_lengkap);
+  });
+  if (milik.length) {
+    return milik.map(function (p) { return { jenis: jenisPrestasi_(p.jenis, p.prestasi), teks: p.prestasi }; });
+  }
+  return String(tutor.prestasi_binaan || '').split(/\r?\n/).map(function (s) { return s.trim(); }).filter(String)
+    .map(function (s) { return { jenis: jenisPrestasi_('', s), teks: s }; });
 }
 
 function petaGambar_(ss) {
@@ -130,11 +173,18 @@ function bangunKonten_() {
     b.foto_url = urlGambar_(peta, b.foto);
   });
   daftar.Narasumber_Tutor.forEach(function (b) {
+    if (b.peran === 'Tutor') {
+      b.prestasi = prestasiTutor_(b, daftar.Prestasi_Tutor);
+      b.bidang = bidangTutor_(b.jabatan);
+    }
     b.prestasi_binaan = String(b.prestasi_binaan || '').split(/\r?\n/).map(function (s) { return s.trim(); }).filter(String);
   });
   daftar.Cabang.forEach(function (b) { b.logo_url = urlGambar_(peta, b.logo); });
+  daftar.Prestasi.forEach(function (b) { b.medali = jenisPrestasi_(b.medali, b.prestasi); });
 
-  var semua = [].concat.apply([], Object.keys(daftar).map(function (k) { return daftar[k]; }));
+  // KEPUTUSAN: FAQ tidak ditampilkan (keputusan pemilik), jadi tidak dikirim dan tidak memicu pita contoh.
+  var dipakai = ['Agenda', 'Narasumber_Tutor', 'Cabang', 'Prestasi', 'Testimoni'];
+  var semua = [].concat.apply([], dipakai.map(function (k) { return daftar[k]; }));
   var adaContoh = semua.some(function (b) { return b.contoh; }) || (profil !== null && profil.contoh);
 
   return {
@@ -147,7 +197,6 @@ function bangunKonten_() {
     cabang: daftar.Cabang,
     prestasi: daftar.Prestasi,
     testimoni: daftar.Testimoni,
-    faq: daftar.FAQ,
     ada_contoh: !!adaContoh
   };
 }

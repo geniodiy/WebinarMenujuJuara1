@@ -136,7 +136,7 @@
 
     /* ---------- Kerangka panel ---------- */
 
-    var TAB = [['ringkasan', 'Ringkasan'], ['pengaturan', 'Pengaturan'], ['pendaftar', 'Pendaftar'], ['lihat', 'Lihat data']];
+    var TAB = [['ringkasan', 'Ringkasan'], ['pengaturan', 'Pengaturan'], ['pendaftar', 'Pendaftar'], ['tutor', 'Tutor'], ['prestasi', 'Prestasi'], ['lihat', 'Lihat data']];
 
     function renderPanel(tab) {
       A.tab = tab;
@@ -170,6 +170,8 @@
       if (tab === 'ringkasan') tabRingkasan(isi);
       else if (tab === 'pengaturan') tabPengaturan(isi);
       else if (tab === 'pendaftar') tabPendaftar(isi);
+      else if (tab === 'tutor') tabTutor(isi);
+      else if (tab === 'prestasi') tabPrestasi(isi);
       else tabLihat(isi);
     }
 
@@ -830,6 +832,361 @@
       isi.appendChild(aksi);
       isi.appendChild(status);
       isi.appendChild(el('p', 'admin-catatan', 'Semua data: lembar Pendaftar dan Rekap. Prospek: hanya yang menyetujui informasi program. Setiap unduhan dicatat di Log_Admin.'));
+    }
+
+    /* ---------- Tutor dan prestasi (Fase 5) ---------- */
+
+    var JENIS = ['Emas', 'Perak', 'Perunggu', 'Lainnya'];
+    var CATATAN_SIMPAN = 'Tersimpan. Perubahan langsung dipakai halaman saat dimuat ulang.';
+
+    function ikonJenis(jenis) {
+      var kelas = JENIS.indexOf(jenis) >= 0 && jenis !== 'Lainnya' ? jenis.toLowerCase() : 'lainnya';
+      var i = el('i', 'ikon-jenis ' + kelas);
+      i.setAttribute('aria-hidden', 'true');
+      if (kelas === 'lainnya') {
+        var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('viewBox', '0 0 24 24');
+        var p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        p.setAttribute('d', 'M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6L3.3 9.3l6.1-.7z');
+        p.setAttribute('fill', '#fff');
+        svg.appendChild(p);
+        i.appendChild(svg);
+      }
+      return i;
+    }
+
+    function pilihJenis(nilai) {
+      var s = el('select', 'fd-input');
+      JENIS.forEach(function (j) {
+        var o = el('option', null, j);
+        o.value = j;
+        if (j === nilai) o.selected = true;
+        s.appendChild(o);
+      });
+      return s;
+    }
+
+    function labelContoh() {
+      return el('span', 'label-contoh', 'Contoh');
+    }
+
+    function fotoMini(t, kelas) {
+      var w = el('span', kelas + ' bidang-' + (t.bidang || 'ipa'));
+      if (t.foto_url) {
+        var img = el('img');
+        img.alt = '';
+        img.src = t.foto_url + '=w160';
+        w.appendChild(img);
+      }
+      return w;
+    }
+
+    function muatKonten(isi, lanjut) {
+      memuat(isi);
+      panggil('adminGetKonten', [A.token], function (d) {
+        A.konten = d;
+        A.prestasiEdit = null;
+        lanjut();
+      }, function (e) { galat(isi, e.message, function () { muatKonten(isi, lanjut); }); });
+    }
+
+    function tabTutor(isi, pesan) {
+      if (!A.konten) return muatKonten(isi, function () { tabTutor(isi); });
+      isi.textContent = '';
+      var kepala = el('div', 'admin-kepala');
+      kepala.appendChild(el('h3', null, 'Tutor kelas simulasi'));
+      kepala.appendChild(tombol('Muat ulang', 'tombol-garis tombol-kecil', function () { A.konten = null; tabTutor(isi); }));
+      isi.appendChild(kepala);
+      var info = el('p', 'admin-info', pesan || '');
+      info.setAttribute('role', 'status');
+      isi.appendChild(info);
+      if (!A.konten.tutor.length) {
+        isi.appendChild(el('p', 'admin-catatan', 'Belum ada baris dengan peran Tutor di lembar Narasumber_Tutor.'));
+        return;
+      }
+      var ul = el('ul', 'admin-daftar-konten');
+      A.konten.tutor.forEach(function (t) {
+        var li = el('li');
+        li.appendChild(fotoMini(t, 'admin-foto-mini'));
+        var teks = el('div', 'admin-daftar-teks');
+        var nama = el('b', null, t.nama_lengkap);
+        if (t.contoh) { nama.appendChild(document.createTextNode(' ')); nama.appendChild(labelContoh()); }
+        teks.appendChild(nama);
+        teks.appendChild(el('small', null, [t.jabatan, t.prestasi.length + ' prestasi', t.tampil ? '' : 'disembunyikan'].filter(Boolean).join(' · ')));
+        li.appendChild(teks);
+        li.appendChild(tombol('Ubah', 'tombol-garis tombol-kecil', function () { ubahTutor(isi, t); }));
+        ul.appendChild(li);
+      });
+      isi.appendChild(ul);
+      isi.appendChild(el('p', 'admin-catatan', 'Data yang sama dengan lembar Narasumber_Tutor dan Prestasi_Tutor di Konten Website. Foto dipilih dari folder Gambar Web; unggah foto baru lewat Google Drive.'));
+    }
+
+    function barisPrestasiTutor(p, wadah) {
+      var b = el('div', 'admin-pres-baris');
+      var jenis = el('span', 'admin-pres-jenis');
+      var ikon = ikonJenis(p.jenis);
+      var s = pilihJenis(p.jenis);
+      s.setAttribute('aria-label', 'Jenis prestasi');
+      s.addEventListener('change', function () {
+        var baru = ikonJenis(s.value);
+        jenis.replaceChild(baru, jenis.firstChild);
+      });
+      jenis.appendChild(ikon);
+      jenis.appendChild(s);
+      var teks = inputTeks('text', p.teks);
+      teks.setAttribute('aria-label', 'Teks prestasi');
+      teks.maxLength = 200;
+      var naik = tombol('↑', 'tombol-garis tombol-ikon', function () { if (b.previousElementSibling) wadah.insertBefore(b, b.previousElementSibling); });
+      naik.setAttribute('aria-label', 'Naikkan');
+      var hapus = tombol('×', 'tombol-garis tombol-ikon', function () { b.remove(); });
+      hapus.setAttribute('aria-label', 'Hapus prestasi');
+      b.appendChild(jenis);
+      b.appendChild(teks);
+      b.appendChild(naik);
+      b.appendChild(hapus);
+      return b;
+    }
+
+    function ubahTutor(isi, t) {
+      isi.textContent = '';
+      var form = el('form', 'admin-form');
+      form.noValidate = true;
+      var kepala = el('div', 'admin-kepala');
+      kepala.appendChild(el('h3', null, 'Ubah: ' + t.nama_lengkap));
+      form.appendChild(kepala);
+
+      var dua = el('div', 'admin-kisi');
+      dua.appendChild(isianPengaturan('nama_lengkap', 'Nama', inputTeks('text', t.nama_lengkap)));
+      var jabatan = inputTeks('text', t.jabatan);
+      jabatan.placeholder = 'Tutor Matematika SD';
+      dua.appendChild(isianPengaturan('jabatan', 'Jabatan (bidang menentukan warna)', jabatan));
+      form.appendChild(dua);
+
+      var pilihFoto = el('select', 'fd-input');
+      var kosong = el('option', null, 'Tanpa foto');
+      kosong.value = '';
+      pilihFoto.appendChild(kosong);
+      var adaFoto = false;
+      A.konten.gambar.forEach(function (g) {
+        var o = el('option', null, g);
+        o.value = g;
+        if (g === String(t.foto).toLowerCase()) { o.selected = true; adaFoto = true; }
+        pilihFoto.appendChild(o);
+      });
+      var isianFoto = isianPengaturan('foto', 'Foto (dari folder Gambar Web)', pilihFoto, 'PNG potongan tanpa latar, misalnya tutor-01.png.');
+      var pratinjau = fotoMini(t, 'admin-foto-pratinjau');
+      pratinjau.hidden = !t.foto_url;
+      isianFoto.insertBefore(pratinjau, pilihFoto);
+      pilihFoto.addEventListener('change', function () { pratinjau.hidden = !t.foto_url || pilihFoto.value !== String(t.foto).toLowerCase(); });
+      if (t.foto && !adaFoto) isianFoto.appendChild(el('p', 'admin-catatan', 'File "' + t.foto + '" tidak ditemukan di folder Gambar Web.'));
+      form.appendChild(isianFoto);
+
+      var ringkasan = el('textarea', 'fd-input');
+      ringkasan.rows = 3;
+      ringkasan.maxLength = 400;
+      ringkasan.value = t.ringkasan;
+      form.appendChild(isianPengaturan('ringkasan', 'Ringkasan (tampil di popup)', ringkasan));
+
+      var gp = el('div', 'admin-isian');
+      gp.appendChild(el('label', null, 'Prestasi siswa binaan'));
+      gp.appendChild(el('p', 'fd-bantuan', 'Tiga teratas tampil di kartu; semuanya tampil di popup "Lihat selengkapnya".'));
+      var wadah = el('div', 'admin-pres');
+      t.prestasi.forEach(function (p) { wadah.appendChild(barisPrestasiTutor(p, wadah)); });
+      gp.appendChild(wadah);
+      gp.appendChild(tombol('Tambah prestasi', 'tombol-garis tombol-kecil', function () {
+        var b = barisPrestasiTutor({ jenis: 'Emas', teks: '' }, wadah);
+        wadah.appendChild(b);
+        b.querySelector('input').focus();
+      }));
+      var gPres = el('p', 'fd-galat');
+      gPres.id = 'ap-prestasi-e';
+      gp.appendChild(gPres);
+      form.appendChild(gp);
+
+      var status = el('p', 'pesan-admin');
+      status.setAttribute('role', 'status');
+      var aksi = el('div', 'admin-aksi');
+      aksi.appendChild(tombol('Batal', 'tombol-garis', function () { tabTutor(isi); }));
+      var simpan = el('button', 'tombol tombol-indigo', 'Simpan');
+      simpan.type = 'submit';
+      aksi.appendChild(simpan);
+      form.appendChild(aksi);
+      form.appendChild(status);
+
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var data = {
+          baris: t.baris, nama_asal: t.nama_lengkap,
+          nama_lengkap: form.elements.nama_lengkap.value, jabatan: form.elements.jabatan.value,
+          foto: pilihFoto.value, ringkasan: ringkasan.value,
+          prestasi: Array.prototype.map.call(wadah.children, function (b) {
+            return { jenis: b.querySelector('select').value, teks: b.querySelector('input').value };
+          })
+        };
+        simpan.disabled = true;
+        status.textContent = 'Menyimpan…';
+        panggil('adminSimpanTutor', [A.token, data], function (d) {
+          A.konten = d;
+          tabTutor(isi, CATATAN_SIMPAN);
+        }, function (err) {
+          simpan.disabled = false;
+          status.textContent = err.message;
+          if (err.kolom) tampilkanGalatForm(form, err.kolom);
+        });
+      });
+      isi.appendChild(form);
+      form.elements.nama_lengkap.focus();
+    }
+
+    /* Prestasi siswa: diubah di salinan kerja, lalu disimpan sekaligus. */
+
+    function tabPrestasi(isi, pesan) {
+      if (!A.konten) return muatKonten(isi, function () { tabPrestasi(isi); });
+      if (!A.prestasiEdit) {
+        A.prestasiEdit = JSON.parse(JSON.stringify(A.konten.prestasi));
+        A.prestasiBerubah = false;
+      }
+      isi.textContent = '';
+      var kepala = el('div', 'admin-kepala');
+      kepala.appendChild(el('h3', null, 'Prestasi siswa Genio (' + A.prestasiEdit.length + ')'));
+      kepala.appendChild(tombol('Tambah', 'tombol-garis tombol-kecil', function () {
+        ubahPrestasi(isi, { tahun: String(new Date().getFullYear()), nama_siswa: '', sekolah: '', prestasi: '', medali: 'Emas', jenjang: '', bidang: '', lomba: '', tingkat: '', sorotan: false, tampil: true, contoh: false }, -1);
+      }));
+      isi.appendChild(kepala);
+
+      var info = el('p', 'admin-info', pesan || (A.prestasiBerubah ? 'Ada perubahan yang belum disimpan.' : ''));
+      info.setAttribute('role', 'status');
+      isi.appendChild(info);
+      if (A.prestasiBerubah) {
+        var aksi = el('div', 'admin-aksi');
+        aksi.appendChild(tombol('Batalkan perubahan', 'tombol-garis', function () { A.prestasiEdit = null; tabPrestasi(isi); }));
+        var simpan = tombol('Simpan perubahan', 'tombol-indigo', function () {
+          simpan.disabled = true;
+          info.textContent = 'Menyimpan…';
+          panggil('adminSimpanPrestasi', [A.token, A.prestasiEdit, A.konten.sidik_prestasi], function (d) {
+            A.konten = d;
+            A.prestasiEdit = null;
+            tabPrestasi(isi, CATATAN_SIMPAN);
+          }, function (err) {
+            simpan.disabled = false;
+            info.textContent = err.message;
+            if (err.code === 'BERUBAH') isi.appendChild(tombol('Muat ulang data', 'tombol-garis', function () { A.konten = null; tabPrestasi(isi); }));
+          });
+        });
+        aksi.appendChild(simpan);
+        isi.appendChild(aksi);
+      }
+
+      var ul = el('ul', 'admin-daftar-konten');
+      A.prestasiEdit.forEach(function (p, i) {
+        var li = el('li', p.tampil ? '' : 'redup');
+        li.appendChild(ikonJenis(p.medali));
+        var teks = el('div', 'admin-daftar-teks');
+        var nama = el('b', null, (i + 1) + '. ' + (p.nama_siswa || '-'));
+        if (p.contoh) { nama.appendChild(document.createTextNode(' ')); nama.appendChild(labelContoh()); }
+        teks.appendChild(nama);
+        teks.appendChild(el('small', null, [p.tahun, p.prestasi, p.tampil ? '' : 'disembunyikan'].filter(Boolean).join(' · ')));
+        li.appendChild(teks);
+        var alat = el('span', 'admin-daftar-alat');
+        var naik = tombol('↑', 'tombol-garis tombol-ikon', function () { pindahPrestasi(isi, i, -1); });
+        naik.setAttribute('aria-label', 'Naikkan ' + p.nama_siswa);
+        naik.disabled = i === 0;
+        var turun = tombol('↓', 'tombol-garis tombol-ikon', function () { pindahPrestasi(isi, i, 1); });
+        turun.setAttribute('aria-label', 'Turunkan ' + p.nama_siswa);
+        turun.disabled = i === A.prestasiEdit.length - 1;
+        alat.appendChild(naik);
+        alat.appendChild(turun);
+        alat.appendChild(tombol('Ubah', 'tombol-garis tombol-kecil', function () { ubahPrestasi(isi, p, i); }));
+        li.appendChild(alat);
+        ul.appendChild(li);
+      });
+      isi.appendChild(ul);
+      isi.appendChild(el('p', 'admin-catatan', 'Urutan di sini adalah urutan di halaman: 10 teratas tampil di daftar bergulir. Data yang sama dengan lembar Prestasi; setiap simpan dicatat di Log_Admin.'));
+    }
+
+    function pindahPrestasi(isi, i, arah) {
+      var d = A.prestasiEdit;
+      var j = i + arah;
+      if (j < 0 || j >= d.length) return;
+      var x = d[i];
+      d[i] = d[j];
+      d[j] = x;
+      A.prestasiBerubah = true;
+      tabPrestasi(isi);
+    }
+
+    function ubahPrestasi(isi, p, indeks) {
+      var lapis = el('div', 'admin-konfirmasi');
+      var kotak = el('form', 'admin-detail admin-form');
+      kotak.noValidate = true;
+      kotak.setAttribute('role', 'dialog');
+      kotak.setAttribute('aria-label', indeks < 0 ? 'Tambah prestasi' : 'Ubah prestasi');
+      kotak.appendChild(el('h3', 'admin-subjudul', indeks < 0 ? 'Tambah prestasi' : 'Ubah prestasi'));
+      var isian = {};
+      function teks(k, label, maks) {
+        isian[k] = inputTeks('text', p[k]);
+        isian[k].maxLength = maks;
+        return isianPengaturan('pr-' + k, label, isian[k]);
+      }
+      var kisi = el('div', 'admin-kisi');
+      kisi.appendChild(teks('nama_siswa', 'Nama siswa', 100));
+      kisi.appendChild(teks('tahun', 'Tahun', 4));
+      kotak.appendChild(kisi);
+      kotak.appendChild(teks('sekolah', 'Sekolah', 120));
+      isian.prestasi = el('textarea', 'fd-input');
+      isian.prestasi.rows = 2;
+      isian.prestasi.maxLength = 250;
+      isian.prestasi.value = p.prestasi;
+      kotak.appendChild(isianPengaturan('pr-prestasi', 'Prestasi (teks lengkap)', isian.prestasi));
+      isian.medali = pilihJenis(p.medali);
+      var kisi2 = el('div', 'admin-kisi');
+      kisi2.appendChild(isianPengaturan('pr-medali', 'Jenis', isian.medali));
+      kisi2.appendChild(teks('jenjang', 'Jenjang', 20));
+      kisi2.appendChild(teks('bidang', 'Bidang', 40));
+      kisi2.appendChild(teks('lomba', 'Lomba', 60));
+      kotak.appendChild(kisi2);
+      var tampil = kotakCentang('pr-tampil', 'Tampilkan di halaman', p.tampil);
+      var sorot = kotakCentang('pr-sorotan', 'Sorotan', p.sorotan);
+      kotak.appendChild(tampil);
+      kotak.appendChild(sorot);
+      var status = el('p', 'pesan-admin');
+      status.setAttribute('role', 'status');
+
+      var aksi = el('div', 'admin-aksi');
+      if (indeks >= 0) {
+        aksi.appendChild(tombol('Hapus', 'tombol-garis', function () {
+          lapis.remove();
+          konfirmasi('Hapus prestasi ' + (p.nama_siswa || 'ini') + '?', 'Hapus', function () {
+            A.prestasiEdit.splice(indeks, 1);
+            A.prestasiBerubah = true;
+            tabPrestasi(isi);
+          });
+        }));
+      }
+      aksi.appendChild(tombol('Batal', 'tombol-garis', function () { lapis.remove(); }));
+      var terap = el('button', 'tombol tombol-indigo', 'Terapkan');
+      terap.type = 'submit';
+      aksi.appendChild(terap);
+      kotak.appendChild(aksi);
+      kotak.appendChild(status);
+
+      kotak.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var baru = { contoh: p.contoh, tampil: tampil.querySelector('input').checked, sorotan: sorot.querySelector('input').checked };
+        Object.keys(isian).forEach(function (k) { baru[k] = isian[k].value.trim(); });
+        if (!baru.nama_siswa || !baru.prestasi) { status.textContent = 'Isi nama siswa dan teks prestasi.'; return; }
+        if (!/^\d{4}$/.test(baru.tahun)) { status.textContent = 'Tahun harus 4 angka, misalnya 2026.'; return; }
+        baru.tingkat = p.tingkat || '';
+        if (indeks < 0) A.prestasiEdit.unshift(baru);
+        else A.prestasiEdit[indeks] = baru;
+        A.prestasiBerubah = true;
+        lapis.remove();
+        tabPrestasi(isi, 'Perubahan diterapkan. Ketuk "Simpan perubahan" untuk menyimpan ke spreadsheet.');
+      });
+      lapis.appendChild(kotak);
+      lapis.addEventListener('click', function (e) { if (e.target === lapis) lapis.remove(); });
+      akar.appendChild(lapis);
+      isian.nama_siswa.focus();
     }
 
     /* ---------- Buka ---------- */

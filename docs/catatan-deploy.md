@@ -69,6 +69,15 @@ Pilih fungsi **isiDataContoh**, lalu **Jalankan**. Lembar yang sudah berisi tida
 - Tutor, profil Genio, cabang, prestasi, testimoni, dan FAQ masih contoh (`data_contoh` = YA).
 - `tampilkan_data_contoh` diubah menjadi YA supaya contoh terlihat saat pratinjau. **Wajib** diubah menjadi TIDAK sebelum tayang.
 
+### 5b. Fase 5: konten tambahan
+
+1. Tempel ulang semua file yang berubah, termasuk file baru `AdminKonten.gs`.
+2. Jalankan **siapkanLembar** lagi: menambah lembar `Prestasi_Tutor`, kolom `prestasi` di Prestasi, kolom `jam` di Testimoni, dan dropdown jenis medali. Data lama tidak diubah.
+3. Jalankan **isiKontenFase5**: mengisi teks profil Genio yang disepakati, 5 testimoni contoh, dan contoh prestasi tutor. Data asli yang sudah ada tidak ditimpa.
+4. Impor data prestasi asli: buka `Prestasi-Genio-2024-2026.xlsx` (dikirim terpisah, tidak disimpan di repo), salin semua baris di bawah judul, lalu tempel di lembar Prestasi mulai baris 2 setelah menghapus baris contoh. Urutan kolom berkas sama dengan lembar.
+5. Unggah foto tutor (PNG potongan tanpa latar) ke folder Gambar Web, lalu pilih fotonya di panel admin tab **Tutor** atau tulis nama filenya di kolom `foto`.
+6. Untuk melihat testimoni dan tutor contoh, ubah `tampilkan_data_contoh` menjadi YA (panel admin, tab Pengaturan). **Wajib** TIDAK lagi sebelum tayang; tanpa data asli, bagian Testimoni otomatis tersembunyi.
+
 ### 6. Deploy web app
 
 1. Di editor, ketuk **Terapkan > Deployment baru**.
@@ -97,7 +106,7 @@ Pilih fungsi **isiDataContoh**, lalu **Jalankan**. Lembar yang sudah berisi tida
 
 ## Panel admin
 
-Ketuk ikon centang di header (atau buka alamat `/exec?admin=1`), lalu masukkan kata sandi `ADMIN_PASSWORD`. Tab: Ringkasan, Pengaturan, Pendaftar (tabel yang bisa digeser, diurutkan, dan dibagi per halaman), dan Lihat data (spreadsheet laporan plus unduh cadangan .xlsx). Setiap perubahan pengaturan, login gagal, pembaruan laporan, dan unduhan dicatat di lembar Log_Admin.
+Ketuk ikon centang di header (atau buka alamat `/exec?admin=1`), lalu masukkan kata sandi `ADMIN_PASSWORD`. Tab: Ringkasan, Pengaturan, Pendaftar (tabel yang bisa digeser, diurutkan, dan dibagi per halaman), Tutor (nama, jabatan, foto dari folder Gambar Web, ringkasan, prestasi siswa binaan), Prestasi (tambah, ubah, hapus, atur urutan; disimpan sekaligus), dan Lihat data (spreadsheet laporan plus unduh cadangan .xlsx). Setiap perubahan pengaturan, login gagal, pembaruan laporan, dan unduhan dicatat di lembar Log_Admin.
 
 **Spreadsheet laporan (sekali saja):** jalankan `siapkanLaporan` dari editor. Fungsi ini membuat file "Laporan Pendaftar #MenujuJuara Eps. 1" di Drive Saya (boleh dipindah sendiri ke folder proyek; tautannya tidak berubah), mengisinya, dan memasang pembaruan otomatis tiap 10 menit (Google meminta izin sekali). Bagikan file laporan dengan akses Pelihat ke akun panitia yang perlu melihatnya. Isi laporan ditimpa skrip, jadi jangan mengedit datanya; urutkan dan saring lewat ikon filter di judul kolom.
 
