@@ -133,8 +133,10 @@ function tulisRingkasanLaporan_(lembar, semua, waktu) {
 }
 
 /**
- * Fungsi panitia: membuat (atau menata ulang) spreadsheet laporan di folder yang sama dengan
- * spreadsheet database, mengisinya, lalu memasang pembaruan otomatis tiap 10 menit.
+ * Fungsi panitia: membuat (atau menata ulang) spreadsheet laporan, mengisinya, lalu memasang
+ * pembaruan otomatis tiap 10 menit.
+ * KEPUTUSAN: file dibuat di Drive Saya, tidak dipindah otomatis ke folder proyek, karena memindah file
+ * butuh izin penuh atas seluruh Google Drive. Pemilik bisa memindahkannya sendiri; ID-nya tidak berubah.
  */
 function siapkanLaporan() {
   penjagaPanitia_();
@@ -144,10 +146,9 @@ function siapkanLaporan() {
     try { ss = SpreadsheetApp.openById(id); } catch (err) { ss = null; }
   }
   if (!ss) {
-    ss = SpreadsheetApp.create(NAMA_FILE_LAPORAN_);
-    var berkas = DriveApp.getFileById(ss.getId());
-    var induk = DriveApp.getFileById(bukaDb_().getId()).getParents();
-    if (induk.hasNext()) berkas.moveTo(induk.next());
+    // Pakai ulang file laporan yang sudah pernah dibuat (misalnya dari percobaan yang terhenti) agar tidak dobel.
+    var ada = DriveApp.getFilesByName(NAMA_FILE_LAPORAN_);
+    ss = ada.hasNext() ? SpreadsheetApp.openById(ada.next().getId()) : SpreadsheetApp.create(NAMA_FILE_LAPORAN_);
     PropertiesService.getScriptProperties().setProperty('LAPORAN_SHEET_ID', ss.getId());
   }
   var lembar = ss.getSheetByName('Pendaftar') || ss.insertSheet('Pendaftar', 0);
@@ -163,7 +164,7 @@ function siapkanLaporan() {
   });
   ScriptApp.newTrigger('perbaruiLaporanOtomatis').timeBased().everyMinutes(10).create();
   return lapor_('Laporan siap dan diperbarui otomatis tiap 10 menit: ' + urlLaporan_(ss.getId()) +
-    '. Bagikan file ini (akses Pelihat) ke akun panitia yang perlu melihatnya.');
+    ' . File ada di Drive Saya; boleh dipindah ke folder proyek. Bagikan (akses Pelihat) ke akun panitia yang perlu melihatnya.');
 }
 
 /**
