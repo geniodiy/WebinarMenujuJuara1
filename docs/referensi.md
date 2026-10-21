@@ -87,3 +87,9 @@ Pratinjau: `docs/pratinjau/prestasi.png`.
 - Kolom lembar Prestasi: urutan, tampil, data_contoh, tahun, nama_siswa, sekolah, jenjang, bidang, lomba, tingkat, medali (Emas/Perak/Perunggu/Lainnya), sorotan, **prestasi** (teks lengkap seperti di sertifikat; kolom baru, ditambahkan ke daftar kolom saat Fase 5 dipasang).
 - Urutan (kolom `urutan`): IMSO dulu, lalu OSN (termasuk KSN, nama OSN tahun 2020-2021), lalu lomba internasional lain, lalu lainnya; di dalam tiap kelompok tahun terbaru lalu Emas, Perak, Perunggu, Lainnya. Daftar bergulir mengambil 10 urutan teratas. Juara I/II/III dipetakan ke Emas/Perak/Perunggu; finalis, harapan, peringkat, honorable, dan best theory ke Lainnya.
 - Admin dapat mengedit prestasi lewat panel admin (tab "Prestasi": tambah, ubah, hapus, atur urutan, pilih jenis medali, pilih tampil) maupun langsung di lembar Prestasi; keduanya memakai data yang sama dan tercatat di Log_Admin.
+
+### Apa kata orang tua
+Pratinjau: `docs/pratinjau/testimoni.png`.
+
+- Tiap testimoni berbentuk jendela obrolan WhatsApp: kepala hijau tua (inisial, nama, keterangan), latar krem bertitik, kutipan dalam gelembung putih dengan jam (kolom opsional). Tanpa gelembung balasan.
+- Kartu bergeser pelan ke kiri tanpa putus (sekitar 45 detik per putaran), berhenti saat disentuh atau disorot, tepi memudar; diam bila pengunjung memilih kurangi gerakan.
