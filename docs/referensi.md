@@ -99,3 +99,6 @@ Pratinjau: `docs/pratinjau/ajakan.png`.
 
 - Kartu putih bergaris tipis: ikon chat bergradien oranye, judul `cta_judul` ("Tertarik bergabung dengan Genio?"), keterangan singkat ("Konsultasi gratis via WhatsApp dengan admin cabang.").
 - Dua tombol hijau WhatsApp berdampingan, satu per cabang (Semarang, Yogyakarta), langsung membuka WhatsApp admin cabang (`wa_admin` di lembar Cabang) dengan pesan `cta_pesan_wa`. Cabang tanpa nomor tidak ditampilkan tombolnya.
+
+### FAQ
+- Diputuskan pemilik: bagian FAQ tidak ditampilkan. Lembar FAQ tetap ada tetapi tidak dipakai halaman.
