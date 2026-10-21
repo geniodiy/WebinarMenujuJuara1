@@ -308,6 +308,43 @@
   .admin-detail .admin-kepala { padding: 0 0 8px; }
   .admin-anggota { margin: 0; padding-left: 18px; font-size: 14px; display: flex; flex-direction: column; gap: 6px; }
 
+  /* Tema panel admin: hitam palet (bukan biru) dan huruf lebih kecil agar ringkas. */
+  .admin { font-size: 13px; color: var(--item); }
+  .admin-masuk h2 { font-size: 17px; margin-bottom: 14px; }
+  .admin-form label, .admin-isian label { font-size: 13px; }
+  .pesan-admin, .admin-info { font-size: 12.5px; }
+  .admin-catatan { font-size: 12px; }
+  .admin-kepala h2 { font-size: 16px; }
+  .admin-kepala h3, .admin-grup legend, .admin-angka-kartu strong, .admin-pratinjau { color: var(--item); }
+  .admin-kepala h3 { font-size: 14px; }
+  .admin-subjudul { font-size: 14px; }
+  .admin-tab-tombol { min-height: 38px; font-size: 13px !important; }
+  .admin-tab-tombol[aria-selected="true"] { background: var(--item); }
+  .admin-isi { padding: 14px; gap: 12px; }
+  .admin-angka-kartu { padding: 10px 12px; }
+  .admin-angka-kartu strong { font-size: 18px; }
+  .admin-angka-kartu span { font-size: 12px; }
+  .admin-tabel { font-size: 12.5px; }
+  .admin-tabel th { font-size: 11.5px; }
+  .admin-grup { padding: 12px; gap: 10px; }
+  .admin-grup legend { font-size: 13px; }
+  .admin-pratinjau { font-size: 13px; }
+  .admin-anggota { font-size: 12.5px; }
+  .admin .pita { padding: 8px 12px; font-size: 12.5px; color: var(--item); }
+  .admin .tombol { min-height: 38px; padding: 7px 14px; border-radius: 10px; font-size: 13px; }
+  .admin .tombol-indigo { background: var(--item); color: #fff; }
+  .admin .tombol-garis { border: 1.5px solid rgba(84, 86, 59, .55); color: var(--item); font-weight: 500; }
+  .admin .tombol-tautan { color: var(--item); font-size: 13px; }
+  .admin .fd-input { min-height: 38px; padding: 6px 10px; font-size: 14px; border-radius: 10px; }
+  .admin .fd-kartu { font-size: 13px; }
+  .admin-konfirmasi-kotak { font-size: 14px; }
+  .admin-detail { font-size: 13px; }
+  .admin-detail .fd-ringkas-dl { font-size: 12.5px; }
+  .admin a { color: var(--item); }
+  .admin :focus-visible, .admin .fd-input:focus { outline-color: rgba(84, 86, 59, .3); border-color: var(--item); }
+  .admin input[type="search"]::-webkit-search-cancel-button { filter: grayscale(1); }
+  .admin input[type="checkbox"], .admin input[type="radio"] { accent-color: var(--item); }
+
   @media (max-width: 639px) {
     .admin-tabel-pendaftar thead { display: none; }
     .admin-tabel-pendaftar tr { display: block; padding: 10px 0; border-bottom: 1px solid var(--garis); }
