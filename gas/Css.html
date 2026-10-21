@@ -380,8 +380,22 @@
   }
   .fd-kemajuan-wadah { padding-bottom: 8px; }
   .fd-penanda { margin: 0 0 6px; font-size: 12px; color: var(--redup); }
-  .fd-kemajuan { height: 6px; border-radius: 3px; background: #E7EEF3; overflow: hidden; }
-  .fd-kemajuan span { display: block; height: 100%; width: 0; background: var(--gradien); transition: width .2s ease; }
+  /* Penanda langkah: lingkaran bernomor di atas garis, mengikuti gaya alur agenda. */
+  .fd-lb { position: relative; display: flex; justify-content: space-between; align-items: center; height: 26px; }
+  .fd-lb-garis { position: absolute; left: 11px; right: 11px; top: 50%; height: 4px; margin-top: -2px; border-radius: 2px; background: #E2E8EE; }
+  .fd-lb-isi { position: absolute; left: 0; top: 0; bottom: 0; width: 0; border-radius: 2px; background: linear-gradient(90deg, var(--cyan), var(--teal)); transition: width .45s cubic-bezier(.4, 0, .2, 1); }
+  /* Titik oranye bercahaya di ujung garis, bergerak ke langkah berikutnya; berada di belakang lingkaran. */
+  .fd-lb-titik { position: absolute; right: -6px; top: 50%; width: 12px; height: 12px; margin-top: -6px; border-radius: 50%; background: var(--coral); box-shadow: 0 0 0 3px rgba(255, 138, 91, .25), 0 0 10px 3px rgba(255, 138, 91, .5); }
+  .fd-lb-nomor {
+    position: relative; z-index: 1; width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #fff;
+    background-color: #C9D6E0; transition: background-color .3s ease, box-shadow .3s ease;
+  }
+  .fd-lb-nomor.selesai, .fd-lb-nomor.aktif { background-image: linear-gradient(135deg, var(--cyan), var(--teal)); }
+  /* Lingkaran aktif baru menyala setelah titik oranye tiba. */
+  .fd-lb-nomor.aktif { box-shadow: 0 0 0 2px #fff, 0 0 0 4px rgba(19, 153, 216, .35); animation: nyala .35s step-end, timbul .45s ease-out .35s; }
+  @keyframes nyala { from { background-image: none; box-shadow: none; } }
+  .fd-lb-nomor.aktif::after { content: ""; position: absolute; inset: 0; border-radius: 50%; border: 2px solid var(--teal); opacity: 0; animation: gelombang 1s ease-out .35s; }
 
   .fd-isi { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
   .fd-isi-dalam { padding-top: 14px; padding-bottom: 18px; }

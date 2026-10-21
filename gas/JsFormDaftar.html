@@ -785,9 +785,20 @@
       var l = daftarLangkah();
       var i = Math.max(0, l.indexOf(S.langkah));
       var label = document.getElementById('fd-penanda');
-      var bar = document.getElementById('fd-bar');
       if (label) label.textContent = 'Langkah ' + (i + 1) + ' dari ' + l.length;
-      if (bar) bar.style.width = Math.round(((i + 1) / l.length) * 100) + '%';
+      var jalur = document.getElementById('fd-lb');
+      if (!jalur) return;
+      var nomor = jalur.querySelectorAll('.fd-lb-nomor');
+      if (nomor.length !== l.length) {
+        Array.prototype.forEach.call(nomor, function (n) { n.remove(); });
+        l.forEach(function (_, j) { jalur.appendChild(el('span', 'fd-lb-nomor', String(j + 1))); });
+        nomor = jalur.querySelectorAll('.fd-lb-nomor');
+      }
+      Array.prototype.forEach.call(nomor, function (n, j) {
+        n.classList.toggle('selesai', j < i);
+        if ((j === i) !== n.classList.contains('aktif')) n.classList.toggle('aktif', j === i);
+      });
+      jalur.querySelector('.fd-lb-isi').style.width = (l.length > 1 ? (i / (l.length - 1)) * 100 : 0) + '%';
     }
 
     function perbaruiKaki() {
@@ -945,10 +956,15 @@
       var penanda = el('p', 'fd-penanda');
       penanda.id = 'fd-penanda';
       penanda.setAttribute('aria-live', 'polite');
-      var jalur = el('div', 'fd-kemajuan');
-      var bar = el('span');
-      bar.id = 'fd-bar';
-      jalur.appendChild(bar);
+      // Penanda langkah seperti alur agenda: lingkaran bernomor, garis terisi, titik oranye bergerak ke langkah aktif.
+      var jalur = el('div', 'fd-lb');
+      jalur.id = 'fd-lb';
+      jalur.setAttribute('aria-hidden', 'true');
+      var garis = el('div', 'fd-lb-garis');
+      var isiGaris = el('div', 'fd-lb-isi');
+      isiGaris.appendChild(el('span', 'fd-lb-titik'));
+      garis.appendChild(isiGaris);
+      jalur.appendChild(garis);
       kemajuan.appendChild(penanda);
       kemajuan.appendChild(jalur);
       kepala.appendChild(kemajuan);
