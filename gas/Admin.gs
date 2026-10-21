@@ -9,8 +9,12 @@ var JENDELA_GAGAL_MS_ = 15 * 60 * 1000;
 var KUNCI_PENGATURAN_ADMIN_ = [
   'form_pendaftaran', 'pendaftaran_buka', 'pendaftaran_tutup', 'tanggal_hari_h', 'link_grup_wa',
   'kuota_sd_matematika', 'kuota_sd_ipa', 'kuota_sd_ips', 'kuota_smp_matematika', 'kuota_smp_ipa', 'kuota_smp_ips',
-  'mode_uji', 'tampilkan_data_contoh'
+  'mode_uji', 'tampilkan_data_contoh',
+  'tampil_tutor', 'tampil_profil', 'tampil_cabang', 'tampil_prestasi', 'tampil_ajakan'
 ];
+// Kunci yang disimpan di lembar Pengaturan_Konten (spreadsheet Konten Website), bukan Pengaturan.
+var KUNCI_KONTEN_ADMIN_ = ['tampilkan_data_contoh', 'tampil_tutor', 'tampil_profil', 'tampil_cabang', 'tampil_prestasi', 'tampil_ajakan'];
+var KUNCI_YA_TIDAK_ = ['mode_uji'].concat(KUNCI_KONTEN_ADMIN_);
 
 /* ---------- Masuk dan sesi ---------- */
 
@@ -94,15 +98,20 @@ function catatLog_(peran, aksi, kunci, lama, baru) {
 
 /* ---------- Pengaturan ---------- */
 
-function tampilkanContohSaatIni_() {
-  return yaTidak_(kunciNilai_(bacaLembar_(bukaKonten_().getSheetByName('Pengaturan_Konten'))).tampilkan_data_contoh) ? 'YA' : 'TIDAK';
+/** Nilai YA/TIDAK dari Pengaturan_Konten. Data contoh bawaannya TIDAK, bagian halaman bawaannya YA. Murni. */
+function pengaturanKontenAdmin_(pk) {
+  var hasil = { tampilkan_data_contoh: yaTidak_(pk.tampilkan_data_contoh) ? 'YA' : 'TIDAK' };
+  var tampil = bagianTampil_(pk);
+  BAGIAN_OPSIONAL_.forEach(function (k) { hasil['tampil_' + k] = tampil[k] ? 'YA' : 'TIDAK'; });
+  return hasil;
 }
 
 function pengaturanAdmin_() {
   var peng = bacaPengaturan_(true);
   var hasil = {};
-  KUNCI_PENGATURAN_ADMIN_.forEach(function (k) { if (k !== 'tampilkan_data_contoh') hasil[k] = String(peng[k] == null ? '' : peng[k]); });
-  hasil.tampilkan_data_contoh = tampilkanContohSaatIni_();
+  KUNCI_PENGATURAN_ADMIN_.forEach(function (k) { if (KUNCI_KONTEN_ADMIN_.indexOf(k) < 0) hasil[k] = String(peng[k] == null ? '' : peng[k]); });
+  var konten = pengaturanKontenAdmin_(kunciNilai_(bacaLembar_(bukaKonten_().getSheetByName('Pengaturan_Konten'))));
+  Object.keys(konten).forEach(function (k) { hasil[k] = konten[k]; });
   return hasil;
 }
 
@@ -113,7 +122,7 @@ function rapikanPerubahan_(perubahan) {
     if (!perubahan || perubahan[k] == null) return;
     var v = String(perubahan[k]).trim();
     if (k === 'pendaftaran_buka' || k === 'pendaftaran_tutup') v = v.replace('T', ' ').slice(0, 16);
-    if (k === 'form_pendaftaran' || k === 'mode_uji' || k === 'tampilkan_data_contoh') v = v.toUpperCase();
+    if (k === 'form_pendaftaran' || KUNCI_YA_TIDAK_.indexOf(k) >= 0) v = v.toUpperCase();
     hasil[k] = v.slice(0, 500);
   });
   return hasil;
@@ -133,7 +142,7 @@ function validasiPengaturan_(p) {
   KUNCI_PENGATURAN_ADMIN_.filter(function (k) { return k.indexOf('kuota_') === 0; }).forEach(function (k) {
     if (!/^\d{1,5}$/.test(String(p[k]))) g[k] = 'Isi angka 0 atau lebih (0 berarti tanpa batas).';
   });
-  ['mode_uji', 'tampilkan_data_contoh'].forEach(function (k) {
+  KUNCI_YA_TIDAK_.forEach(function (k) {
     if (['YA', 'TIDAK'].indexOf(p[k]) < 0) g[k] = 'Pilih YA atau TIDAK.';
   });
   return g;
@@ -184,7 +193,7 @@ function adminSaveSettings(token, perubahan) {
       var lembar = bukaDb_().getSheetByName('Pengaturan');
       var kunciAda = lembar.getRange(1, 1, lembar.getLastRow(), 1).getValues().map(function (b) { return String(b[0]).trim(); });
       berubah.forEach(function (k) {
-        if (k === 'tampilkan_data_contoh') {
+        if (KUNCI_KONTEN_ADMIN_.indexOf(k) >= 0) {
           var pk = bukaKonten_().getSheetByName('Pengaturan_Konten');
           tambahKunci_(pk, [[k, bersih[k], '']], false);
           aturKunci_(pk, k, bersih[k]);
@@ -232,7 +241,7 @@ function ringkasan_(semua, peng, sertakanUji) {
     rekap: rekap,
     status: hitungStatus_(peng, sekarang),
     jam_server: sekarang,
-    peringatan: { mode_uji: yaTidak_(peng.mode_uji), data_contoh: tampilkanContohSaatIni_() === 'YA' },
+    peringatan: { mode_uji: yaTidak_(peng.mode_uji), data_contoh: yaTidak_(kunciNilai_(bacaLembar_(bukaKonten_().getSheetByName('Pengaturan_Konten'))).tampilkan_data_contoh) },
     jumlah_uji: semua.filter(function (b) { return yaTidak_(b.uji); }).length
   };
 }

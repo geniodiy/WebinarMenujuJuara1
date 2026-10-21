@@ -136,6 +136,18 @@ function urlGambar_(peta, namaFile) {
   return id ? URL_GAMBAR_ + id : '';
 }
 
+/** Bagian halaman yang bisa disembunyikan admin, sesuai kunci tampil_<nama> di Pengaturan_Konten. */
+var BAGIAN_OPSIONAL_ = ['tutor', 'profil', 'cabang', 'prestasi', 'ajakan'];
+
+/** Peta bagian ke true/false. Kunci yang kosong atau belum ada dianggap tampil. Murni. */
+function bagianTampil_(pengaturan) {
+  var t = {};
+  BAGIAN_OPSIONAL_.forEach(function (k) {
+    t[k] = String(pengaturan['tampil_' + k] == null ? '' : pengaturan['tampil_' + k]).trim().toUpperCase() !== 'TIDAK';
+  });
+  return t;
+}
+
 function bangunKonten_() {
   var ss = bukaKonten_();
   var pengaturan = kunciNilai_(bacaLembar_(ss.getSheetByName('Pengaturan_Konten')));
@@ -152,6 +164,14 @@ function bangunKonten_() {
   var adaIsiProfil = Object.keys(profil).some(function (k) { return profil[k] !== ''; });
   if (!adaIsiProfil || (profilContoh && !tampilkanContoh)) profil = null;
   else profil.contoh = profilContoh;
+
+  // Bagian yang disembunyikan admin tidak dikirim ke browser. Data cabang tetap dikirim bila
+  // salah satu dari bagian Cabang atau Ajakan masih tampil, karena keduanya memakai data yang sama.
+  var tampil = bagianTampil_(pengaturan);
+  if (!tampil.tutor) daftar.Narasumber_Tutor = daftar.Narasumber_Tutor.filter(function (b) { return b.peran !== 'Tutor'; });
+  if (!tampil.profil) profil = null;
+  if (!tampil.prestasi) daftar.Prestasi = [];
+  if (!tampil.cabang && !tampil.ajakan) daftar.Cabang = [];
 
   // KEPUTUSAN: lembar Gambar dipindai ulang otomatis bila ada nama file yang belum terdaftar,
   // karena tidak ada menu di spreadsheet (lihat gas/Setup.gs).
@@ -197,6 +217,7 @@ function bangunKonten_() {
     cabang: daftar.Cabang,
     prestasi: daftar.Prestasi,
     testimoni: daftar.Testimoni,
+    tampil: tampil,
     ada_contoh: !!adaContoh
   };
 }

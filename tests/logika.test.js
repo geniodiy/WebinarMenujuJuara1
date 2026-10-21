@@ -131,7 +131,8 @@ test('admin: validasi pengaturan, perapian, kunci login, dan prospek', () => {
   const dasar = {
     form_pendaftaran: 'OTOMATIS', pendaftaran_buka: '2026-10-19 00:00', pendaftaran_tutup: '2026-11-07 23:59', tanggal_hari_h: '2026-11-14',
     link_grup_wa: '', kuota_sd_matematika: '0', kuota_sd_ipa: '0', kuota_sd_ips: '0', kuota_smp_matematika: '0', kuota_smp_ipa: '0', kuota_smp_ips: '10',
-    mode_uji: 'YA', tampilkan_data_contoh: 'TIDAK'
+    mode_uji: 'YA', tampilkan_data_contoh: 'TIDAK',
+    tampil_tutor: 'YA', tampil_profil: 'YA', tampil_cabang: 'TIDAK', tampil_prestasi: 'YA', tampil_ajakan: 'YA'
   };
   assert.deepStrictEqual(JSON.parse(JSON.stringify(a.validasiPengaturan_(dasar))), {});
   const g = a.validasiPengaturan_({ ...dasar, pendaftaran_tutup: '2026-10-01 10:00', link_grup_wa: 'http://x', kuota_sd_ipa: '-1', form_pendaftaran: 'X' });
@@ -139,6 +140,9 @@ test('admin: validasi pengaturan, perapian, kunci login, dan prospek', () => {
   assert.strictEqual(g.link_grup_wa, 'Link harus diawali https://');
   assert.ok(g.kuota_sd_ipa);
   assert.ok(g.form_pendaftaran);
+  assert.ok(a.validasiPengaturan_({ ...dasar, tampil_prestasi: 'mungkin' }).tampil_prestasi);
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(a.pengaturanKontenAdmin_({ tampilkan_data_contoh: 'ya', tampil_ajakan: 'TIDAK' }))),
+    { tampilkan_data_contoh: 'YA', tampil_tutor: 'YA', tampil_profil: 'YA', tampil_cabang: 'YA', tampil_prestasi: 'YA', tampil_ajakan: 'TIDAK' });
 
   const r = a.rapikanPerubahan_({ pendaftaran_tutup: '2026-11-20T23:59', mode_uji: 'tidak', asing: 'x' });
   assert.deepStrictEqual(JSON.parse(JSON.stringify(r)), { pendaftaran_tutup: '2026-11-20 23:59', mode_uji: 'TIDAK' });

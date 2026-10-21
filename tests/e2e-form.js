@@ -518,6 +518,22 @@ async function uji(nama, fn) {
     await page.screenshot({ path: path.join(DIR_KELUAR, 'admin-pengaturan.png'), fullPage: true });
   });
 
+  await uji('admin menyembunyikan bagian Prestasi, tersimpan di Pengaturan_Konten', async () => {
+    const { page } = await halamanBaru(browser, { berkas: berkasAdmin });
+    await masukAdmin(page, SANDI);
+    await page.click('.admin-tab-tombol:has-text("Pengaturan")');
+    await page.waitForSelector('#ap-tampil_prestasi');
+    assert.ok(await page.isChecked('#ap-tampil_prestasi'));
+    await page.click('label:has(#ap-tampil_prestasi)');
+    await page.click('text=Simpan pengaturan');
+    await page.waitForSelector('text=Pengaturan tersimpan.');
+    const baris = lembarKonten.Pengaturan_Konten.data.find((r) => r[0] === 'tampil_prestasi');
+    assert.strictEqual(baris && baris[1], 'TIDAK');
+    assert.ok(lembar.Log_Admin.data.some((r) => r[3] === 'tampil_prestasi' && r[5] === 'TIDAK'));
+    const grupBagian = page.locator('fieldset.admin-grup:has(legend:text("Bagian halaman"))');
+    await grupBagian.screenshot({ path: path.join(DIR_KELUAR, 'admin-bagian-halaman.png') });
+  });
+
   await uji('U23: jam tutup sebelum jam buka ditolak dengan pesan jelas', async () => {
     const { page } = await halamanBaru(browser, { berkas: berkasAdmin });
     await masukAdmin(page, SANDI);

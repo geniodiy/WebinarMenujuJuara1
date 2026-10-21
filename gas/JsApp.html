@@ -38,6 +38,11 @@
       return pad(d.getUTCHours()) + '.' + pad(d.getUTCMinutes()) + ' WIB';
     }
 
+    /** false bila admin menyembunyikan bagian ini (konten.tampil dari server). */
+    function bagianTampil(nama) {
+      return !(konten && konten.tampil && konten.tampil[nama] === false);
+    }
+
     function peng(kunci) {
       var p = konten && konten.pengaturan ? konten.pengaturan : {};
       return p[kunci] || CADANGAN[kunci] || '';
@@ -635,6 +640,7 @@
 
     function renderCabang() {
       var daftar = (konten && konten.cabang ? konten.cabang : []).filter(function (c) { return c.nama && (c.alamat || c.link_maps || c.wa_admin || c.instagram); });
+      if (!bagianTampil('cabang')) daftar = [];
       $('bagian-cabang').hidden = !daftar.length;
       var wadah = $('daftar-cabang');
       wadah.textContent = '';
@@ -826,6 +832,7 @@
 
     function renderAjakan() {
       var cabang = (konten && konten.cabang ? konten.cabang : []).filter(function (c) { return c.wa_admin; });
+      if (!bagianTampil('ajakan')) cabang = [];
       $('bagian-ajakan').hidden = !cabang.length;
       if (!cabang.length) return;
       setTeks('judul-ajakan', peng('cta_judul'));

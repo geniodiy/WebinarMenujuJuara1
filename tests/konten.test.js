@@ -88,3 +88,9 @@ test('data contoh Fase 5 lengkap', () => {
   assert.strictEqual(profil.data_contoh, 'TIDAK');
   assert.strictEqual(profil.angka_4, '2');
 });
+
+test('bagian halaman tampil kecuali diisi TIDAK', () => {
+  assert.deepStrictEqual(polos(g.bagianTampil_({})), { tutor: true, profil: true, cabang: true, prestasi: true, ajakan: true });
+  assert.deepStrictEqual(polos(g.bagianTampil_({ tampil_tutor: 'tidak ', tampil_cabang: 'YA', tampil_ajakan: '' })),
+    { tutor: false, profil: true, cabang: true, prestasi: true, ajakan: true });
+});

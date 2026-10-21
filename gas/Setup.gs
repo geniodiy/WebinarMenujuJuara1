@@ -27,6 +27,11 @@ var KOLOM_GAMBAR_ = ['nama_file', 'id_file', 'url', 'terakhir_diperbarui'];
 
 var PENGATURAN_KONTEN_AWAL_ = [
   ['tampilkan_data_contoh', 'TIDAK', 'YA untuk pratinjau. Wajib TIDAK saat tayang'],
+  ['tampil_tutor', 'YA', 'TIDAK menyembunyikan bagian Profil tutor kelas'],
+  ['tampil_profil', 'YA', 'TIDAK menyembunyikan bagian Apa itu Genio'],
+  ['tampil_cabang', 'YA', 'TIDAK menyembunyikan bagian Cabang'],
+  ['tampil_prestasi', 'YA', 'TIDAK menyembunyikan bagian Prestasi'],
+  ['tampil_ajakan', 'YA', 'TIDAK menyembunyikan bagian Ajakan bergabung'],
   ['judul_acara', '#MenujuJuara Eps. 1: Roadmap OSN 2027', ''],
   ['tagline', 'Pertajam Strategi, Kuatkan Sinergi, Genggam Prestasi', ''],
   ['tanggal_teks', 'Sabtu, 14 November 2026', ''],

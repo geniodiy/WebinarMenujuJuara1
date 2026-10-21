@@ -400,6 +400,14 @@
         g5.appendChild(kotakCentang('tampilkan_data_contoh', 'Tampilkan data contoh di halaman publik', p.tampilkan_data_contoh === 'YA'));
         form.appendChild(g5);
 
+        var g6 = grup('Bagian halaman');
+        g6.appendChild(el('p', 'fd-bantuan', 'Hapus centang untuk menyembunyikan bagian dari halaman pengunjung. Isinya tetap tersimpan di spreadsheet.'));
+        [['tampil_tutor', 'Profil tutor kelas'], ['tampil_profil', 'Apa itu Genio'], ['tampil_cabang', 'Cabang'],
+          ['tampil_prestasi', 'Prestasi'], ['tampil_ajakan', 'Ajakan bergabung dengan Genio']].forEach(function (b) {
+          g6.appendChild(kotakCentang(b[0], b[1], p[b[0]] !== 'TIDAK'));
+        });
+        form.appendChild(g6);
+
         var pratinjau = el('p', 'admin-pratinjau');
         pratinjau.setAttribute('aria-live', 'polite');
         pratinjau.textContent = 'Dengan pengaturan ini, status sekarang: ' + teksStatus(statusAwal);
