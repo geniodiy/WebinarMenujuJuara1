@@ -93,3 +93,9 @@ Pratinjau: `docs/pratinjau/testimoni.png`.
 
 - Tiap testimoni berbentuk jendela obrolan WhatsApp: kepala hijau tua (inisial, nama, keterangan), latar krem bertitik, kutipan dalam gelembung putih dengan jam (kolom opsional). Tanpa gelembung balasan.
 - Kartu bergeser pelan ke kiri tanpa putus (sekitar 45 detik per putaran), berhenti saat disentuh atau disorot, tepi memudar; diam bila pengunjung memilih kurangi gerakan.
+
+### Ajakan bergabung
+Pratinjau: `docs/pratinjau/ajakan.png`.
+
+- Kartu putih bergaris tipis: ikon chat bergradien oranye, judul `cta_judul` ("Tertarik bergabung dengan Genio?"), keterangan singkat ("Konsultasi gratis via WhatsApp dengan admin cabang.").
+- Dua tombol hijau WhatsApp berdampingan, satu per cabang (Semarang, Yogyakarta), langsung membuka WhatsApp admin cabang (`wa_admin` di lembar Cabang) dengan pesan `cta_pesan_wa`. Cabang tanpa nomor tidak ditampilkan tombolnya.
