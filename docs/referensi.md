@@ -52,3 +52,11 @@ Pratinjau: `docs/pratinjau/tutor-kartu.png`.
 - Di bawah poster (diberi jarak 12 px kiri-kanan): judul kecil "Prestasi siswa binaan", daftar prestasi dengan ikon bulat sesuai jenis, garis putus-putus, lalu tombol kecil "Lihat selengkapnya" di tengah. Semua kartu sama tinggi.
 - Slider: desktop 3 kartu sekaligus, ponsel 1 kartu dengan kartu berikutnya terlihat di tepi; panah bulat putih berbayang di kiri-kanan, memudar di ujung; titik penanda di bawah.
 - Popup "Lihat selengkapnya" muncul di tengah layar: foto, nama, jabatan, room, ringkasan, daftar lengkap prestasi siswa binaan.
+- Kartu menampilkan **paling banyak 3 prestasi** teratas (urutan di data); sisanya hanya tampil di popup "Lihat selengkapnya".
+
+### Data dan edit tutor
+Pratinjau: `docs/pratinjau/tutor-admin.png`.
+
+- Jenis prestasi dan ikonnya: Emas (bulatan emas), Perak (bulatan perak), Perunggu (bulatan perunggu), Lainnya (bulatan gradien cyan ke teal dengan bintang putih; untuk finalis, best theory, harapan, dan penghargaan lain).
+- Lembar baru `Prestasi_Tutor` di Konten Website: urutan, nama_tutor, jenis (dropdown Emas/Perak/Perunggu/Lainnya), prestasi. Satu baris satu prestasi.
+- Panel admin tab "Tutor": ubah nama, jabatan, foto (pilih dari file di folder Gambar Web), dan daftar prestasi (pilih jenis, teks, hapus, tambah). Data yang sama dengan spreadsheet. Unggah foto langsung dari web tidak disertakan karena butuh izin tulis Google Drive.
