@@ -39,3 +39,4 @@ Yang tidak diambil: latar gelap (halaman kita terang seperti poster, PRD 7.1), l
 | R2 | Nama sesi orang tua & guru | "Sharing Session" | "Ruang Sinergi" (K1), PDF juga | **Diputuskan: "Sharing Session".** PRD sudah diperbarui; teks PDF yang menyebut Ruang Sinergi diganti saat membuat form |
 | R3 | Teks persetujuan | | PDF: "Genio Yogyakarta" | **Diputuskan: "Genio Institute"** (K2) |
 | R4 | Gradien | Poster memakai gradien Cyan ke Teal | | **Diputuskan: dipakai di beberapa tempat seperti poster** (PRD 7.1) |
+| R5 | Isian "Pertanyaan untuk Mas Indro" di langkah Penutup | | PRD Bagian 8 (`pertanyaan_narsum`) | **Diputuskan pemilik: dihapus dari form.** Kolom tetap ada di database dan terkirim kosong |

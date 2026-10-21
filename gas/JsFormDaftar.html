@@ -403,7 +403,7 @@
           break;
         case 'penutup':
           f.appendChild(fPilihan('sumber_info', 'Dari mana Anda mengetahui webinar ini?', L.OPSI.sumber_info, { ganda: true, bantuan: 'Boleh pilih lebih dari satu.' }));
-          f.appendChild(fTeks('pertanyaan_narsum', 'Pertanyaan untuk Mas Indro', { area: true, opsional: true, maxlength: L.BATAS.pertanyaan, bantuan: 'Pertanyaan yang masuk dibahas di sesi tanya jawab atau Sharing Session.' }));
+          // KEPUTUSAN: isian pertanyaan untuk narasumber dihapus atas permintaan pemilik; kolomnya tetap ada dan terkirim kosong.
           f.appendChild(fSetuju('setuju_kehadiran', siswaSendiri
             ? 'Saya mendaftar dengan sepengetahuan orang tua/wali, berkomitmen hadir dan mengikuti rangkaian webinar ini, serta bersedia nomor WhatsApp saya dimasukkan ke grup informasi peserta.'
             : 'Saya berkomitmen hadir dan mengikuti rangkaian webinar ini, serta bersedia nomor WhatsApp saya dimasukkan ke grup informasi peserta.'));
@@ -628,7 +628,6 @@
       }
       grupRingkasan(f, 'Penutup', 'penutup', function (dl) {
         baris(dl, 'Sumber informasi', teksDaftar(r.sumber_info));
-        baris(dl, 'Pertanyaan', r.pertanyaan_narsum);
         baris(dl, 'Persetujuan informasi program', r.setuju_info_program ? 'Ya' : 'Tidak');
       });
 

@@ -450,7 +450,17 @@
   .fd-kartu-ket { font-size: 12px; color: var(--redup); }
   .fd-pilihan-besar .fd-kartu { padding: 12px; }
   .fd-pilihan-besar .fd-kartu-judul { font-size: 14px; font-weight: 600; color: var(--item); }
-  .fd-setuju { font-size: 13px; }
+  /* Persetujuan bergaya syarat dan ketentuan: tanpa kartu, teks kecil, centang oranye. */
+  .fd-kartu.fd-setuju { min-height: 0; padding: 2px 0; gap: 10px; border: 0; border-radius: 6px; background: none; font-size: 12px; line-height: 1.5; color: var(--redup); }
+  .fd-kartu.fd-setuju.terpilih { background: none; }
+  .fd-kartu.fd-setuju .fd-kartu-ket { font-size: 11px; }
+  .fd-setuju input { width: 18px; height: 18px; margin-top: 0; }
+  .fd-setuju input[type="checkbox"]:checked { background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center / 12px no-repeat, linear-gradient(135deg, var(--coral), var(--gold)); }
+  .ada-galat .fd-setuju input { border-color: #B42318; }
+  .fd-kartu.fd-setuju:focus-within { outline: none; }
+  .fd-setuju input:focus-visible { outline: 2px solid rgba(255, 138, 91, .5); outline-offset: 2px; }
+  /* Dua persetujuan berurutan dirapatkan seperti satu kelompok. */
+  .fd-isian:has(.fd-setuju) + .fd-isian:has(.fd-setuju) { margin-top: -8px; }
 
   .fd-tombol {
     display: inline-flex; align-items: center; justify-content: center;
