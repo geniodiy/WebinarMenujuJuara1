@@ -60,3 +60,11 @@ Pratinjau: `docs/pratinjau/tutor-admin.png`.
 - Jenis prestasi dan ikonnya: Emas (bulatan emas), Perak (bulatan perak), Perunggu (bulatan perunggu), Lainnya (bulatan gradien cyan ke teal dengan bintang putih; untuk finalis, best theory, harapan, dan penghargaan lain).
 - Lembar baru `Prestasi_Tutor` di Konten Website: urutan, nama_tutor, jenis (dropdown Emas/Perak/Perunggu/Lainnya), prestasi. Satu baris satu prestasi.
 - Panel admin tab "Tutor": ubah nama, jabatan, foto (pilih dari file di folder Gambar Web), dan daftar prestasi (pilih jenis, teks, hapus, tambah). Data yang sama dengan spreadsheet. Unggah foto langsung dari web tidak disertakan karena butuh izin tulis Google Drive.
+
+### Apa itu Genio Institute
+Pratinjau: `docs/pratinjau/profil.png`.
+
+- Kotak judul bergradien dominan biru (indigo ke biru, sedikit cyan di ujung) berisi judul dan kalimat inti "Lembaga pembinaan olimpiade SD, SMP, dan SMA sejak 2010 dengan semangat 'Semua siswa bisa menjadi juara'."
+- Strip empat angka (angka berwarna indigo): 2010 Berdiri, 50+ Pembimbing, 100+ Sekolah mitra, 2 Cabang.
+- Paragraf rata kanan-kiri: "Dengan metode GENIO Problem Solving, Genio mendampingi ratusan siswa menghadapi OSN/KSN, OMI, dan kompetisi lainnya. Genio hadir di dua cabang, Semarang dan Yogyakarta, dengan kelas yang bisa diikuti secara online maupun offline."
+- Daftar program (TKA, International Curriculum, dan lain-lain) tidak ditampilkan dulu.
