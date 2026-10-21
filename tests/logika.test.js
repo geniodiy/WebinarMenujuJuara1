@@ -160,3 +160,16 @@ test('admin: validasi pengaturan, perapian, kunci login, dan prospek', () => {
   ]);
   assert.deepStrictEqual(p.map((x) => x.sumber_persetujuan), ['Pendaftaran', 'Pendaftaran (persetujuan pendamping)']);
 });
+
+test('laporan: baris rapi, terbaru di atas, sekolah dari asal atau tempat mengajar', () => {
+  const l = muatGas(['Util.gs', 'Config.gs', 'Konten.gs', 'Setup.gs', 'Pendaftaran.gs', 'Admin.gs', 'Laporan.gs']);
+  const isi = JSON.parse(JSON.stringify(l.susunBarisLaporan_([
+    { nama_lengkap: 'Lama', waktu_daftar: '2026-10-20 08:00', asal_sekolah: 'SD A', wa_kunci: '6281' },
+    { nama_lengkap: 'Baru', waktu_daftar: '2026-10-21 09:30', sekolah_mengajar: 'SMP B' }
+  ])));
+  const kol = JSON.parse(JSON.stringify(l.KOLOM_LAPORAN_)).map((k) => k[0]);
+  assert.deepStrictEqual(isi.map((b) => b[0]), ['Baru', 'Lama']);
+  assert.strictEqual(isi[0][kol.indexOf('sekolah')], 'SMP B');
+  assert.strictEqual(isi[1][kol.indexOf('wa_kunci')], '6281');
+  assert.strictEqual(isi[0].length, kol.length);
+});

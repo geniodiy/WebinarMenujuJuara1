@@ -10,7 +10,7 @@ const { chromium } = require('playwright');
 const muatGas = require('./muat-gas');
 
 const DIR_KELUAR = fs.mkdtempSync(path.join(os.tmpdir(), 'e2e-form-'));
-const g = muatGas(['Util.gs', 'Config.gs', 'Konten.gs', 'Setup.gs', 'Pendaftaran.gs', 'Admin.gs']);
+const g = muatGas(['Util.gs', 'Config.gs', 'Konten.gs', 'Setup.gs', 'Pendaftaran.gs', 'Admin.gs', 'Laporan.gs']);
 const SANDI = 'sandi-uji-panjang-123';
 
 function lembarTiruan(judul) {
@@ -567,7 +567,8 @@ async function uji(nama, fn) {
     daftarLangsung('Ani Uji', '081299998888', true);
     const { page } = await halamanBaru(browser, { berkas: berkasAdmin, viewport: { width: 1280, height: 900 } });
     await masukAdmin(page, SANDI);
-    await page.click('.admin-tab-tombol:has-text("Unduh")');
+    await page.click('.admin-tab-tombol:has-text("Lihat data")');
+    await page.waitForSelector('text=Laporan belum disiapkan');
     const [unduhan] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('text=Unduh semua data (.xlsx)')]);
     assert.ok(/^MenujuJuara-Eps1_semua_\d{4}-\d{2}-\d{2}_\d{4}\.xlsx$/.test(unduhan.suggestedFilename()), unduhan.suggestedFilename());
     const berkas = path.join(DIR_KELUAR, unduhan.suggestedFilename());

@@ -272,7 +272,7 @@ Fokus utama adalah form pendaftaran, karena pendaftaran sudah harus berjalan dan
 
 | Rilis | Isi | Fase | Target usulan |
 |---|---|---|---|
-| Rilis 1: Bisa daftar | Form pendaftaran lengkap dan halaman konfirmasi, header dengan ikon admin, poster dan info, agenda, narasumber, footer, tombol floating untuk fase pendaftaran, panel admin untuk pendaftaran (ringkasan, pengaturan pendaftaran, daftar pendaftar, unduh Excel), embed Blogger | 1, 2, 3, 4 | Sabtu, 24 Oktober 2026 |
+| Rilis 1: Bisa daftar | Form pendaftaran lengkap dan halaman konfirmasi, header dengan ikon admin, poster dan info, agenda, narasumber, footer, tombol floating untuk fase pendaftaran, panel admin untuk pendaftaran (ringkasan, pengaturan pendaftaran, tabel pendaftar, lihat data lewat spreadsheet laporan dan unduh Excel), embed Blogger | 1, 2, 3, 4 | Sabtu, 24 Oktober 2026 |
 | Rilis 2: Konten lengkap | Tutor, profil Genio, cabang, prestasi, testimoni, ajakan bergabung, FAQ | 5 | Rabu, 28 Oktober 2026 |
 | Rilis 3: Hari H | Presensi dan feedback, form pertanyaan, fase hari H dan selesai di tombol floating, pengaturan form hari H, tab Feedback dan Pertanyaan, peran moderator | 6, 7 | Selasa, 10 November 2026 |
 | Gladi bersih | Uji alur hari H bersama panitia | 8 | Kamis, 12 November 2026 |

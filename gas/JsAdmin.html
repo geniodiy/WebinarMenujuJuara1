@@ -7,7 +7,7 @@
     'use strict';
 
     var URL_SHEETJS = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
-    var BARIS_PER_HALAMAN = 50;
+    var PILIHAN_PER_HALAMAN = [10, 25, 50, 100];
     var SELISIH_WIB = 7 * 3600 * 1000;
     var ROOM = ['SD Matematika', 'SD IPA', 'SD IPS', 'SMP Matematika', 'SMP IPA', 'SMP IPS'];
     var KATEGORI = ['Siswa SD', 'Siswa SMP', 'Orang Tua', 'Guru Pembina'];
@@ -24,7 +24,7 @@
       setuju_info_program: 'Setuju Info Program', sumber_link: 'Sumber Link', uji: 'Data Uji', sumber_persetujuan: 'Sumber Persetujuan'
     };
 
-    var A = { token: '', tab: 'ringkasan', pendaftar: null, sertakanUji: false, cari: '', filter: {}, halaman: 0, pengaturanAwal: null };
+    var A = { token: '', tab: 'ringkasan', pendaftar: null, sertakanUji: false, cari: '', filter: {}, halaman: 0, perHalaman: 25, urut: { kolom: 'waktu_daftar', turun: true }, pengaturanAwal: null };
     var akar = null;
     var tundaPratinjau = null;
 
@@ -136,7 +136,7 @@
 
     /* ---------- Kerangka panel ---------- */
 
-    var TAB = [['ringkasan', 'Ringkasan'], ['pengaturan', 'Pengaturan'], ['pendaftar', 'Pendaftar'], ['unduh', 'Unduh']];
+    var TAB = [['ringkasan', 'Ringkasan'], ['pengaturan', 'Pengaturan'], ['pendaftar', 'Pendaftar'], ['lihat', 'Lihat data']];
 
     function renderPanel(tab) {
       A.tab = tab;
@@ -170,7 +170,7 @@
       if (tab === 'ringkasan') tabRingkasan(isi);
       else if (tab === 'pengaturan') tabPengaturan(isi);
       else if (tab === 'pendaftar') tabPendaftar(isi);
-      else tabUnduh(isi);
+      else tabLihat(isi);
     }
 
     function memuat(isi, teks) {
@@ -542,37 +542,94 @@
       }, function (e) { galat(wadah, e.message, muatPendaftar); });
     }
 
+    // Kolom tabel pendaftar; Nama di kolom pertama agar tetap terlihat saat tabel digeser.
+    var KOLOM_TABEL = [
+      ['nama_lengkap', 'Nama'], ['kategori', 'Kategori'], ['room', 'Room'], ['kelas', 'Kelas'], ['sekolah', 'Sekolah'],
+      ['bidang', 'Bidang'], ['wa_kunci', 'WhatsApp'], ['peran', 'Peran'], ['perangkat', 'Perangkat'],
+      ['waktu_daftar', 'Waktu daftar'], ['id_peserta', 'ID']
+    ];
+
+    function nilaiKolom(b, k) {
+      if (k === 'sekolah') return b.asal_sekolah || b.sekolah_mengajar || '';
+      if (k === 'perangkat') return berbagiPerangkat(b) ? 'Berbagi' : (b.perangkat ? 'Sendiri' : '');
+      return b[k] || '';
+    }
+
+    function urutkan(baris) {
+      var k = A.urut.kolom;
+      var arah = A.urut.turun ? -1 : 1;
+      return baris.slice().sort(function (a, b) {
+        var x = String(nilaiKolom(a, k)), y = String(nilaiKolom(b, k));
+        if (!x && y) return 1;
+        if (x && !y) return -1;
+        return arah * x.localeCompare(y, 'id', { numeric: true, sensitivity: 'base' });
+      });
+    }
+
+    function gantiUrut(k) {
+      if (A.urut.kolom === k) A.urut.turun = !A.urut.turun;
+      else A.urut = { kolom: k, turun: k === 'waktu_daftar' };
+      A.halaman = 0;
+      renderDaftar();
+    }
+
     function renderDaftar() {
       var wadah = $('admin-daftar');
       if (!wadah || !A.pendaftar) return;
-      var hasil = saring(A.pendaftar);
+      var hasil = urutkan(saring(A.pendaftar));
       var total = hasil.length;
-      var maksHalaman = Math.max(0, Math.ceil(total / BARIS_PER_HALAMAN) - 1);
+      var per = A.perHalaman;
+      var maksHalaman = Math.max(0, Math.ceil(total / per) - 1);
       A.halaman = Math.min(A.halaman, maksHalaman);
-      var potong = hasil.slice(A.halaman * BARIS_PER_HALAMAN, (A.halaman + 1) * BARIS_PER_HALAMAN);
+      var awal = A.halaman * per;
+      var potong = hasil.slice(awal, awal + per);
       wadah.textContent = '';
-      wadah.appendChild(el('p', 'admin-info', total + ' orang' + (A.pendaftar.length !== total ? ' dari ' + A.pendaftar.length : '') + ' · terbaru di atas'));
+
+      var baris1 = el('div', 'admin-tabel-alat');
+      var label = el('label', 'admin-info', 'Tampilkan ');
+      var pilih = el('select', 'fd-input admin-per-halaman');
+      pilih.setAttribute('aria-label', 'Jumlah data per halaman');
+      PILIHAN_PER_HALAMAN.forEach(function (n) {
+        var o = el('option', null, String(n));
+        o.value = String(n);
+        pilih.appendChild(o);
+      });
+      pilih.value = String(per);
+      pilih.addEventListener('change', function () { A.perHalaman = parseInt(pilih.value, 10); A.halaman = 0; renderDaftar(); });
+      label.appendChild(pilih);
+      label.appendChild(document.createTextNode(' data'));
+      baris1.appendChild(label);
+      baris1.appendChild(el('span', 'admin-info', total ? (awal + 1) + '–' + (awal + potong.length) + ' dari ' + total + (A.pendaftar.length !== total ? ' (tersaring dari ' + A.pendaftar.length + ')' : '') : '0 data'));
+      wadah.appendChild(baris1);
+
       if (!total) {
         wadah.appendChild(el('p', 'admin-memuat', 'Tidak ada pendaftar yang cocok.'));
         return;
       }
+      var gulir = el('div', 'admin-gulir');
       var tabel = el('table', 'admin-tabel admin-tabel-pendaftar');
-      var kolom = [['id_peserta', 'ID'], ['nama_lengkap', 'Nama'], ['kategori', 'Kategori'], ['room', 'Room'], ['wa_kunci', 'WhatsApp'], ['sekolah', 'Sekolah'], ['perangkat', 'Perangkat']];
       var thead = el('thead');
       var tr = el('tr');
-      kolom.forEach(function (k) { tr.appendChild(el('th', null, k[1])); });
+      KOLOM_TABEL.forEach(function (k) {
+        var th = el('th');
+        var aktif = A.urut.kolom === k[0];
+        if (aktif) th.setAttribute('aria-sort', A.urut.turun ? 'descending' : 'ascending');
+        var btn = tombol(k[1], 'admin-urut' + (aktif ? ' aktif' : ''), function () { gantiUrut(k[0]); });
+        btn.appendChild(el('span', 'admin-urut-tanda', aktif ? (A.urut.turun ? '▼' : '▲') : '↕'));
+        btn.setAttribute('aria-label', 'Urutkan menurut ' + k[1]);
+        th.appendChild(btn);
+        tr.appendChild(th);
+      });
       thead.appendChild(tr);
       tabel.appendChild(thead);
       var tbody = el('tbody');
       potong.forEach(function (b) {
         var r = el('tr');
-        kolom.forEach(function (k) {
-          var v = k[0] === 'sekolah' ? (b.asal_sekolah || b.sekolah_mengajar || '') : k[0] === 'perangkat' ? (berbagiPerangkat(b) ? 'Berbagi' : '') : (b[k[0]] || '');
-          var td = el('td', k[0] === 'perangkat' && v ? 'tanda-berbagi' : null);
-          td.setAttribute('data-label', k[1]);
+        KOLOM_TABEL.forEach(function (k) {
+          var v = nilaiKolom(b, k[0]);
+          var td = el('td', k[0] === 'perangkat' && v === 'Berbagi' ? 'tanda-berbagi' : null);
           if (k[0] === 'nama_lengkap') {
-            var t = tombol(v || '-', 'tombol-tautan', function () { bukaDetail(b); });
-            td.appendChild(t);
+            td.appendChild(tombol(v || '-', 'tombol-tautan', function () { bukaDetail(b); }));
             if (b.uji === 'YA') td.appendChild(el('span', 'label-contoh', 'Uji'));
           } else {
             td.textContent = v;
@@ -582,19 +639,18 @@
         tbody.appendChild(r);
       });
       tabel.appendChild(tbody);
-      wadah.appendChild(tabel);
+      gulir.appendChild(tabel);
+      wadah.appendChild(gulir);
 
-      if (maksHalaman > 0) {
-        var nav = el('div', 'admin-aksi');
-        var seb = tombol('Sebelumnya', 'tombol-garis', function () { A.halaman--; renderDaftar(); wadah.scrollIntoView(); });
-        seb.disabled = A.halaman === 0;
-        var ber = tombol('Berikutnya', 'tombol-garis', function () { A.halaman++; renderDaftar(); wadah.scrollIntoView(); });
-        ber.disabled = A.halaman >= maksHalaman;
-        nav.appendChild(seb);
-        nav.appendChild(el('span', 'admin-info', 'Halaman ' + (A.halaman + 1) + ' dari ' + (maksHalaman + 1)));
-        nav.appendChild(ber);
-        wadah.appendChild(nav);
-      }
+      var nav = el('div', 'admin-halaman');
+      var seb = tombol('Sebelumnya', 'tombol-garis', function () { A.halaman--; renderDaftar(); });
+      seb.disabled = A.halaman === 0;
+      var ber = tombol('Berikutnya', 'tombol-garis', function () { A.halaman++; renderDaftar(); });
+      ber.disabled = A.halaman >= maksHalaman;
+      nav.appendChild(seb);
+      nav.appendChild(el('span', 'admin-info', 'Halaman ' + (A.halaman + 1) + ' dari ' + (maksHalaman + 1)));
+      nav.appendChild(ber);
+      wadah.appendChild(nav);
     }
 
     function bukaDetail(b) {
@@ -679,8 +735,52 @@
       return wb;
     }
 
-    function tabUnduh(isi) {
+    /* ---------- Lihat data ---------- */
+
+    function tabLihat(isi) {
       isi.textContent = '';
+      var bagian = el('div', 'admin-lihat');
+      isi.appendChild(bagian);
+      memuat(bagian);
+      panggil('adminInfoLaporan', [A.token], function (d) { renderLihat(bagian, d); }, function (e) {
+        galat(bagian, e.message, function () { tabLihat(isi); });
+      });
+      var unduh = el('div', 'admin-unduh');
+      isi.appendChild(unduh);
+      bagianUnduh(unduh);
+    }
+
+    function renderLihat(bagian, d) {
+      bagian.textContent = '';
+      bagian.appendChild(el('h3', 'admin-subjudul', 'Spreadsheet laporan'));
+      if (!d.siap) {
+        bagian.appendChild(el('p', 'pita', 'Laporan belum disiapkan. Pemilik perlu menjalankan fungsi siapkanLaporan sekali di editor Apps Script.'));
+        return;
+      }
+      bagian.appendChild(el('p', 'admin-info', 'Tampilan rapi data pendaftar (tanpa data uji). Bisa diurutkan dan disaring lewat ikon filter di judul kolom. Diperbarui otomatis tiap 10 menit.'));
+      var aksi = el('div', 'admin-aksi');
+      var a = el('a', 'tombol tombol-indigo', 'Buka spreadsheet laporan');
+      a.href = d.url;
+      a.target = '_blank';
+      a.rel = 'noopener';
+      aksi.appendChild(a);
+      var status = el('p', 'admin-catatan', d.diperbarui ? 'Terakhir diperbarui ' + d.diperbarui + ' WIB.' : 'Belum pernah diperbarui.');
+      status.setAttribute('role', 'status');
+      var perbarui = tombol('Perbarui sekarang', 'tombol-garis', function () {
+        perbarui.disabled = true;
+        status.textContent = 'Memperbarui laporan…';
+        panggil('adminPerbaruiLaporan', [A.token], function (baru) {
+          perbarui.disabled = false;
+          status.textContent = 'Terakhir diperbarui ' + baru.diperbarui + ' WIB.';
+        }, function (e) { perbarui.disabled = false; status.textContent = e.message; });
+      });
+      aksi.appendChild(perbarui);
+      bagian.appendChild(aksi);
+      bagian.appendChild(status);
+    }
+
+    function bagianUnduh(isi) {
+      isi.appendChild(el('h3', 'admin-subjudul', 'Unduh cadangan (.xlsx)'));
       isi.appendChild(el('p', 'fd-bantuan', 'File dibuat di perangkat ini. Data uji tidak ikut kecuali dicentang.'));
       var uji = kotakCentang('uji_unduh', 'Sertakan data uji', false);
       isi.appendChild(uji);
@@ -711,8 +811,8 @@
         });
       }
 
-      var aksi = el('div', 'admin-aksi admin-aksi-kolom');
-      var b1 = tombol('Unduh semua data (.xlsx)', 'tombol-indigo');
+      var aksi = el('div', 'admin-aksi');
+      var b1 = tombol('Unduh semua data (.xlsx)', 'tombol-garis');
       b1.addEventListener('click', function () { unduh('semua', b1); });
       var b2 = tombol('Unduh daftar prospek (.xlsx)', 'tombol-garis');
       b2.addEventListener('click', function () { unduh('prospek', b2); });

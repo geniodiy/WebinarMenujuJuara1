@@ -97,7 +97,9 @@ Pilih fungsi **isiDataContoh**, lalu **Jalankan**. Lembar yang sudah berisi tida
 
 ## Panel admin
 
-Ketuk ikon centang di header (atau buka alamat `/exec?admin=1`), lalu masukkan kata sandi `ADMIN_PASSWORD`. Tab: Ringkasan, Pengaturan, Pendaftar, Unduh. Setiap perubahan pengaturan, login gagal, dan unduhan dicatat di lembar Log_Admin.
+Ketuk ikon centang di header (atau buka alamat `/exec?admin=1`), lalu masukkan kata sandi `ADMIN_PASSWORD`. Tab: Ringkasan, Pengaturan, Pendaftar (tabel yang bisa digeser, diurutkan, dan dibagi per halaman), dan Lihat data (spreadsheet laporan plus unduh cadangan .xlsx). Setiap perubahan pengaturan, login gagal, pembaruan laporan, dan unduhan dicatat di lembar Log_Admin.
+
+**Spreadsheet laporan (sekali saja):** jalankan `siapkanLaporan` dari editor. Fungsi ini membuat file "Laporan Pendaftar #MenujuJuara Eps. 1" di folder yang sama dengan spreadsheet database, mengisinya, dan memasang pembaruan otomatis tiap 10 menit (Google meminta izin sekali). Bagikan file laporan dengan akses Pelihat ke akun panitia yang perlu melihatnya. Isi laporan ditimpa skrip, jadi jangan mengedit datanya; urutkan dan saring lewat ikon filter di judul kolom.
 
 Bila unduhan Excel tidak muncul (browser bawaan aplikasi kadang memblokir unduhan di dalam iframe), buka alamat `/exec` langsung di Chrome lalu unduh lagi.
 
@@ -114,6 +116,7 @@ Jalankan dari editor Apps Script: pilih nama fungsi, lalu **Jalankan**. Hasilnya
 | `bukaKunciLogin` | Membuka kunci panel admin setelah 20 kali salah kata sandi dalam 15 menit |
 | `perbaruiRekap` | Menghitung ulang lembar Rekap dari lembar Pendaftar |
 | `bersihkanCache` | Memaksa halaman memakai data terbaru |
+| `siapkanLaporan` | Membuat atau menata ulang spreadsheet laporan dan memasang pembaruan otomatis tiap 10 menit |
 
 ## Memperbarui web app (setiap ada perubahan kode)
 

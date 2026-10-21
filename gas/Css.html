@@ -345,13 +345,29 @@
   .admin input[type="search"]::-webkit-search-cancel-button { filter: grayscale(1); }
   .admin input[type="checkbox"], .admin input[type="radio"] { accent-color: var(--item); }
 
-  @media (max-width: 639px) {
-    .admin-tabel-pendaftar thead { display: none; }
-    .admin-tabel-pendaftar tr { display: block; padding: 10px 0; border-bottom: 1px solid var(--garis); }
-    .admin-tabel-pendaftar td { display: flex; gap: 8px; padding: 2px 0; border: 0; }
-    .admin-tabel-pendaftar td::before { content: attr(data-label); flex: 0 0 88px; color: var(--redup); font-size: 13px; }
-    .admin-tabel-pendaftar td:empty { display: none; }
-  }
+  /* Tabel pendaftar: huruf kecil, bisa digeser kiri-kanan, kolom Nama tetap terlihat. */
+  .admin-tabel-alat { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; }
+  .admin-tabel-alat label { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .admin .fd-input.admin-per-halaman { width: auto; min-height: 30px; padding: 2px 6px; font-size: 12px; }
+  .admin-gulir { overflow-x: auto; -webkit-overflow-scrolling: touch; border: 1px solid var(--garis); border-radius: 10px; }
+  .admin-tabel-pendaftar { font-size: 12px; min-width: 860px; }
+  .admin-tabel-pendaftar th, .admin-tabel-pendaftar td { padding: 7px 10px; white-space: nowrap; }
+  .admin-tabel-pendaftar thead th { position: sticky; top: 0; background: #F6F7F2; }
+  .admin-tabel-pendaftar tbody tr:nth-child(even) td { background: #FBFBF8; }
+  .admin-tabel-pendaftar tbody tr:hover td { background: #F1F3EA; }
+  .admin-tabel-pendaftar th:first-child, .admin-tabel-pendaftar td:first-child { position: sticky; left: 0; z-index: 1; background: #fff; box-shadow: 1px 0 0 var(--garis); }
+  .admin-tabel-pendaftar thead th:first-child { z-index: 2; background: #F6F7F2; }
+  .admin-tabel-pendaftar td { vertical-align: middle; }
+  .admin .admin-tabel-pendaftar .tombol.tombol-tautan { min-height: 0; padding: 0; border: 0; font-size: 12px; text-align: left; }
+  .admin-tabel-pendaftar .label-contoh { margin-left: 6px; font-size: 10px; }
+  .admin .tombol.admin-urut { min-height: 0; padding: 0; border: 0; background: none; font-size: 11.5px; font-weight: 600; color: var(--redup); display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+  .admin .tombol.admin-urut.aktif { color: var(--item); }
+  .admin-urut-tanda { font-size: 9px; opacity: .55; }
+  .admin-urut.aktif .admin-urut-tanda { opacity: 1; }
+  .admin-halaman { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .admin .admin-halaman .tombol { min-height: 32px; padding: 4px 12px; font-size: 12px; }
+  .admin-lihat, .admin-unduh { display: flex; flex-direction: column; gap: 8px; }
+  .admin-unduh { padding-top: 12px; border-top: 1px solid var(--garis); }
 
   @media (min-width: 640px) {
     /* Desktop: foto dan kartu prestasi sebagai satu kelompok di tengah; kartu menimpa sisi kanan foto dan sejajar dasar foto. */
