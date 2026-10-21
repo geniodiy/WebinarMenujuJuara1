@@ -362,11 +362,56 @@
   .admin-tabel-pendaftar .label-contoh { margin-left: 6px; font-size: 10px; }
   .admin .tombol.admin-urut { min-height: 0; padding: 0; border: 0; background: none; font-size: 11.5px; font-weight: 600; color: var(--redup); display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
   .admin .tombol.admin-urut.aktif { color: var(--item); }
-  .admin-urut-tanda { font-size: 9px; opacity: .55; }
   .admin-urut.aktif .admin-urut-tanda { opacity: 1; }
   .admin-halaman { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
   .admin .admin-halaman .tombol { min-height: 32px; padding: 4px 12px; font-size: 12px; }
   .admin-lihat, .admin-unduh { display: flex; flex-direction: column; gap: 8px; }
+  /* Panel admin ringkas: huruf lebih kecil dan tipis, tombol dan wadah lebih rapat, ikon satu warna. */
+  .admin { font-size: 12px; }
+  .admin-panel { padding: 8px 8px 32px; }
+  .admin-kepala { padding: 4px 48px 8px 2px; }
+  .admin-kepala h2 { font-size: 14px; font-weight: 600; }
+  .admin-kepala h3, .admin-subjudul { font-size: 13px; font-weight: 600; }
+  .admin-masuk h2 { font-size: 15px; font-weight: 600; }
+  .admin-form label, .admin-isian label, .admin-grup legend { font-size: 12px; font-weight: 500; }
+  .admin-tab { gap: 2px; padding: 3px; border-radius: 10px; }
+  .admin-tab-tombol { min-height: 30px; padding: 4px; border-radius: 8px; font-size: 12px !important; font-weight: 500; }
+  .admin-isi { margin-top: 8px; padding: 10px; gap: 10px; border-radius: 12px; }
+  .admin-info, .pesan-admin { font-size: 11.5px; }
+  .admin-catatan { font-size: 11px; }
+  .admin-angka { gap: 6px; }
+  .admin-angka-kartu { padding: 8px 10px; border-radius: 10px; }
+  .admin-angka-kartu strong { font-size: 16px; font-weight: 600; }
+  .admin-angka-kartu span { font-size: 11px; }
+  .admin-tabel { font-size: 11.5px; }
+  .admin-tabel th { font-size: 11px; font-weight: 500; }
+  .admin-tabel th, .admin-tabel td { padding: 5px 8px; }
+  .admin-grup { padding: 10px; gap: 8px; border-radius: 10px; }
+  .admin-pratinjau { padding: 8px 10px; font-size: 12px; font-weight: 500; }
+  .admin .pita { padding: 6px 10px; font-size: 11.5px; }
+  .admin .tombol { min-height: 30px; padding: 4px 12px; border-radius: 8px; font-size: 12px; font-weight: 500; }
+  .admin .fd-input { min-height: 30px; padding: 4px 8px; font-size: 12px; border-radius: 8px; }
+  .admin-filter { gap: 6px; }
+  .admin-alat { gap: 6px; }
+  .admin .fd-kartu { min-height: 30px; padding: 5px 10px; gap: 8px; font-size: 12px; border-radius: 8px; }
+  .admin .fd-kartu .fd-kartu-judul { font-weight: 400; }
+  .admin .fd-kartu input { width: 15px; height: 15px; margin-top: 1px; }
+  .admin .fd-kartu input:checked { background: var(--item); }
+  .admin .fd-kartu input[type="checkbox"]:checked { background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center / 10px no-repeat, var(--item); }
+  .admin .fd-kartu.terpilih { border-color: var(--garis); background: #fff; }
+  .admin-tabel-pendaftar { font-size: 11px; min-width: 820px; }
+  .admin-tabel-pendaftar th, .admin-tabel-pendaftar td { padding: 4px 8px; }
+  .admin .admin-tabel-pendaftar .tombol.tombol-tautan { font-size: 11px; font-weight: 500; }
+  .admin .tombol.admin-urut { font-size: 11px; font-weight: 500; }
+  .admin-urut-tanda { display: inline-flex; width: 7px; height: 10px; opacity: .45; }
+  .admin-urut-tanda svg { width: 100%; height: 100%; }
+  .tanda-berbagi { color: var(--item); font-weight: 500; }
+  .admin .label-contoh { font-weight: 500; }
+  .admin .fd-input.admin-per-halaman { min-height: 24px; padding: 0 4px; font-size: 11px; }
+  .admin .admin-halaman .tombol { min-height: 26px; padding: 2px 10px; font-size: 11px; }
+  .admin-detail { padding: 12px 14px 14px; font-size: 12px; }
+  .admin-detail .fd-ringkas-dl { font-size: 11.5px; }
+  .admin-konfirmasi-kotak { padding: 14px; gap: 12px; font-size: 13px; font-weight: 500; }
   .admin-unduh { padding-top: 12px; border-top: 1px solid var(--garis); }
 
   @media (min-width: 640px) {
@@ -393,7 +438,7 @@
     .bagian h2 { font-size: 22px; }
     .lapisan { align-items: center; }
     .lembar { border-radius: 20px; }
-    .admin-panel { padding: 24px 24px 48px; }
+    .admin-panel { padding: 14px 14px 32px; }
     .admin-angka { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .admin-kisi, .admin-filter { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   }

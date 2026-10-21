@@ -543,6 +543,12 @@
     }
 
     // Kolom tabel pendaftar; Nama di kolom pertama agar tetap terlihat saat tabel digeser.
+    var IKON_URUT = {
+      netral: '<svg viewBox="0 0 10 14" aria-hidden="true"><path d="M2 5l3-3 3 3M2 9l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      naik: '<svg viewBox="0 0 10 14" aria-hidden="true"><path d="M2 8l3-3 3 3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      turun: '<svg viewBox="0 0 10 14" aria-hidden="true"><path d="M2 6l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+    };
+
     var KOLOM_TABEL = [
       ['nama_lengkap', 'Nama'], ['kategori', 'Kategori'], ['room', 'Room'], ['kelas', 'Kelas'], ['sekolah', 'Sekolah'],
       ['bidang', 'Bidang'], ['wa_kunci', 'WhatsApp'], ['peran', 'Peran'], ['perangkat', 'Perangkat'],
@@ -615,7 +621,10 @@
         var aktif = A.urut.kolom === k[0];
         if (aktif) th.setAttribute('aria-sort', A.urut.turun ? 'descending' : 'ascending');
         var btn = tombol(k[1], 'admin-urut' + (aktif ? ' aktif' : ''), function () { gantiUrut(k[0]); });
-        btn.appendChild(el('span', 'admin-urut-tanda', aktif ? (A.urut.turun ? '▼' : '▲') : '↕'));
+        var tanda = el('span', 'admin-urut-tanda');
+        // Ikon garis satu warna (mengikuti warna teks), bukan karakter yang bisa tampil sebagai emoji berwarna.
+        tanda.innerHTML = IKON_URUT[aktif ? (A.urut.turun ? 'turun' : 'naik') : 'netral'];
+        btn.appendChild(tanda);
         btn.setAttribute('aria-label', 'Urutkan menurut ' + k[1]);
         th.appendChild(btn);
         tr.appendChild(th);
