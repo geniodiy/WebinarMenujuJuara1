@@ -1142,8 +1142,8 @@
         if (!ponsel || !ponsel.matches || !bisaDiketik(e.target)) return;
         clearTimeout(jedaKetik);
         keyboardTertutup = false;
-        // Keyboard muncul bertahap dan sebagian browser ikut menggeser halaman, jadi periksa beberapa kali.
-        [60, 350, 800].forEach(function (ms) { setTimeout(periksa, ms); });
+        // Tunggu keyboard selesai muncul: bila halaman ikut mengecil (misalnya di Blogger), cukup gulir tanpa memindah popup.
+        [300, 700].forEach(function (ms) { setTimeout(periksa, ms); });
       }
       akar.addEventListener('focusin', mulaiPeriksa);
       // Kolom yang masih aktif disentuh lagi setelah keyboard ditutup: focusin tidak terpicu, tetapi keyboard muncul lagi.
