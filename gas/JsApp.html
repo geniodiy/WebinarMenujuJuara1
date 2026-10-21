@@ -834,14 +834,7 @@
       wadah.textContent = '';
       cabang.forEach(function (c) {
         var a = tautanLuar('', tautanWa(c.wa_admin, peng('cta_pesan_wa')), 'ajakan-wa');
-        var svg = document.createElementNS(NS_SVG, 'svg');
-        svg.setAttribute('viewBox', '0 0 24 24');
-        svg.setAttribute('aria-hidden', 'true');
-        var p = document.createElementNS(NS_SVG, 'path');
-        p.setAttribute('d', 'M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2z');
-        p.setAttribute('fill', 'currentColor');
-        svg.appendChild(p);
-        a.appendChild(svg);
+        a.innerHTML = FormDaftar.IKON_WA;
         a.appendChild(document.createTextNode(namaPendekCabang(c.nama)));
         a.setAttribute('aria-label', 'Chat WhatsApp admin ' + namaPendekCabang(c.nama));
         wadah.appendChild(a);
