@@ -1,53 +1,42 @@
 <!--
-  Versi untuk TEMA Blogger (Tema > Edit HTML). Tema Blogger adalah XML, jadi isi script dibungkus CDATA.
-  Jangan mengganti seluruh isi tema dengan kode ini. Cari blok lama yang berisi "genio-webinar"
-  (dari <div id="genio-webinar"> sampai </noscript>), lalu ganti blok itu saja dengan kode di bawah.
-  Ganti ID_DEPLOYMENT di dua tempat dengan ID web app.
-  Bila memakai Halaman (Page) biasa, pakai docs/embed-blogger.html di Tampilan HTML halaman tersebut.
--->
-<div id="genio-webinar"></div>
-<script>
-//<![CDATA[
-  (function () {
-    var URL_WEB_APP = 'https://script.google.com/macros/s/ID_DEPLOYMENT/exec';
-    // Hanya parameter ini yang diteruskan ke web app (misalnya ?form=daftar atau ?ref=wa).
-    var DITERUSKAN = ['form', 'ref', 'utm_source', 'admin'];
+  Perubahan untuk TEMA Blogger (Tema > Edit HTML) yang memakai iframe statis class 'gas-app-container'.
+  Tema Blogger adalah XML: jangan mengganti seluruh isi tema, cukup dua perubahan berikut.
 
+  1) Di dalam <b:skin>, pada aturan .gas-app-container, ganti
+       position: absolute;
+     menjadi
+       position: fixed;
+
+  2) Ganti baris <iframe ... class='gas-app-container' .../> dengan blok di bawah
+     (URL /exec sudah sama dengan yang dipakai sekarang; ganti bila deployment berubah).
+-->
+  <iframe allowfullscreen='true' class='gas-app-container' id='gas-app' src='https://script.google.com/macros/s/AKfycbyXSJ8AhFMmWWbUk3Q3JpdUJfay5ApA6OJv24oxKBaQr7svK4sfIzGBFhpQgcJGFDEY1w/exec'/>
+  <script>
+  //<![CDATA[
+  (function () {
+    var f = document.getElementById('gas-app');
+    if (!f) return;
+
+    // Teruskan parameter tertentu dari alamat Blogger ke web app (misalnya ?form=daftar atau ?ref=wa).
+    var DITERUSKAN = ['form', 'ref', 'utm_source', 'admin'];
     var asal = new URLSearchParams(window.location.search);
     var tujuan = new URLSearchParams();
     DITERUSKAN.forEach(function (k) {
       if (asal.has(k)) tujuan.set(k, asal.get(k));
     });
-    var qs = tujuan.toString();
+    if (tujuan.toString()) f.src = f.src.split('?')[0] + '?' + tujuan.toString();
 
-    var f = document.createElement('iframe');
-    f.src = URL_WEB_APP + (qs ? '?' + qs : '');
-    f.title = 'Webinar #MenujuJuara Eps. 1';
-    f.setAttribute('allow', 'clipboard-write');
-    f.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;border:0;z-index:2147483647;background:#ffffff;';
-    document.getElementById('genio-webinar').appendChild(f);
-
-    // Halaman Blogger di belakang iframe tidak perlu digulir; mencegah browser menggeser halaman saat keyboard muncul.
-    document.documentElement.style.overflow = 'hidden';
-    document.body.style.overflow = 'hidden';
-
-    // Saat keyboard ponsel muncul, iframe dipas ke area layar yang masih terlihat (di atas keyboard).
-    // Dengan begitu form di dalamnya tahu ruang yang tersisa, dan kembali penuh saat keyboard ditutup.
+    // Saat keyboard ponsel muncul, iframe dipas ke area layar yang masih terlihat (di atas keyboard),
+    // lalu kembali penuh saat keyboard ditutup. Form di dalamnya memakai ukuran ini untuk menata popup.
     var vv = window.visualViewport;
-    if (vv) {
-      var pas = function () {
-        f.style.top = vv.offsetTop + 'px';
-        f.style.height = vv.height + 'px';
-      };
-      vv.addEventListener('resize', pas);
-      vv.addEventListener('scroll', pas);
-      pas();
-    }
+    if (!vv) return;
+    var pas = function () {
+      f.style.top = vv.offsetTop + 'px';
+      f.style.height = vv.height + 'px';
+    };
+    vv.addEventListener('resize', pas);
+    vv.addEventListener('scroll', pas);
+    pas();
   })();
-//]]>
-</script>
-<noscript>
-  <iframe src="https://script.google.com/macros/s/ID_DEPLOYMENT/exec"
-          title="Webinar #MenujuJuara Eps. 1"
-          style="position:fixed;top:0;left:0;width:100%;height:100%;border:0;z-index:2147483647;background:#ffffff;"></iframe>
-</noscript>
+  //]]>
+  </script>
