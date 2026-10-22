@@ -470,6 +470,26 @@
 
     /* Foto tutor diambil lewat server (getFotoTutor) agar latar transparan tidak menjadi hitam.
        Tanpa google.script.run (pratinjau lokal) atau bila gagal, pakai alamat gambar Drive. */
+    // Satu permintaan per foto, dipakai bersama oleh kartu asli dan salinannya di pita.
+    var fotoMemo = {};
+
+    function ambilFotoTutor(id, selesai) {
+      var m = fotoMemo[id];
+      if (m && m.selesai) { selesai(m.data); return; }
+      if (m) { m.tunggu.push(selesai); return; }
+      m = fotoMemo[id] = { selesai: false, data: '', tunggu: [selesai] };
+      function beres(data) {
+        m.selesai = true;
+        m.data = data;
+        m.tunggu.forEach(function (fn) { fn(data); });
+        m.tunggu = [];
+      }
+      google.script.run
+        .withSuccessHandler(function (r) { beres(r && r.ok ? r.data : ''); })
+        .withFailureHandler(function () { beres(''); })
+        .getFotoTutor(id);
+    }
+
     function fotoTutor(t, wadah, sizes) {
       if (t.foto_url) {
         var img = el('img');
@@ -479,10 +499,7 @@
         if (t.foto_id && window.google && google.script && google.script.run) {
           img.className = 'foto-muat';
           img.onload = function () { img.classList.remove('foto-muat'); };
-          google.script.run
-            .withSuccessHandler(function (r) { if (r && r.ok) img.src = r.data; else lewatDrive(); })
-            .withFailureHandler(lewatDrive)
-            .getFotoTutor(t.foto_id);
+          ambilFotoTutor(t.foto_id, function (data) { if (data) img.src = data; else lewatDrive(); });
         } else {
           img.loading = 'lazy';
           lewatDrive();
@@ -577,7 +594,7 @@
       }
       var aktif = Math.min(jumlah - 1, Math.round(g.scrollLeft / langkah));
       Array.prototype.forEach.call(titik.children, function (d, j) { d.classList.toggle('aktif', j === aktif); });
-      titik.hidden = jumlah < 2;
+      titik.hidden = jumlah < 2 || !!g.querySelector('.salinan');
       $('tutor-kiri').disabled = g.scrollLeft < 4;
       $('tutor-kanan').disabled = g.scrollLeft > maks - 4;
       $('tutor-kiri').hidden = $('tutor-kanan').hidden = jumlah < 2;
@@ -600,25 +617,49 @@
     }
 
     /*
-     * Geser otomatis berulang (keputusan pemilik). Berhenti saat bagian tutor disentuh atau diklik,
-     * jalan lagi setelah pengunjung menyentuh bagian lain halaman. Hanya berjalan saat terlihat di layar.
-     * Kartu muncul berurutan saat bagian tutor pertama kali terlihat.
+     * Pita berjalan (keputusan pemilik, opsi 1): kartu bergeser pelan terus-menerus dan menyambung
+     * tanpa ujung karena daftar kartu disalin sekali di belakangnya. Berhenti saat bagian tutor
+     * disentuh atau diklik, jalan lagi setelah pengunjung menyentuh bagian lain halaman.
+     * Hanya berjalan saat terlihat di layar. Kartu muncul berurutan saat pertama kali terlihat.
      */
-    var JEDA_GESER_MS = 3500;
-    var otomatis = { dijeda: false, terlihat: false, timer: null };
+    var KECEPATAN_PITA = 28; // px per detik
+    var otomatis = { dijeda: false, terlihat: false, bingkai: 0, waktu: 0, posisi: 0 };
 
-    function langkahOtomatis() {
-      var g = slider.geser;
-      if (otomatis.dijeda || !otomatis.terlihat || document.hidden || document.documentElement.classList.contains('fd-terbuka')) return;
-      var maks = g.scrollWidth - g.clientWidth;
-      if (maks < 4) return;
-      if (g.scrollLeft >= maks - 4) g.scrollTo({ left: 0, behavior: 'smooth' });
-      else g.scrollBy({ left: lebarLangkah(), behavior: 'smooth' });
+    function lebarSatuPutaran() {
+      var salinan = slider.geser.querySelector('.tutor-kartu.salinan');
+      return salinan ? salinan.offsetLeft - slider.geser.firstElementChild.offsetLeft : 0;
     }
 
-    function mulaiUlangTimer() {
-      clearInterval(otomatis.timer);
-      otomatis.timer = setInterval(langkahOtomatis, JEDA_GESER_MS);
+    function bolehJalan() {
+      return !otomatis.dijeda && otomatis.terlihat && !document.hidden &&
+        !document.documentElement.classList.contains('fd-terbuka') && lebarSatuPutaran() > 0;
+    }
+
+    function bingkaiPita(t) {
+      otomatis.bingkai = 0;
+      if (!bolehJalan()) { hentikanPita(); return; }
+      var g = slider.geser;
+      var dt = otomatis.waktu ? Math.min(0.05, (t - otomatis.waktu) / 1000) : 0;
+      otomatis.waktu = t;
+      var putaran = lebarSatuPutaran();
+      otomatis.posisi += KECEPATAN_PITA * dt;
+      if (otomatis.posisi >= putaran) otomatis.posisi -= putaran;
+      g.scrollLeft = otomatis.posisi;
+      otomatis.bingkai = window.requestAnimationFrame(bingkaiPita);
+    }
+
+    function jalankanPita() {
+      if (otomatis.bingkai || !bolehJalan()) return;
+      var g = slider.geser;
+      var putaran = lebarSatuPutaran();
+      otomatis.posisi = g.scrollLeft >= putaran ? g.scrollLeft - putaran : g.scrollLeft;
+      otomatis.waktu = 0;
+      otomatis.bingkai = window.requestAnimationFrame(bingkaiPita);
+    }
+
+    function hentikanPita() {
+      if (otomatis.bingkai) window.cancelAnimationFrame(otomatis.bingkai);
+      otomatis.bingkai = 0;
     }
 
     function siapkanGeserOtomatis() {
@@ -628,24 +669,50 @@
         if (!tenang) slider.geser.classList.add('kartu-siap-muncul');
         new IntersectionObserver(function (entri) {
           otomatis.terlihat = entri[0].isIntersecting;
-          if (otomatis.terlihat) slider.geser.classList.add('kartu-muncul');
+          if (otomatis.terlihat) {
+            slider.geser.classList.add('kartu-muncul');
+            jalankanPita();
+          }
         }, { threshold: 0.25 }).observe(wadah);
       } else {
         otomatis.terlihat = true;
       }
       if (tenang) return;
       document.addEventListener('pointerdown', function (e) {
-        var diDalam = wadah.contains(e.target);
-        if (diDalam) otomatis.dijeda = true;
-        else if (otomatis.dijeda) { otomatis.dijeda = false; mulaiUlangTimer(); }
+        if (wadah.contains(e.target)) {
+          otomatis.dijeda = true;
+          hentikanPita();
+        } else if (otomatis.dijeda) {
+          otomatis.dijeda = false;
+          jalankanPita();
+        }
       }, true);
-      mulaiUlangTimer();
+      // Setelah popup ditutup atau tab kembali aktif, pita dicoba jalan lagi.
+      document.addEventListener('visibilitychange', jalankanPita);
+      setInterval(jalankanPita, 1000);
+      jalankanPita();
+    }
+
+    /** Salinan kartu di belakang agar pita menyambung; hanya bila kartu lebih lebar dari layar. */
+    function tambahSalinanPita(daftar) {
+      var g = slider.geser;
+      if (gerakDikurangi() || g.scrollWidth <= g.clientWidth + 4) return;
+      daftar.forEach(function (t, i) {
+        var k = kartuTutor(t);
+        k.classList.add('salinan');
+        k.setAttribute('aria-hidden', 'true');
+        k.style.setProperty('--urut', String(daftar.length + i));
+        Array.prototype.forEach.call(k.querySelectorAll('button, a'), function (b) { b.tabIndex = -1; });
+        g.appendChild(k);
+      });
+      g.classList.add('mode-pita');
     }
 
     function renderTutor() {
       var daftar = konten && konten.tutor ? konten.tutor : [];
       $('bagian-tutor').hidden = !daftar.length;
       var wadah = $('daftar-tutor');
+      if (slider.geser) { hentikanPita(); slider.geser.classList.remove('mode-pita'); }
       wadah.textContent = '';
       daftar.forEach(function (t, i) {
         var k = kartuTutor(t);
@@ -653,6 +720,7 @@
         wadah.appendChild(k);
       });
       siapkanSlider();
+      tambahSalinanPita(daftar);
       window.requestAnimationFrame(perbaruiSlider);
     }
 

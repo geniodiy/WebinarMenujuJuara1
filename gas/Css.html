@@ -216,6 +216,8 @@
   .tutor-slider { position: relative; }
   .tutor-geser { display: flex; column-gap: 12px; overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scrollbar-width: none; align-items: stretch; padding-bottom: 2px; }
   .tutor-geser::-webkit-scrollbar { display: none; }
+  /* Mode pita: snap dimatikan agar geseran halus dan kartu tidak melompat saat disentuh. */
+  .tutor-geser.mode-pita { scroll-snap-type: none; }
   /* Kartu tutor muncul berurutan dari kanan saat bagian tutor pertama kali terlihat. */
   .tutor-geser.kartu-siap-muncul .tutor-kartu { opacity: 0; transform: translateX(28px); }
   .tutor-geser.kartu-siap-muncul.kartu-muncul .tutor-kartu { opacity: 1; transform: none; transition: opacity .5s ease-out, transform .5s ease-out; transition-delay: calc(min(var(--urut, 0), 4) * 110ms); }
