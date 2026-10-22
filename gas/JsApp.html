@@ -596,6 +596,50 @@
       $('tutor-kiri').addEventListener('click', function () { slider.geser.scrollBy({ left: -lebarLangkah(), behavior: 'smooth' }); });
       $('tutor-kanan').addEventListener('click', function () { slider.geser.scrollBy({ left: lebarLangkah(), behavior: 'smooth' }); });
       window.addEventListener('resize', perbaruiSlider);
+      siapkanGeserOtomatis();
+    }
+
+    /*
+     * Geser otomatis berulang (keputusan pemilik). Berhenti saat bagian tutor disentuh atau diklik,
+     * jalan lagi setelah pengunjung menyentuh bagian lain halaman. Hanya berjalan saat terlihat di layar.
+     * Kartu muncul berurutan saat bagian tutor pertama kali terlihat.
+     */
+    var JEDA_GESER_MS = 3500;
+    var otomatis = { dijeda: false, terlihat: false, timer: null };
+
+    function langkahOtomatis() {
+      var g = slider.geser;
+      if (otomatis.dijeda || !otomatis.terlihat || document.hidden || document.documentElement.classList.contains('fd-terbuka')) return;
+      var maks = g.scrollWidth - g.clientWidth;
+      if (maks < 4) return;
+      if (g.scrollLeft >= maks - 4) g.scrollTo({ left: 0, behavior: 'smooth' });
+      else g.scrollBy({ left: lebarLangkah(), behavior: 'smooth' });
+    }
+
+    function mulaiUlangTimer() {
+      clearInterval(otomatis.timer);
+      otomatis.timer = setInterval(langkahOtomatis, JEDA_GESER_MS);
+    }
+
+    function siapkanGeserOtomatis() {
+      var wadah = slider.geser.closest('.tutor-slider');
+      var tenang = gerakDikurangi();
+      if ('IntersectionObserver' in window) {
+        if (!tenang) slider.geser.classList.add('kartu-siap-muncul');
+        new IntersectionObserver(function (entri) {
+          otomatis.terlihat = entri[0].isIntersecting;
+          if (otomatis.terlihat) slider.geser.classList.add('kartu-muncul');
+        }, { threshold: 0.25 }).observe(wadah);
+      } else {
+        otomatis.terlihat = true;
+      }
+      if (tenang) return;
+      document.addEventListener('pointerdown', function (e) {
+        var diDalam = wadah.contains(e.target);
+        if (diDalam) otomatis.dijeda = true;
+        else if (otomatis.dijeda) { otomatis.dijeda = false; mulaiUlangTimer(); }
+      }, true);
+      mulaiUlangTimer();
     }
 
     function renderTutor() {
@@ -603,7 +647,11 @@
       $('bagian-tutor').hidden = !daftar.length;
       var wadah = $('daftar-tutor');
       wadah.textContent = '';
-      daftar.forEach(function (t) { wadah.appendChild(kartuTutor(t)); });
+      daftar.forEach(function (t, i) {
+        var k = kartuTutor(t);
+        k.style.setProperty('--urut', String(i));
+        wadah.appendChild(k);
+      });
       siapkanSlider();
       window.requestAnimationFrame(perbaruiSlider);
     }
