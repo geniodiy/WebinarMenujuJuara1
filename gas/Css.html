@@ -197,6 +197,7 @@
   .bagian-sub { font-size: 13px; color: var(--redup); margin-bottom: 14px; }
   .tombol-mini { display: inline-flex; align-items: center; gap: 6px; font: inherit; font-size: 11px; font-weight: 600; color: #fff; border: 0; border-radius: 999px; padding: 5px 14px; min-height: 28px; cursor: pointer; text-shadow: 0 1px 2px rgba(0, 0, 0, .18); }
   .gradien-biru { background: linear-gradient(135deg, var(--indigo), #22509E 60%, var(--cyan)); }
+  .tombol-hitam { background: var(--item); }
 
   /* Ikon jenis prestasi: bulatan emas, perak, perunggu, dan hitam palet berbintang untuk Lainnya. */
   .ikon-jenis { flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; width: 13px; height: 13px; border-radius: 50%; }
@@ -318,18 +319,24 @@
   .ikon-bulat.merek-ig { background: radial-gradient(circle at 30% 107%, #FDF497 0%, #FDF497 5%, #FD5949 45%, #D6249F 60%, #285AEB 90%); }
 
   /* Prestasi: ringkasan medali, lalu jendela 5 baris yang bergulir pelan ke atas tanpa putus. */
-  .prestasi-ringkas { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 10px; }
-  .prestasi-ringkas div { padding: 8px; border-radius: 12px; background: #FFF8E3; text-align: center; }
-  .prestasi-ringkas strong { display: block; font-size: 20px; font-weight: 700; line-height: 1.1; }
-  .prestasi-ringkas span { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; }
-  .prestasi-ringkas .ikon-jenis { width: 12px; height: 12px; }
+  /* Ringkasan medali berpita: koin bergradasi berisi jumlah, pita biru-toska, kilau menyapu sesekali. */
+  .prestasi-ringkas { display: flex; justify-content: space-around; gap: 8px; padding: 6px 0 4px; margin-bottom: 12px; }
+  .medali { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .medali-pita { position: relative; width: 30px; height: 16px; margin-bottom: -12px; }
+  .medali-pita::before, .medali-pita::after { content: ""; position: absolute; top: 0; width: 13px; height: 22px; }
+  .medali-pita::before { left: 1px; background: var(--cyan); transform: skewX(18deg); }
+  .medali-pita::after { right: 1px; background: var(--teal); transform: skewX(-18deg); }
+  .medali-koin { position: relative; overflow: hidden; width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 24px; font-weight: 700; text-shadow: 0 1px 2px rgba(0, 0, 0, .25); box-shadow: inset 0 0 0 4px rgba(255, 255, 255, .45), 0 6px 14px rgba(0, 0, 0, .15); }
+  .medali-koin::after { content: ""; position: absolute; top: 0; bottom: 0; left: -60%; width: 45%; background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .6), transparent); transform: skewX(-18deg); animation: kilau 3.5s ease-in-out infinite; animation-delay: calc(1s + var(--urut, 0) * .4s); }
+  .medali-emas .medali-koin { background: linear-gradient(135deg, #F7D46A, #E39B12); }
+  .medali-perak .medali-koin { background: linear-gradient(135deg, #D3D9E1, #8A95A4); }
+  .medali-perunggu .medali-koin { background: linear-gradient(135deg, #EDB27D, #B5642A); }
+  .medali-nama { font-size: 12px; color: var(--item); }
   .prestasi-jendela { position: relative; overflow: hidden; border: 1px solid var(--garis); border-radius: 16px; }
-  .prestasi-jendela.bergulir { height: 296px; -webkit-mask-image: linear-gradient(transparent, #000 14%, #000 86%, transparent); mask-image: linear-gradient(transparent, #000 14%, #000 86%, transparent); }
-  .prestasi-jendela.bergulir .prestasi-pita { animation: gulirAtas 40s linear infinite; }
-  .prestasi-jendela.bergulir:hover .prestasi-pita, .prestasi-jendela.jeda .prestasi-pita { animation-play-state: paused; }
-  @keyframes gulirAtas { from { transform: translateY(0); } to { transform: translateY(-50%); } }
+  .prestasi-jendela.bergulir { height: 296px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; -webkit-mask-image: linear-gradient(transparent, #000 14%, #000 86%, transparent); mask-image: linear-gradient(transparent, #000 14%, #000 86%, transparent); }
   .prestasi-daftar, .pp-daftar { list-style: none; margin: 0; padding: 0; }
   .prestasi-daftar li { display: flex; gap: 10px; align-items: center; height: 59px; padding: 0 12px; border-bottom: 1px solid var(--garis); }
+  .prestasi-jendela.bergulir::-webkit-scrollbar { display: none; }
   .prestasi-jendela:not(.bergulir) .prestasi-daftar li:last-child { border-bottom: 0; }
   .prestasi-daftar .ikon-jenis { width: 24px; height: 24px; }
   .pr-teks { flex: 1; min-width: 0; }
@@ -874,7 +881,6 @@
     .jabatan { font-size: 13px; }
     .narasumber-ringkasan { font-size: 13px; }
     .tutor-judul h3 { font-size: 17px; }
-    .prestasi-ringkas strong { font-size: 18px; }
     .kaki a { font-size: 13px; }
   }
 
