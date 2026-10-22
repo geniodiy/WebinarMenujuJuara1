@@ -194,6 +194,7 @@ function bangunKonten_() {
   });
   daftar.Narasumber_Tutor.forEach(function (b) {
     if (b.peran === 'Tutor') {
+      b.foto_id = b.foto ? (peta[String(b.foto).toLowerCase()] || '') : '';
       b.prestasi = prestasiTutor_(b, daftar.Prestasi_Tutor);
       b.bidang = bidangTutor_(b.jabatan);
     }
@@ -255,6 +256,29 @@ function dataUriGambarKecil_(id) {
 function isiLogoCabang_(konten) {
   (konten.cabang || []).forEach(function (c) { c.logo_data = dataUriGambarKecil_(c.logo_id); });
   return konten;
+}
+
+var BATAS_BYTE_FOTO_TUTOR_ = 3 * 1024 * 1024;
+
+/**
+ * Foto tutor sebagai data URI, dibaca langsung dari Drive agar latar PNG tetap transparan
+ * (layanan gambar Drive mengubahnya menjadi hitam). Hanya foto tutor yang sedang tampil yang dilayani.
+ */
+function getFotoTutor(id) {
+  return jalankanAman_(function () {
+    var dikenal = (ambilKonten_().tutor || []).some(function (t) { return t.foto_id && t.foto_id === id; });
+    if (!dikenal) return gagal_('TIDAK_DIKENAL', 'Foto tidak ditemukan.');
+    var cache = CacheService.getScriptCache();
+    var kunci = 'foto_' + id;
+    var tersimpan = cache.get(kunci);
+    if (tersimpan) return ok_(tersimpan);
+    var file = DriveApp.getFileById(id);
+    if (file.getSize() > BATAS_BYTE_FOTO_TUTOR_) return gagal_('TERLALU_BESAR', 'Foto terlalu besar.');
+    var blob = file.getBlob();
+    var data = 'data:' + blob.getContentType() + ';base64,' + Utilities.base64Encode(blob.getBytes());
+    try { cache.put(kunci, data, DETIK_CACHE_LOGO_); } catch (err) { /* lebih dari 100 KB, tidak di-cache */ }
+    return ok_(data);
+  });
 }
 
 function ambilKonten_() {

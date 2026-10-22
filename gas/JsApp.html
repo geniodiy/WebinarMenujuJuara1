@@ -469,13 +469,25 @@
 
     var BATAS_PRESTASI_KARTU = 3;
 
+    /* Foto tutor diambil lewat server (getFotoTutor) agar latar transparan tidak menjadi hitam.
+       Tanpa google.script.run (pratinjau lokal) atau bila gagal, pakai alamat gambar Drive. */
     function fotoTutor(t, wadah, sizes) {
       if (t.foto_url) {
         var img = el('img');
         img.alt = 'Foto ' + t.nama_lengkap;
-        img.loading = 'lazy';
         img.decoding = 'async';
-        aturGambar(img, t.foto_url, [300, 600], sizes);
+        var lewatDrive = function () { aturGambar(img, t.foto_url, [300, 600], sizes); };
+        if (t.foto_id && window.google && google.script && google.script.run) {
+          img.className = 'foto-muat';
+          img.onload = function () { img.classList.remove('foto-muat'); };
+          google.script.run
+            .withSuccessHandler(function (r) { if (r && r.ok) img.src = r.data; else lewatDrive(); })
+            .withFailureHandler(lewatDrive)
+            .getFotoTutor(t.foto_id);
+        } else {
+          img.loading = 'lazy';
+          lewatDrive();
+        }
         wadah.appendChild(img);
       } else {
         wadah.appendChild(siluet('siluet'));
@@ -516,10 +528,8 @@
     function bukaDetailTutor(t, pemicu) {
       var isi = $('detail-isi');
       isi.textContent = '';
+      // Popup hanya nama dan prestasi lengkap (keputusan pemilik): tanpa foto dan ringkasan.
       var kepala = el('div', 'td-kepala bidang-' + (t.bidang || 'ipa'));
-      var foto = el('div', 'td-foto');
-      fotoTutor(t, foto, '96px');
-      kepala.appendChild(foto);
       var nama = el('div');
       var h = el('h2', null, t.nama_lengkap);
       h.id = 'detail-nama';
@@ -528,7 +538,6 @@
       if (t.room) nama.appendChild(el('span', 'td-room', 'Room ' + t.room));
       kepala.appendChild(nama);
       isi.appendChild(kepala);
-      if (t.ringkasan) isi.appendChild(el('p', 'td-ringkasan', t.ringkasan));
       if ((t.prestasi || []).length) {
         isi.appendChild(el('h3', 'td-subjudul', 'Prestasi siswa binaan'));
         var ul = el('ul', 'td-prestasi');

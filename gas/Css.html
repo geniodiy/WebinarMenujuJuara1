@@ -226,6 +226,9 @@
   .tutor-hias svg { display: block; width: 100%; height: auto; }
   .tutor-blok { position: absolute; left: 0; right: 0; bottom: 0; height: 46%; border-radius: 26px 26px 0 0; background: var(--blok); }
   .tutor-poster img, .tutor-poster .siluet { position: absolute; left: 50%; bottom: 0; height: 76%; width: auto; max-width: none; transform: translateX(-50%); z-index: 1; }
+  /* Foto diperbesar (opsi B pemilik): kepala tetap di bawah nama, bagian bawah terpotong. */
+  .tutor-poster img { height: 115%; bottom: -39%; transition: opacity .3s; }
+  .tutor-poster img.foto-muat { opacity: 0; }
   .tutor-poster .siluet { height: 52%; fill: rgba(255, 255, 255, .85); }
   .tutor-label, .tutor-prestasi { margin: 0 12px; }
   .tutor-label { margin-top: 2px; font-size: 10.5px; font-weight: 600; color: var(--redup); }
@@ -250,13 +253,10 @@
   @keyframes munculTengah { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: none; } }
   .tombol-tutup-kecil { position: absolute; top: 6px; right: 6px; width: 40px; height: 40px; border: 0; border-radius: 10px; background: none; color: var(--item); display: flex; align-items: center; justify-content: center; cursor: pointer; }
   .td-kepala { display: flex; gap: 12px; align-items: flex-end; padding-right: 30px; }
-  .td-foto { position: relative; width: 84px; height: 84px; flex-shrink: 0; border-radius: 14px; overflow: hidden; background: var(--blok); }
-  .td-foto img { position: absolute; left: 50%; bottom: 0; width: 120%; max-width: none; transform: translateX(-50%); }
-  .td-foto .siluet { position: absolute; left: 50%; bottom: 0; width: 70%; transform: translateX(-50%); fill: rgba(255, 255, 255, .85); }
+  .td-kepala + .td-subjudul { margin-top: 16px; }
   .td-kepala h2 { font-size: 16px; font-weight: 700; }
   .td-jabatan { font-size: 12px; color: var(--redup); }
   .td-room { display: inline-block; margin-top: 4px; font-size: 10.5px; font-weight: 600; color: #fff; padding: 1px 9px; border-radius: 999px; background: var(--item); }
-  .td-ringkasan { font-size: 13px; margin: 12px 0 0; }
   .td-subjudul { font-size: 13px; font-weight: 700; margin: 14px 0 8px; }
   .td-prestasi { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
   .td-prestasi li { align-items: center; gap: 10px; font-size: 13px; padding: 8px 10px; border-radius: 10px; background: #F6F7F2; }
