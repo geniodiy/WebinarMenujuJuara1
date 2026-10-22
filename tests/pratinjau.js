@@ -37,6 +37,7 @@ daftar.Narasumber_Tutor.forEach((b, i) => {
   if (b.peran === 'Narasumber' && process.env.PRATINJAU_FOTO) b.foto_url = 'file://' + process.env.PRATINJAU_FOTO + '#';
 });
 daftar.Prestasi.forEach((b) => { b.medali = g.jenisPrestasi_(b.medali, b.prestasi); });
+daftar.Prestasi = g.urutkanSorotan_(daftar.Prestasi);
 daftar.Cabang.forEach((b) => {
   const logo = path.join(__dirname, '..', 'assets-raw', b.logo);
   // Sama seperti server (dataUriGambarKecil_): logo kecil ditanam agar latar transparan tetap.

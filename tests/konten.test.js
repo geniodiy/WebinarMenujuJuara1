@@ -94,3 +94,8 @@ test('bagian halaman tampil kecuali diisi TIDAK', () => {
   assert.deepStrictEqual(polos(g.bagianTampil_({ tampil_tutor: 'tidak ', tampil_cabang: 'YA', tampil_ajakan: '' })),
     { tutor: false, profil: true, cabang: true, prestasi: true, ajakan: true });
 });
+
+test('prestasi sorotan YA di atas, sisanya tetap urut', () => {
+  const d = [{ n: 1, sorotan: 'TIDAK' }, { n: 2, sorotan: 'YA' }, { n: 3, sorotan: '' }, { n: 4, sorotan: 'ya' }];
+  assert.deepStrictEqual(g.urutkanSorotan_(d).map((x) => x.n), [2, 4, 1, 3]);
+});

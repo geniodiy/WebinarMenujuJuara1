@@ -148,6 +148,13 @@ function bagianTampil_(pengaturan) {
   return t;
 }
 
+/** Prestasi bertanda sorotan YA di atas; selebihnya tetap mengikuti urutan. Murni. */
+function urutkanSorotan_(daftar) {
+  return daftar.map(function (b, i) { return { b: b, i: i, s: yaTidak_(b.sorotan) ? 0 : 1 }; })
+    .sort(function (x, y) { return x.s - y.s || x.i - y.i; })
+    .map(function (x) { return x.b; });
+}
+
 function bangunKonten_() {
   var ss = bukaKonten_();
   var pengaturan = kunciNilai_(bacaLembar_(ss.getSheetByName('Pengaturan_Konten')));
@@ -205,6 +212,7 @@ function bangunKonten_() {
     b.logo_id = b.logo ? (peta[String(b.logo).toLowerCase()] || '') : '';
   });
   daftar.Prestasi.forEach(function (b) { b.medali = jenisPrestasi_(b.medali, b.prestasi); });
+  daftar.Prestasi = urutkanSorotan_(daftar.Prestasi);
 
   // KEPUTUSAN: FAQ tidak ditampilkan (keputusan pemilik), jadi tidak dikirim dan tidak memicu pita contoh.
   var dipakai = ['Agenda', 'Narasumber_Tutor', 'Cabang', 'Prestasi', 'Testimoni'];
