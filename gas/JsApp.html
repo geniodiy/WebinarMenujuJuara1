@@ -395,7 +395,6 @@
     }
 
     var IKON = {
-      maps: ['M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z', '@c,12,9.5,2.5'],
       ig: ['@r,4,4,16,5', '@c,12,12,3.6', '@c,16.9,7.1,.5'],
       kanan: ['M9 6l6 6-6 6']
     };
@@ -905,7 +904,14 @@
 
     /* ---------- Cabang ---------- */
 
-    /** Tombol ikon bulat berwarna merek: Maps merah, WhatsApp hijau, Instagram gradien. */
+    // Pin bergaya logo Google Maps: bagian merah, biru, kuning, hijau, dengan lubang putih di tengah.
+    var IKON_MAPS = '<svg viewBox="0 0 24 24" aria-hidden="true"><defs><clipPath id="klip-pin">' +
+      '<path d="M12 1.6a7.4 7.4 0 0 0-7.4 7.4c0 5.4 7.4 13.4 7.4 13.4s7.4-8 7.4-13.4A7.4 7.4 0 0 0 12 1.6z"/></clipPath></defs>' +
+      '<g clip-path="url(#klip-pin)"><rect x="0" y="0" width="24" height="24" fill="#34A853"/>' +
+      '<polygon points="12,-2 26,-2 26,10 12,9" fill="#EA4335"/><polygon points="12,-2 -2,-2 -2,9 7.2,11.6 12,9" fill="#4285F4"/>' +
+      '<polygon points="-2,9 7.2,11.6 10.8,16.5 -2,19" fill="#FBBC04"/></g><circle cx="12" cy="9" r="2.7" fill="#fff"/></svg>';
+
+    /** Tombol ikon bulat berwarna merek: Maps, WhatsApp hijau, Instagram gradien. */
     function tautanIkon(href, label, ikon, merek) {
       var a = tautanLuar('', href, 'ikon-bulat ' + merek);
       a.setAttribute('aria-label', label);
@@ -940,7 +946,7 @@
         if (c.alamat) kartu.appendChild(el('p', 'cabang-alamat', c.alamat));
         var aksi = el('div', 'cabang-aksi');
         var pendek = namaPendekCabang(c.nama);
-        if (/^https:\/\//.test(c.link_maps)) aksi.appendChild(tautanIkon(c.link_maps, 'Buka lokasi ' + pendek + ' di Google Maps', IKON.maps, 'merek-maps'));
+        if (/^https:\/\//.test(c.link_maps)) aksi.appendChild(tautanIkon(c.link_maps, 'Buka lokasi ' + pendek + ' di Google Maps', IKON_MAPS, 'merek-maps'));
         if (c.wa_admin) aksi.appendChild(tautanIkon(tautanWa(c.wa_admin), 'WhatsApp admin ' + pendek, FormDaftar.IKON_WA, 'merek-wa'));
         if (c.instagram) aksi.appendChild(tautanIkon('https://www.instagram.com/' + encodeURIComponent(String(c.instagram).replace(/^@/, '')) + '/', 'Instagram ' + pendek, IKON.ig, 'merek-ig'));
         if (aksi.children.length) kartu.appendChild(aksi);
