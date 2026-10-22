@@ -398,8 +398,7 @@
       maps: ['M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z', '@c,12,9.5,2.5'],
       wa: ['M4 20l1.3-3.9A8 8 0 1 1 8 19z'],
       ig: ['@r,4,4,16,5', '@c,12,12,3.6'],
-      kanan: ['M9 6l6 6-6 6'],
-      panahHias: ['M8 2L3 6l5 4M16 2l-5 4 5 4M24 2l-5 4 5 4']
+      kanan: ['M9 6l6 6-6 6']
     };
 
     /** Ikon bulat jenis prestasi: Emas, Perak, Perunggu, atau Lainnya (bintang putih). */
@@ -494,6 +493,14 @@
       }
     }
 
+    /** Kode badge dari room (atau jabatan): "SMP Matematika" menjadi MTK dan SMP. */
+    function kodeRoomTutor(t) {
+      var teks = String(t.room || t.jabatan || '');
+      var jenjang = (teks.match(/\b(SD|SMP|SMA)\b/i) || [])[1];
+      var bidang = /matematika/i.test(teks) ? 'MTK' : /\bIPA\b/i.test(teks) ? 'IPA' : /\bIPS\b/i.test(teks) ? 'IPS' : '';
+      return jenjang && bidang ? { bidang: bidang, jenjang: jenjang.toUpperCase() } : null;
+    }
+
     function kartuTutor(t) {
       var kartu = el('article', 'tutor-kartu bidang-' + (t.bidang || 'ipa'));
       var poster = el('div', 'tutor-poster');
@@ -501,11 +508,14 @@
       judul.appendChild(judulDenganContoh('h3', null, t.nama_lengkap, t.contoh));
       if (t.jabatan) judul.appendChild(el('p', 'tutor-jabatan', t.jabatan));
       poster.appendChild(judul);
-      var hias = el('span', 'tutor-hias');
-      var svgHias = ikonGaris(IKON.panahHias);
-      svgHias.setAttribute('viewBox', '0 0 30 12');
-      hias.appendChild(svgHias);
-      poster.appendChild(hias);
+      var kode = kodeRoomTutor(t);
+      if (kode) {
+        var badge = el('span', 'tutor-badge');
+        badge.setAttribute('aria-label', 'Room ' + (t.room || t.jabatan));
+        badge.appendChild(el('b', null, kode.bidang));
+        badge.appendChild(el('span', null, kode.jenjang));
+        poster.appendChild(badge);
+      }
       poster.appendChild(el('span', 'tutor-blok'));
       fotoTutor(t, poster, '(min-width: 640px) 230px, 60vw');
       kartu.appendChild(poster);
@@ -534,7 +544,6 @@
       var h = el('h2', null, t.nama_lengkap);
       h.id = 'detail-nama';
       nama.appendChild(h);
-      if (t.jabatan) nama.appendChild(el('p', 'td-jabatan', t.jabatan));
       if (t.room) nama.appendChild(el('span', 'td-room', 'Room ' + t.room));
       kepala.appendChild(nama);
       isi.appendChild(kepala);
