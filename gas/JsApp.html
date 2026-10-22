@@ -843,12 +843,48 @@
       });
     }
 
+    /** Digit diganti angka acak, lalu berhenti satu per satu ke nilai asli. Karakter lain (+, spasi) tetap. */
+    function acakAngka(dd, akhir, lama) {
+      var mulai = Date.now();
+      var t = setInterval(function () {
+        var jalan = (Date.now() - mulai) / lama;
+        if (jalan >= 1) { clearInterval(t); dd.textContent = akhir; return; }
+        var tetap = Math.floor(jalan * akhir.length);
+        dd.textContent = akhir.replace(/\d/g, function (d, i) { return i < tetap ? d : String(Math.floor(Math.random() * 10)); });
+      }, 45);
+    }
+
+    function animasiAngka(dl) {
+      if (gerakDikurangi() || !('IntersectionObserver' in window) || !dl.children.length) return;
+      dl.classList.add('angka-siap');
+      var pengamat = new IntersectionObserver(function (entri) {
+        if (!entri[0].isIntersecting) return;
+        pengamat.disconnect();
+        var urutan = Array.prototype.slice.call(dl.children).sort(function () { return Math.random() - 0.5; });
+        urutan.forEach(function (div, i) {
+          setTimeout(function () {
+            div.classList.add('tampil');
+            var dd = div.querySelector('dd');
+            acakAngka(dd, dd.textContent, 700 + Math.random() * 600);
+          }, i * 180 + Math.random() * 120);
+        });
+      }, { threshold: 0.4 });
+      pengamat.observe(dl);
+    }
+
     function renderProfil() {
       var p = konten ? konten.profil : null;
       $('bagian-profil').hidden = !p;
       if (!p) return;
       var judul = $('judul-profil');
       judul.textContent = p.judul || 'Apa itu Genio Institute?';
+      // Lembar lama tanpa kunci subjudul memakai teks bawaan; kunci yang dikosongkan menyembunyikannya.
+      var sub = p.subjudul === undefined ? 'Lembaga bimbingan olimpiade' : p.subjudul;
+      $('profil-sub').textContent = sub;
+      $('profil-sub').hidden = !sub;
+      var logo = $('profil-logo');
+      var lambang = document.querySelector('.ajakan-ikon img');
+      if (!logo.firstChild && lambang) logo.appendChild(lambang.cloneNode());
       if (p.contoh) { judul.appendChild(document.createTextNode(' ')); judul.appendChild(labelContoh()); }
       $('profil-inti').textContent = p.paragraf_1 || '';
       $('profil-inti').hidden = !p.paragraf_1;
@@ -863,6 +899,7 @@
       });
       dl.hidden = !dl.children.length;
       dl.style.setProperty('--kolom', String(Math.max(1, dl.children.length)));
+      animasiAngka(dl);
       isiTeksTebal($('profil-teks'), p.paragraf_2 || '');
       $('profil-teks').hidden = !p.paragraf_2;
     }

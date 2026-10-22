@@ -114,10 +114,11 @@ var DATA_CONTOH_ = {
 var PROFIL_GENIO_ = [
   ['data_contoh', 'TIDAK', 'YA bila isi profil masih contoh'],
   ['judul', 'Apa itu Genio Institute?', ''],
+  ['subjudul', 'Lembaga bimbingan olimpiade', 'Teks kecil di bawah judul; kosongkan untuk menyembunyikan'],
   ['paragraf_1', 'Lembaga pembinaan olimpiade SD, SMP, dan SMA sejak 2010 dengan semangat "Semua siswa bisa menjadi juara".', 'Kalimat inti di kotak judul'],
   ['paragraf_2', 'Dengan metode GENIO Problem Solving, Genio mendampingi ratusan siswa menghadapi OSN/KSN, OMI, dan kompetisi lainnya. Genio hadir di dua cabang, **Semarang** dan **Yogyakarta**, dengan kelas yang bisa diikuti secara **online maupun offline**.', 'Paragraf di bawah angka. **teks** dicetak tebal'],
   ['angka_1', '2010', ''], ['label_1', 'Berdiri', ''],
   ['angka_2', '50+', ''], ['label_2', 'Pembimbing', ''],
-  ['angka_3', '100+', ''], ['label_3', 'Sekolah mitra', ''],
+  ['angka_3', '10+', ''], ['label_3', 'Sekolah mitra', ''],
   ['angka_4', '2', ''], ['label_4', 'Cabang', '']
 ];

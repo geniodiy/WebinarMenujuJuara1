@@ -52,7 +52,8 @@ var PENGATURAN_KONTEN_AWAL_ = [
 
 var PROFIL_AWAL_ = [
   ['data_contoh', 'TIDAK', 'YA bila isi profil masih contoh'],
-  ['judul', '', ''], ['paragraf_1', '', ''], ['paragraf_2', '', ''],
+  ['judul', '', ''], ['subjudul', 'Lembaga bimbingan olimpiade', 'Teks kecil di bawah judul; kosongkan untuk menyembunyikan'],
+  ['paragraf_1', '', ''], ['paragraf_2', '', ''],
   ['angka_1', '', ''], ['label_1', '', ''], ['angka_2', '', ''], ['label_2', '', ''],
   ['angka_3', '', ''], ['label_3', '', ''], ['angka_4', '', ''], ['label_4', '', ''],
   ['program', '', 'Dipisah koma']
