@@ -963,8 +963,9 @@
       return p.prestasi || [p.lomba, p.bidang, p.jenjang, p.tingkat].filter(Boolean).join(' ');
     }
 
-    function barisPrestasi(p, denganTahun) {
+    function barisPrestasi(p, denganTahun, nomor) {
       var li = el('li');
+      if (nomor) li.appendChild(el('span', 'peringkat', String(nomor)));
       li.appendChild(ikonJenis(p.medali));
       var t = el('div', 'pr-teks');
       t.appendChild(judulDenganContoh('strong', null, p.nama_siswa, p.contoh));
@@ -1028,80 +1029,68 @@
         ringkas.appendChild(d);
       });
 
+      $('prestasi-total').textContent = 'Total ' + daftar.length + ' prestasi';
+
+      // Papan prestasi: daftar bernomor tanpa putaran; bila lebih dari 5 baris, kotak bisa digulir
+      // dan bergulir sangat pelan ke bawah, berhenti di akhir, lalu kembali ke atas.
       var teratas = daftar.slice(0, BATAS_PRESTASI_GULIR);
       var jendela = $('prestasi-jendela');
       jendela.textContent = '';
-      var gulir = teratas.length > BARIS_JENDELA && !gerakDikurangi();
-      jendela.classList.toggle('bergulir', gulir);
+      jendela.scrollTop = 0;
+      jendela.classList.toggle('bergulir', teratas.length > BARIS_JENDELA);
       var ul = el('ul', 'prestasi-daftar');
-      teratas.forEach(function (p) { ul.appendChild(barisPrestasi(p, true)); });
-      if (gulir) {
-        // Salinan di atas dan bawah agar bisa digulir ke dua arah tanpa ujung.
-        var atas = ul.cloneNode(true);
-        var bawah = ul.cloneNode(true);
-        atas.setAttribute('aria-hidden', 'true');
-        bawah.setAttribute('aria-hidden', 'true');
-        jendela.appendChild(atas);
-        jendela.appendChild(ul);
-        jendela.appendChild(bawah);
-        siapkanGulirPrestasi(jendela, ul);
-      } else {
-        jendela.appendChild(ul);
-      }
+      teratas.forEach(function (p, i) { ul.appendChild(barisPrestasi(p, true, i + 1)); });
+      jendela.appendChild(ul);
+      if (teratas.length > BARIS_JENDELA && !gerakDikurangi()) siapkanGulirPrestasi(jendela);
     }
 
-    /*
-     * Daftar prestasi bergulir pelan ke atas (keputusan pemilik) dan bisa digulir sendiri ke atas-bawah.
-     * Gulir otomatis berhenti saat disentuh atau digulir, dan lanjut 2,5 detik setelah pengunjung berhenti.
-     */
-    var KECEPATAN_PRESTASI = 16; // px per detik
-    var gulirPrestasi = { jendela: null, asli: null, posisi: 0, waktu: 0, bingkai: 0, diam: 0, sentuh: false, terlihat: false, siap: false };
-
-    function rapikanPrestasi(pos) {
-      var h = gulirPrestasi.asli.offsetHeight;
-      if (pos < h * 0.5) pos += h;
-      else if (pos > h * 1.5) pos -= h;
-      return pos;
-    }
+    var KECEPATAN_PRESTASI = 8; // px per detik
+    var JEDA_UJUNG_MS = 3000;
+    var gulirPrestasi = { jendela: null, posisi: 0, waktu: 0, bingkai: 0, diam: 0, sentuh: false, terlihat: false, siap: false };
 
     function bingkaiPrestasi(t) {
       var g = gulirPrestasi;
+      var j = g.jendela;
       g.bingkai = 0;
-      if (!g.terlihat || g.sentuh || Date.now() < g.diam || document.hidden || !g.jendela.isConnected) { g.waktu = 0; return; }
+      if (!g.terlihat || g.sentuh || Date.now() < g.diam || document.hidden || !j.isConnected) { g.waktu = 0; return; }
       var dt = g.waktu ? Math.min(0.05, (t - g.waktu) / 1000) : 0;
       g.waktu = t;
-      g.posisi = rapikanPrestasi(g.posisi + KECEPATAN_PRESTASI * dt);
-      g.jendela.scrollTop = g.posisi;
+      var maks = j.scrollHeight - j.clientHeight;
+      g.posisi = Math.min(maks, g.posisi + KECEPATAN_PRESTASI * dt);
+      j.scrollTop = g.posisi;
+      if (g.posisi >= maks - 1) {
+        // Sampai akhir: diam sebentar, kembali ke atas dengan halus, lalu mulai lagi.
+        g.diam = Date.now() + JEDA_UJUNG_MS * 2;
+        setTimeout(function () { g.posisi = 0; j.scrollTo({ top: 0, behavior: 'smooth' }); }, JEDA_UJUNG_MS);
+        return;
+      }
       g.bingkai = window.requestAnimationFrame(bingkaiPrestasi);
     }
 
     function jalankanPrestasi() {
       var g = gulirPrestasi;
-      if (g.bingkai || !g.jendela) return;
-      g.posisi = rapikanPrestasi(g.jendela.scrollTop);
+      if (g.bingkai || !g.jendela || Date.now() < g.diam) return;
+      g.posisi = g.jendela.scrollTop;
       g.waktu = 0;
       g.bingkai = window.requestAnimationFrame(bingkaiPrestasi);
     }
 
-    function siapkanGulirPrestasi(jendela, asli) {
+    function siapkanGulirPrestasi(jendela) {
       var g = gulirPrestasi;
       g.jendela = jendela;
-      g.asli = asli;
-      window.requestAnimationFrame(function () { jendela.scrollTop = asli.offsetTop; g.posisi = jendela.scrollTop; });
+      g.posisi = 0;
       if (g.siap) return;
       g.siap = true;
-      function istirahat() { g.diam = Date.now() + 2500; }
+      function istirahat() { g.diam = Math.max(g.diam, Date.now() + 2500); }
       jendela.addEventListener('pointerdown', function () { g.sentuh = true; istirahat(); }, { passive: true });
       document.addEventListener('pointerup', function () { if (g.sentuh) { g.sentuh = false; istirahat(); } }, true);
       document.addEventListener('pointercancel', function () { if (g.sentuh) { g.sentuh = false; istirahat(); } }, true);
       jendela.addEventListener('wheel', istirahat, { passive: true });
       jendela.addEventListener('scroll', function () {
-        // Gulir otomatis sendiri: posisinya sama dengan yang baru diatur, abaikan.
-        if (Math.abs(jendela.scrollTop - g.posisi) < 2) return;
-        // Gulir oleh pengunjung: tunda gulir otomatis, dan jaga posisi di salinan tengah.
+        // Gulir otomatis sendiri posisinya sama dengan yang baru diatur; selain itu berarti digulir pengunjung.
+        if (g.bingkai && Math.abs(jendela.scrollTop - g.posisi) < 2) return;
+        if (!g.bingkai && Date.now() < g.diam) { g.posisi = jendela.scrollTop; return; }
         istirahat();
-        var p = rapikanPrestasi(jendela.scrollTop);
-        if (Math.abs(p - jendela.scrollTop) > 1) jendela.scrollTop = p;
         g.posisi = jendela.scrollTop;
       }, { passive: true });
       if ('IntersectionObserver' in window) {
@@ -1357,7 +1346,7 @@
     /* ---------- Animasi muncul saat digulir ---------- */
 
     var SASARAN_MUNCUL = '.strip-tanggal, .info-kartu, .hitung-mundur, .narahubung, .bagian > h2, .agenda li, .narasumber, ' +
-      '.tutor-slider, .profil-kepala, .profil-angka, .cabang-kartu, .prestasi-ringkas, .prestasi-jendela, .testi-jalur, .ajakan, .kaki';
+      '.tutor-slider, .profil-kepala, .profil-angka, .cabang-kartu, .papan, .testi-jalur, .ajakan, .kaki';
 
     /** Hanya elemen yang awalnya di luar layar yang dianimasikan; yang sudah terlihat dibiarkan. */
     function siapkanMunculGulir() {
