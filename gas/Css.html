@@ -806,10 +806,15 @@
   .fd-tanya a { color: var(--item); font-weight: 600; }
 
 
+  /* Ponsel: tetap berdampingan seperti desktop (keputusan pemilik), ukuran dirapatkan agar muat. */
   @media (max-width: 420px) {
-    :root { --tinggi-bilah: 168px; }
-    .bilah-isi { flex-direction: column; align-items: stretch; text-align: center; }
-    .bilah .tombol { width: 100%; }
+    :root { --tinggi-bilah: 92px; }
+    .bilah { padding: 10px 10px calc(10px + env(safe-area-inset-bottom)); }
+    .bilah-isi { gap: 10px; padding: 10px 10px 10px 14px; }
+    .bilah-info strong { font-size: 14.5px; }
+    .bilah-info span { font-size: 11.5px; }
+    .bilah .tombol { min-height: 44px; max-width: 42%; padding: 6px 10px; font-size: 12px; line-height: 1.25; text-align: center; }
+    .bilah .tombol-daftar { min-width: 92px; max-width: none; padding: 8px 14px; font-size: 16px; }
   }
 
   /* Bagian yang awalnya di luar layar muncul perlahan saat digulir. */
