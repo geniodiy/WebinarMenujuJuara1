@@ -279,19 +279,19 @@
   .td-prestasi .ikon-jenis { width: 18px; height: 18px; }
 
   /* Apa itu Genio: kotak judul bergradien dominan biru, strip angka, paragraf rata kanan-kiri. */
-  /* Kotak profil (opsi C pemilik): gradasi biru polos, lambang Genio di kotak putih, deskripsi di kotak kaca. */
-  .profil-kepala { border-radius: 20px; padding: 16px; color: #fff; background: linear-gradient(135deg, #1E2466 0%, var(--indigo) 30%, #22509E 62%, var(--cyan) 100%); box-shadow: 0 10px 24px rgba(47, 55, 126, .22); }
+  /* Profil tanpa latar berwarna, senada dengan bagian Cabang (keputusan pemilik): lambang Genio di kotak putih,
+     deskripsi sebagai kutipan bergaris biru. */
   .profil-atas { display: flex; align-items: center; gap: 12px; }
-  .profil-logo { flex-shrink: 0; width: 52px; height: 52px; border-radius: 14px; background: #fff; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0, 0, 0, .18); }
-  .profil-logo img { width: 40px; height: 40px; transform: translate(2px, -2px); }
-  .bagian .profil-kepala h2 { color: #fff; margin: 0; font-size: 18px; line-height: 1.25; }
-  .profil-sub { display: block; margin-top: 2px; font-size: 11px; color: rgba(255, 255, 255, .75); }
-  .profil-kepala p { margin-top: 12px; padding: 10px 12px; border-radius: 12px; background: rgba(255, 255, 255, .12); border: 1px solid rgba(255, 255, 255, .18); font-size: 12.5px; line-height: 1.6; color: rgba(255, 255, 255, .92); }
+  .profil-logo { flex-shrink: 0; width: 48px; height: 48px; border-radius: 14px; background: #fff; border: 1px solid var(--garis); box-shadow: 0 2px 8px rgba(0, 0, 0, .06); display: flex; align-items: center; justify-content: center; }
+  .profil-logo img { width: 36px; height: 36px; transform: translate(2px, -2px); }
+  .bagian .profil-kepala h2 { margin: 0; line-height: 1.25; }
+  .profil-sub { display: block; margin-top: 2px; font-size: 12.5px; color: var(--redup); }
+  .profil-kepala p { margin: 14px 0 0; padding: 2px 0 2px 12px; border-left: 3px solid var(--cyan); font-size: 13.5px; line-height: 1.65; text-align: justify; -webkit-hyphens: auto; hyphens: auto; }
   .profil-kepala .label-contoh { color: var(--redup); }
   .profil-angka { display: grid; grid-template-columns: repeat(var(--kolom, 4), minmax(0, 1fr)); margin: 12px 0; border: 1px solid var(--garis); border-radius: 14px; }
   .profil-angka div { display: flex; flex-direction: column-reverse; padding: 10px 4px; text-align: center; border-left: 1px solid var(--garis); }
   .profil-angka div:first-child { border-left: 0; }
-  .profil-angka dd { margin: 0; font-size: 17px; font-weight: 700; line-height: 1.3; color: var(--indigo); font-variant-numeric: tabular-nums; }
+  .profil-angka dd { margin: 0; font-size: 17px; font-weight: 700; line-height: 1.3; color: var(--cyan); font-variant-numeric: tabular-nums; }
   /* Angka profil muncul satu per satu dalam urutan acak, digitnya berputar acak sebelum berhenti. */
   .profil-angka.angka-siap div { opacity: 0; transform: translateY(8px); transition: opacity .4s ease-out, transform .4s ease-out; }
   .profil-angka.angka-siap div.tampil { opacity: 1; transform: none; }
