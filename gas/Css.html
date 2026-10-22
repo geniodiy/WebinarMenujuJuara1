@@ -200,12 +200,18 @@
   .tombol-hitam { background: var(--item); }
 
   /* Ikon jenis prestasi: bulatan emas, perak, perunggu, dan hitam palet berbintang untuk Lainnya. */
-  .ikon-jenis { flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; width: 13px; height: 13px; border-radius: 50%; }
-  .ikon-jenis svg { width: 62%; height: 62%; }
-  .ikon-jenis.emas { background: radial-gradient(circle at 35% 35%, #FFE08A, #F2C14E 60%, #D9961E); }
-  .ikon-jenis.perak { background: radial-gradient(circle at 35% 35%, #FFFFFF, #C9D1D9 60%, #97A2AD); }
-  .ikon-jenis.perunggu { background: radial-gradient(circle at 35% 35%, #F6C89F, #D08A4E 60%, #A2622C); }
-  .ikon-jenis.lainnya { background: radial-gradient(circle at 35% 35%, #8A8C6A, #54563B 60%, #3A3C28); }
+  /* Ikon jenis prestasi: segi enam berfaset seperti medali permata (emas, perak, perunggu, hitam palet berbintang). */
+  .ikon-jenis { position: relative; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; width: 13px; height: 13px; clip-path: polygon(50% 0, 93.3% 25%, 93.3% 75%, 50% 100%, 6.7% 75%, 6.7% 25%); }
+  .ikon-jenis::before { content: ""; position: absolute; inset: 20%; clip-path: polygon(50% 0, 93.3% 25%, 93.3% 75%, 50% 100%, 6.7% 75%, 6.7% 25%); }
+  .ikon-jenis svg { position: relative; z-index: 1; width: 55%; height: 55%; }
+  .ikon-jenis.emas { background: conic-gradient(#F2B91F 0 60deg, #B9790B 60deg 120deg, #B9790B 120deg 180deg, #F2B91F 180deg 240deg, #FFE58A 240deg 300deg, #FFE58A 300deg 360deg); }
+  .ikon-jenis.emas::before { background: radial-gradient(circle at 35% 30%, #FFE58A, #F2B91F 55%, #B9790B); }
+  .ikon-jenis.perak { background: conic-gradient(#B8C1CC 0 60deg, #76808D 60deg 120deg, #76808D 120deg 180deg, #B8C1CC 180deg 240deg, #F4F6F9 240deg 300deg, #F4F6F9 300deg 360deg); }
+  .ikon-jenis.perak::before { background: radial-gradient(circle at 35% 30%, #F4F6F9, #B8C1CC 55%, #76808D); }
+  .ikon-jenis.perunggu { background: conic-gradient(#C9803F 0 60deg, #874717 60deg 120deg, #874717 120deg 180deg, #C9803F 180deg 240deg, #F8CDA4 240deg 300deg, #F8CDA4 300deg 360deg); }
+  .ikon-jenis.perunggu::before { background: radial-gradient(circle at 35% 30%, #F8CDA4, #C9803F 55%, #874717); }
+  .ikon-jenis.lainnya { background: conic-gradient(#54563B 0 60deg, #3A3C28 60deg 120deg, #3A3C28 120deg 180deg, #54563B 180deg 240deg, #8A8C6A 240deg 300deg, #8A8C6A 300deg 360deg); }
+  .ikon-jenis.lainnya::before { background: radial-gradient(circle at 35% 30%, #8A8C6A, #54563B 55%, #3A3C28); }
 
   /* Warna per bidang: Matematika oranye, IPA cyan, IPS biru. */
   .bidang-mat { --blok: linear-gradient(135deg, var(--coral), var(--gold)); --muda: #FFF5EA; --teks-nama: linear-gradient(90deg, var(--coral), #E6A42A); --hias: #E8683A; }
