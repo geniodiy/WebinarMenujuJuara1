@@ -39,7 +39,8 @@ daftar.Narasumber_Tutor.forEach((b, i) => {
 daftar.Prestasi.forEach((b) => { b.medali = g.jenisPrestasi_(b.medali, b.prestasi); });
 daftar.Cabang.forEach((b) => {
   const logo = path.join(__dirname, '..', 'assets-raw', b.logo);
-  if (b.logo && fs.existsSync(logo)) b.logo_url = 'file://' + logo + '#';
+  // Sama seperti server (dataUriGambarKecil_): logo kecil ditanam agar latar transparan tetap.
+  if (b.logo && fs.existsSync(logo)) b.logo_data = 'data:image/png;base64,' + fs.readFileSync(logo).toString('base64');
 });
 const profil = {};
 g.PROFIL_GENIO_.forEach((p) => { profil[p[0]] = p[1]; });

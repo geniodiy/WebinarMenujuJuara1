@@ -646,11 +646,12 @@
       wadah.textContent = '';
       daftar.forEach(function (c) {
         var kartu = el('article', 'cabang-kartu');
-        if (c.logo_url) {
+        if (c.logo_data || c.logo_url) {
           var img = el('img', 'cabang-logo');
           img.alt = c.nama;
           img.loading = 'lazy';
-          aturGambar(img, c.logo_url, [300], '140px');
+          if (c.logo_data) img.src = c.logo_data;
+          else aturGambar(img, c.logo_url, [300], '140px');
           kartu.appendChild(img);
           if (c.contoh) kartu.appendChild(labelContoh());
         } else {

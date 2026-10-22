@@ -199,7 +199,10 @@ function bangunKonten_() {
     }
     b.prestasi_binaan = String(b.prestasi_binaan || '').split(/\r?\n/).map(function (s) { return s.trim(); }).filter(String);
   });
-  daftar.Cabang.forEach(function (b) { b.logo_url = urlGambar_(peta, b.logo); });
+  daftar.Cabang.forEach(function (b) {
+    b.logo_url = urlGambar_(peta, b.logo);
+    b.logo_id = b.logo ? (peta[String(b.logo).toLowerCase()] || '') : '';
+  });
   daftar.Prestasi.forEach(function (b) { b.medali = jenisPrestasi_(b.medali, b.prestasi); });
 
   // KEPUTUSAN: FAQ tidak ditampilkan (keputusan pemilik), jadi tidak dikirim dan tidak memicu pita contoh.
@@ -222,10 +225,42 @@ function bangunKonten_() {
   };
 }
 
+// KEPUTUSAN: layanan gambar Drive (lh3 dan thumbnail) mengubah latar transparan PNG menjadi hitam.
+// Logo cabang yang kecil ditanam sebagai data URI agar transparansinya tetap. Data URI disimpan
+// di cache terpisah per file supaya cache konten tetap di bawah batas 100 KB.
+var BATAS_BYTE_LOGO_ = 80 * 1024;
+var DETIK_CACHE_LOGO_ = 6 * 3600;
+
+/** Data URI gambar kecil dari Drive, atau '' bila terlalu besar atau gagal dibaca. */
+function dataUriGambarKecil_(id) {
+  if (!id) return '';
+  var cache = CacheService.getScriptCache();
+  var kunci = 'gambar_' + id;
+  var tersimpan = cache.get(kunci);
+  if (tersimpan !== null) return tersimpan;
+  var hasil = '';
+  try {
+    var file = DriveApp.getFileById(id);
+    if (file.getSize() <= BATAS_BYTE_LOGO_) {
+      var blob = file.getBlob();
+      hasil = 'data:' + blob.getContentType() + ';base64,' + Utilities.base64Encode(blob.getBytes());
+    }
+  } catch (err) {
+    console.warn('Logo ' + id + ' tidak bisa dibaca: ' + err);
+  }
+  try { cache.put(kunci, hasil, DETIK_CACHE_LOGO_); } catch (err) { /* terlalu besar untuk cache */ }
+  return hasil;
+}
+
+function isiLogoCabang_(konten) {
+  (konten.cabang || []).forEach(function (c) { c.logo_data = dataUriGambarKecil_(c.logo_id); });
+  return konten;
+}
+
 function ambilKonten_() {
   var cache = CacheService.getScriptCache();
   var tersimpan = cache.get(KUNCI_CACHE_KONTEN_);
-  if (tersimpan) return JSON.parse(tersimpan);
+  if (tersimpan) return isiLogoCabang_(JSON.parse(tersimpan));
   var konten = bangunKonten_();
   try {
     cache.put(KUNCI_CACHE_KONTEN_, JSON.stringify(konten), DETIK_CACHE_KONTEN_);
@@ -233,7 +268,7 @@ function ambilKonten_() {
     // Batas 100 KB per kunci cache; konten tetap dikirim tanpa cache.
     console.warn('Konten tidak bisa disimpan di cache: ' + err);
   }
-  return konten;
+  return isiLogoCabang_(konten);
 }
 
 /** Konten publik yang lolos aturan tampil dan data_contoh. */
