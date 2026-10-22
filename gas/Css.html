@@ -226,7 +226,10 @@
   .tutor-judul h3 .label-contoh { -webkit-text-fill-color: var(--redup); font-size: 10px; }
   .tutor-jabatan { margin-top: 4px; font-size: 12px; color: var(--redup); }
   /* Badge kode room di kanan bawah: gradien warna bidang, sudut kecil sebanding dengan sudut kartu. */
-  .tutor-badge { position: absolute; right: 12px; bottom: 12px; z-index: 2; min-width: 42px; padding: 5px 7px 4px; border-radius: 7px; background: var(--blok); color: #fff; text-align: center; line-height: 1.05; box-shadow: 0 3px 10px rgba(0, 0, 0, .18); text-shadow: 0 1px 2px rgba(0, 0, 0, .2); }
+  .tutor-badge { position: absolute; overflow: hidden; right: 12px; bottom: 12px; z-index: 2; min-width: 42px; padding: 5px 7px 4px; border-radius: 7px; background: var(--blok); color: #fff; text-align: center; line-height: 1.05; box-shadow: 0 3px 10px rgba(0, 0, 0, .18); text-shadow: 0 1px 2px rgba(0, 0, 0, .2); transform-origin: center; animation: detakBadge 2.8s ease-in-out infinite; animation-delay: calc(var(--urut, 0) * 350ms); }
+  /* Badge berdetak dua kali lalu diam, dan kilau putih menyapu; tiap kartu sedikit bergeser waktunya. */
+  .tutor-badge::after { content: ""; position: absolute; top: 0; bottom: 0; left: -60%; width: 45%; background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .5), transparent); transform: skewX(-18deg); animation: kilau 2.8s ease-in-out infinite; animation-delay: inherit; }
+  @keyframes detakBadge { 0%, 30%, 100% { transform: scale(1); } 8% { transform: scale(1.12); } 16% { transform: scale(1); } 23% { transform: scale(1.07); } }
   .tutor-badge b { display: block; font-size: 13px; font-weight: 700; letter-spacing: .3px; }
   .tutor-badge span { display: block; font-size: 10px; font-weight: 600; opacity: .95; }
   .tutor-blok { position: absolute; left: 0; right: 0; bottom: 0; height: 46%; border-radius: 26px 26px 0 0; background: var(--blok); }
