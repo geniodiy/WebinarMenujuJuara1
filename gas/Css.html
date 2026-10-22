@@ -99,7 +99,6 @@
   @keyframes zoomMasuk { 0% { transform: scale(.4); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
   @keyframes detak { 0%, 24%, 100% { transform: scale(1); } 8% { transform: scale(1.035); } 16% { transform: scale(1.015); } }
   .info-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-  @media (max-width: 419px) { .info-grid { grid-template-columns: minmax(0, 1fr); } }
   /* Kartu Pukul dan Live di, mengikuti gaya poster: ikon bulat penuh dan garis tepi gelap tipis. */
   .info-kartu { display: flex; align-items: center; gap: 10px; padding: 12px; border: 1.5px solid rgba(84, 86, 59, .55); border-radius: 14px; line-height: 1.3; }
   .info-label { display: block; font-size: 12px; color: var(--redup); }
@@ -835,6 +834,35 @@
   /* Bagian yang awalnya di luar layar muncul perlahan saat digulir. */
   .gulir-muncul { opacity: 0; transform: translateY(18px); transition: opacity .55s ease-out, transform .55s ease-out; }
   .gulir-muncul.terlihat { opacity: 1; transform: none; }
+
+  /* Ponsel: huruf sedikit lebih kecil agar rapi (keputusan pemilik); kartu Pukul dan Zoom tetap berdampingan. */
+  @media (max-width: 639px) {
+    body { font-size: 14px; }
+    .tagline { font-size: 14px; text-wrap: balance; }
+    .info-kartu strong { text-wrap: balance; }
+    .sorot-label { font-size: 14px; }
+    .judul-besar { font-size: clamp(27px, 7.6vw, 46px); }
+    .strip-label { font-size: 12px; }
+    .strip-tanggal strong { font-size: clamp(14px, 4.3vw, 22px); }
+    .lencana-gratis { font-size: 14px; }
+    .info-grid { gap: 8px; }
+    .info-kartu { gap: 8px; padding: 9px 10px; border-radius: 12px; }
+    .info-ikon { width: 32px; height: 32px; }
+    .info-ikon svg { width: 20px; height: 20px; }
+    .info-label { font-size: 11px; }
+    .info-kartu strong { font-size: 12.5px; }
+    .hm-judul { font-size: 13px; }
+    .bagian h2 { font-size: 18px; margin-bottom: 14px; }
+    .bagian-sub { font-size: 12.5px; }
+    .agenda-isi h3 { font-size: 14px; }
+    .agenda-isi p { font-size: 13px; }
+    .narasumber-teks h3 { font-size: 16px; }
+    .jabatan { font-size: 13px; }
+    .narasumber-ringkasan { font-size: 13px; }
+    .tutor-judul h3 { font-size: 17px; }
+    .prestasi-ringkas strong { font-size: 18px; }
+    .kaki a { font-size: 13px; }
+  }
 
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
