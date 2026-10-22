@@ -679,40 +679,75 @@
     }
 
     /*
-     * Pita berjalan tanpa ujung (keputusan pemilik): kartu asli diapit salinan lengkap di kiri dan
-     * kanan, jadi saat pertama tampil tutor pertama di tengah dan tutor terakhir di kirinya.
-     * Berhenti saat bagian tutor disentuh; jalan lagi setelah bagian lain disentuh, atau setelah
-     * 6 detik tanpa sentuhan agar putaran tidak pernah berhenti lama. Hanya berjalan saat terlihat.
+     * Putaran tanpa ujung (keputusan pemilik): kartu asli diapit salinan lengkap di kiri dan kanan,
+     * jadi saat pertama tampil tutor pertama di tengah dan tutor terakhir di kirinya.
+     * Tiap tutor ditampilkan 5 detik (dihitung sejak bagian tutor terlihat), lalu geser cepat ke
+     * tutor berikutnya. Berhenti saat bagian tutor disentuh; jalan lagi setelah bagian lain
+     * disentuh, atau setelah 6 detik tanpa sentuhan. Hanya berjalan saat terlihat di layar.
      */
-    var KECEPATAN_PITA = 28; // px per detik
+    var LAMA_TAMPIL_MS = 5000;
+    var DURASI_GESER_MS = 550;
     var DIAM_LANJUT_MS = 6000;
-    var otomatis = { dijeda: false, sentuh: false, terakhir: 0, terlihat: false, bingkai: 0, waktu: 0, posisi: 0 };
+    var otomatis = { dijeda: false, sentuh: false, terakhir: 0, terlihat: false, bingkai: 0, timer: 0 };
 
     function bolehJalan() {
       return !otomatis.dijeda && otomatis.terlihat && !document.hidden &&
         !document.documentElement.classList.contains('fd-terbuka') && lebarSatuPutaran() > 0;
     }
 
-    function bingkaiPita(t) {
-      otomatis.bingkai = 0;
-      if (!bolehJalan()) { hentikanPita(); return; }
-      var dt = otomatis.waktu ? Math.min(0.05, (t - otomatis.waktu) / 1000) : 0;
-      otomatis.waktu = t;
-      otomatis.posisi = rapikanPutaran(otomatis.posisi + KECEPATAN_PITA * dt);
-      slider.geser.scrollLeft = otomatis.posisi;
-      otomatis.bingkai = window.requestAnimationFrame(bingkaiPita);
-    }
-
-    function jalankanPita() {
-      if (otomatis.bingkai || !bolehJalan()) return;
-      otomatis.posisi = rapikanPutaran(slider.geser.scrollLeft);
-      otomatis.waktu = 0;
-      otomatis.bingkai = window.requestAnimationFrame(bingkaiPita);
+    function kartuTengah() {
+      var g = slider.geser;
+      var tengah = g.scrollLeft + g.clientWidth / 2;
+      var hasil = 0;
+      var terdekat = Infinity;
+      Array.prototype.forEach.call(g.children, function (k, i) {
+        var d = Math.abs(k.offsetLeft + k.offsetWidth / 2 - tengah);
+        if (d < terdekat) { terdekat = d; hasil = i; }
+      });
+      return hasil;
     }
 
     function hentikanPita() {
+      clearTimeout(otomatis.timer);
+      otomatis.timer = 0;
       if (otomatis.bingkai) window.cancelAnimationFrame(otomatis.bingkai);
       otomatis.bingkai = 0;
+    }
+
+    /** Geser cepat ke posisi tujuan: mulai dan berhenti halus (ease-in-out). */
+    function geserKe(tujuan) {
+      var g = slider.geser;
+      var awal = g.scrollLeft;
+      var mulai = 0;
+      function bingkai(t) {
+        if (!mulai) mulai = t;
+        var x = Math.min(1, (t - mulai) / DURASI_GESER_MS);
+        var e = x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+        g.scrollLeft = awal + (tujuan - awal) * e;
+        if (x < 1) {
+          otomatis.bingkai = window.requestAnimationFrame(bingkai);
+        } else {
+          otomatis.bingkai = 0;
+          g.scrollLeft = rapikanPutaran(g.scrollLeft);
+        }
+      }
+      otomatis.bingkai = window.requestAnimationFrame(bingkai);
+    }
+
+    function langkahBerikut() {
+      if (!bolehJalan() || otomatis.bingkai) return;
+      var berikut = slider.geser.children[kartuTengah() + 1];
+      if (berikut) geserKe(posisiTengah(berikut));
+    }
+
+    /** Mulai hitung 5 detik dari sekarang, lalu geser, dan begitu seterusnya. */
+    function jalankanPita() {
+      hentikanPita();
+      if (!bolehJalan()) return;
+      otomatis.timer = setTimeout(function ulang() {
+        langkahBerikut();
+        otomatis.timer = setTimeout(ulang, LAMA_TAMPIL_MS + DURASI_GESER_MS);
+      }, LAMA_TAMPIL_MS);
     }
 
     function siapkanGeserOtomatis() {
@@ -721,10 +756,14 @@
       if ('IntersectionObserver' in window) {
         if (!tenang) slider.geser.classList.add('kartu-siap-muncul');
         new IntersectionObserver(function (entri) {
-          otomatis.terlihat = entri[0].isIntersecting;
-          if (otomatis.terlihat) {
+          var terlihat = entri[0].isIntersecting;
+          if (terlihat === otomatis.terlihat) return;
+          otomatis.terlihat = terlihat;
+          if (terlihat) {
             slider.geser.classList.add('kartu-muncul');
             jalankanPita();
+          } else {
+            hentikanPita();
           }
         }, { threshold: 0.25 }).observe(wadah);
       } else {
@@ -749,10 +788,15 @@
       }
       document.addEventListener('pointerup', lepas, true);
       document.addEventListener('pointercancel', lepas, true);
-      document.addEventListener('visibilitychange', jalankanPita);
+      document.addEventListener('visibilitychange', function () { if (!document.hidden) jalankanPita(); });
       setInterval(function () {
-        if (otomatis.dijeda && !otomatis.sentuh && Date.now() - otomatis.terakhir > DIAM_LANJUT_MS) otomatis.dijeda = false;
-        jalankanPita();
+        if (otomatis.dijeda && !otomatis.sentuh && Date.now() - otomatis.terakhir > DIAM_LANJUT_MS) {
+          otomatis.dijeda = false;
+          jalankanPita();
+        } else if (!otomatis.timer && !otomatis.bingkai && bolehJalan()) {
+          // Misalnya setelah popup ditutup: mulai lagi hitungan 5 detik.
+          jalankanPita();
+        }
       }, 1000);
     }
 
