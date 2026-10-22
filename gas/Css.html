@@ -228,8 +228,8 @@
     mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
   }
   .tutor-geser::-webkit-scrollbar { display: none; }
-  /* Tanpa putaran (satu tutor atau gerak dikurangi): ruang di kiri-kanan agar kartu bisa di tengah. */
-  .tutor-geser:not(.mode-putar) { padding-left: calc((100% - var(--lebar-kartu)) / 2); padding-right: calc((100% - var(--lebar-kartu)) / 2); }
+  /* Tanpa putaran (satu tutor atau gerak dikurangi): ruang kosong di kiri-kanan agar kartu bisa di tengah. */
+  .tutor-geser:not(.mode-putar)::before, .tutor-geser:not(.mode-putar)::after { content: ""; flex: 0 0 calc((100% - var(--lebar-kartu)) / 2 - 12px); }
   /* Mode putar: snap dimatikan agar pita berjalan halus dan kartu tidak melompat saat disentuh. */
   .tutor-geser.mode-putar { scroll-snap-type: none; }
   /* Kartu tutor muncul dari kanan saat bagian tutor pertama kali terlihat. */
@@ -272,7 +272,8 @@
   .tutor-titik span.aktif { width: 18px; background: var(--gradien); }
 
   /* Popup di tengah layar: detail tutor dan daftar prestasi. */
-  .lapisan-tengah { align-items: center; padding: 16px; }
+  /* Popup prestasi dan detail tutor selalu di tengah layar (keputusan pemilik), juga di ponsel. */
+  .lapisan.lapisan-tengah { align-items: center; padding: 16px; }
   .kotak-tengah { position: relative; width: 100%; max-width: 440px; max-height: 82vh; max-height: 82dvh; overflow-y: auto; border-radius: var(--radius); background: #fff; padding: 18px 16px; animation: munculTengah .22s ease-out; }
   @keyframes munculTengah { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: none; } }
   .tombol-tutup-kecil { position: absolute; top: 6px; right: 6px; width: 40px; height: 40px; border: 0; border-radius: 10px; background: none; color: var(--item); display: flex; align-items: center; justify-content: center; cursor: pointer; }
