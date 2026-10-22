@@ -975,6 +975,39 @@
       return li;
     }
 
+    var WARNA_MEDALI = { Emas: ['#FFE58A', '#F2B91F', '#B9790B'], Perak: ['#F4F6F9', '#B8C1CC', '#76808D'], Perunggu: ['#F8CDA4', '#C9803F', '#874717'] };
+
+    /** Titik segi enam (sudut di atas dan bawah) sebagai teks "x,y". */
+    function titikSegiEnam(cx, cy, r) {
+      return [0, 1, 2, 3, 4, 5].map(function (i) {
+        var a = Math.PI / 3 * i + Math.PI / 6;
+        return (cx + r * Math.cos(a)).toFixed(1) + ',' + (cy + r * Math.sin(a)).toFixed(1);
+      });
+    }
+
+    /** Lencana permata: sisi luar berfaset terang-gelap, inti bergradasi, angka putih, kilau bintang kecil. */
+    function svgMedali(jenis, jumlah, i) {
+      var w = WARNA_MEDALI[jenis];
+      var id = 'md' + i;
+      var luar = titikSegiEnam(50, 58, 38);
+      var dalam = titikSegiEnam(50, 58, 26);
+      var faset = '';
+      [0.55, 0.35, 0.2, 0.5, 0.7, 0.4].forEach(function (op, j) {
+        faset += '<polygon points="' + luar[j] + ' ' + luar[(j + 1) % 6] + ' ' + dalam[(j + 1) % 6] + ' ' + dalam[j] +
+          '" fill="' + (j < 3 ? w[2] : w[0]) + '" opacity="' + op + '"/>';
+      });
+      return '<svg viewBox="0 0 100 110" aria-hidden="true"><defs>' +
+        '<radialGradient id="r' + id + '" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="' + w[0] + '"/><stop offset=".55" stop-color="' + w[1] + '"/><stop offset="1" stop-color="' + w[2] + '"/></radialGradient>' +
+        '<linearGradient id="l' + id + '" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="' + w[0] + '"/><stop offset="1" stop-color="' + w[2] + '"/></linearGradient>' +
+        '<linearGradient id="k' + id + '" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".75"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>' +
+        '<clipPath id="c' + id + '"><polygon points="' + luar.join(' ') + '"/></clipPath></defs>' +
+        '<polygon points="' + luar.join(' ') + '" fill="url(#l' + id + ')"/>' + faset +
+        '<polygon points="' + dalam.join(' ') + '" fill="url(#r' + id + ')"/>' +
+        '<text x="50" y="67" text-anchor="middle" font-family="Poppins, sans-serif" font-weight="700" font-size="24" fill="#fff" stroke="' + w[2] + '" stroke-width="1.2" style="paint-order: stroke">' + jumlah + '</text>' +
+        '<g clip-path="url(#c' + id + ')"><rect class="medali-kilau" x="-30" y="0" width="22" height="110" fill="url(#k' + id + ')"/></g>' +
+        '<path d="M80 18l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" fill="' + w[1] + '"/></svg>';
+    }
+
     function renderPrestasi() {
       var daftar = konten && konten.prestasi ? konten.prestasi : [];
       $('bagian-prestasi').hidden = !daftar.length;
@@ -984,12 +1017,13 @@
       daftar.forEach(function (p) { if (hitung[p.medali] != null) hitung[p.medali]++; });
       var ringkas = $('prestasi-ringkas');
       ringkas.textContent = '';
-      // Medali berpita (opsi 1 pemilik): koin bergradasi berisi jumlah, berkilau sesekali.
+      // Medali permata segi enam (opsi 5 pemilik), berisi jumlah dan berkilau sesekali.
       Object.keys(hitung).forEach(function (k, i) {
-        var d = el('div', 'medali medali-' + k.toLowerCase());
+        var d = el('div', 'medali');
         d.style.setProperty('--urut', String(i));
-        d.appendChild(el('span', 'medali-pita'));
-        d.appendChild(el('strong', 'medali-koin', String(hitung[k])));
+        d.setAttribute('role', 'img');
+        d.setAttribute('aria-label', hitung[k] + ' medali ' + k.toLowerCase());
+        d.innerHTML = svgMedali(k, hitung[k], i);
         d.appendChild(el('span', 'medali-nama', k));
         ringkas.appendChild(d);
       });
