@@ -611,17 +611,24 @@
       return pos;
     }
 
+    /** Posisi tengah dan lebar tiap kartu, diukur sekali (bukan tiap frame) agar geseran ringan. */
+    function ukurKartu() {
+      var g = slider.geser;
+      slider.ukuran = Array.prototype.map.call(g.children, function (k) {
+        return { kartu: k, tengah: k.offsetLeft + k.offsetWidth / 2, lebar: k.offsetWidth + 12 };
+      });
+      slider.lebarLayar = g.clientWidth;
+    }
+
     /** Kartu di tengah utuh; makin jauh dari tengah makin kecil dan pudar. */
     function perbaruiFokus() {
       var g = slider.geser;
-      var tengah = g.scrollLeft + g.clientWidth / 2;
-      var kartu = Array.prototype.slice.call(g.children);
-      var jarak = kartu.map(function (k) {
-        return Math.min(1, Math.abs(k.offsetLeft + k.offsetWidth / 2 - tengah) / (k.offsetWidth + 12));
-      });
-      kartu.forEach(function (k, i) {
-        k.style.opacity = String(1 - jarak[i] * 0.45);
-        k.style.transform = 'scale(' + (1 - jarak[i] * 0.08).toFixed(4) + ')';
+      if (!slider.ukuran || slider.ukuran.length !== g.children.length) ukurKartu();
+      var tengah = g.scrollLeft + slider.lebarLayar / 2;
+      slider.ukuran.forEach(function (u) {
+        var d = Math.min(1, Math.abs(u.tengah - tengah) / u.lebar);
+        u.kartu.style.opacity = String(1 - d * 0.45);
+        u.kartu.style.transform = 'scale(' + (1 - d * 0.08).toFixed(4) + ')';
       });
     }
 
@@ -672,6 +679,7 @@
       $('tutor-kiri').addEventListener('click', function () { g.scrollBy({ left: -lebarLangkah(), behavior: 'smooth' }); });
       $('tutor-kanan').addEventListener('click', function () { g.scrollBy({ left: lebarLangkah(), behavior: 'smooth' }); });
       window.addEventListener('resize', function () {
+        ukurKartu();
         if (modePutar() && !otomatis.bingkai) g.scrollLeft = rapikanPutaran(g.scrollLeft);
         perbaruiSlider();
       });
@@ -681,12 +689,13 @@
     /*
      * Putaran tanpa ujung (keputusan pemilik): kartu asli diapit salinan lengkap di kiri dan kanan,
      * jadi saat pertama tampil tutor pertama di tengah dan tutor terakhir di kirinya.
-     * Tiap tutor ditampilkan 5 detik (dihitung sejak bagian tutor terlihat), lalu geser cepat ke
-     * tutor berikutnya. Berhenti saat bagian tutor disentuh; jalan lagi setelah bagian lain
+     * Tiap tutor ditampilkan 4 detik (dihitung sejak bagian tutor terlihat), lalu geser ke tutor
+     * berikutnya memakai geseran halus bawaan browser (dijalankan kartu grafis, mulus di ponsel). Berhenti saat bagian tutor disentuh; jalan lagi setelah bagian lain
      * disentuh, atau setelah 6 detik tanpa sentuhan. Hanya berjalan saat terlihat di layar.
      */
-    var LAMA_TAMPIL_MS = 5000;
-    var DURASI_GESER_MS = 550;
+    var LAMA_TAMPIL_MS = 4000;
+    // Perkiraan lama geseran bawaan browser; setelah itu posisi dirapikan ke putaran tengah.
+    var DURASI_GESER_MS = 700;
     var DIAM_LANJUT_MS = 6000;
     var otomatis = { dijeda: false, sentuh: false, terakhir: 0, terlihat: false, bingkai: 0, timer: 0 };
 
@@ -710,28 +719,18 @@
     function hentikanPita() {
       clearTimeout(otomatis.timer);
       otomatis.timer = 0;
-      if (otomatis.bingkai) window.cancelAnimationFrame(otomatis.bingkai);
+      clearTimeout(otomatis.bingkai);
       otomatis.bingkai = 0;
     }
 
-    /** Geser cepat ke posisi tujuan: mulai dan berhenti halus (ease-in-out). */
+    /** Geser halus ke posisi tujuan, lalu rapikan diam-diam bila sudah masuk salinan. */
     function geserKe(tujuan) {
       var g = slider.geser;
-      var awal = g.scrollLeft;
-      var mulai = 0;
-      function bingkai(t) {
-        if (!mulai) mulai = t;
-        var x = Math.min(1, (t - mulai) / DURASI_GESER_MS);
-        var e = x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
-        g.scrollLeft = awal + (tujuan - awal) * e;
-        if (x < 1) {
-          otomatis.bingkai = window.requestAnimationFrame(bingkai);
-        } else {
-          otomatis.bingkai = 0;
-          g.scrollLeft = rapikanPutaran(g.scrollLeft);
-        }
-      }
-      otomatis.bingkai = window.requestAnimationFrame(bingkai);
+      g.scrollTo({ left: tujuan, behavior: 'smooth' });
+      otomatis.bingkai = setTimeout(function () {
+        otomatis.bingkai = 0;
+        if (!otomatis.sentuh) g.scrollLeft = rapikanPutaran(g.scrollLeft);
+      }, DURASI_GESER_MS);
     }
 
     function langkahBerikut() {
@@ -740,7 +739,7 @@
       if (berikut) geserKe(posisiTengah(berikut));
     }
 
-    /** Mulai hitung 5 detik dari sekarang, lalu geser, dan begitu seterusnya. */
+    /** Mulai hitung 4 detik dari sekarang, lalu geser, dan begitu seterusnya. */
     function jalankanPita() {
       hentikanPita();
       if (!bolehJalan()) return;
@@ -794,7 +793,7 @@
           otomatis.dijeda = false;
           jalankanPita();
         } else if (!otomatis.timer && !otomatis.bingkai && bolehJalan()) {
-          // Misalnya setelah popup ditutup: mulai lagi hitungan 5 detik.
+          // Misalnya setelah popup ditutup: mulai lagi hitungan 4 detik.
           jalankanPita();
         }
       }, 1000);
@@ -828,6 +827,7 @@
       window.requestAnimationFrame(function () {
         var a = kartuAsli();
         if (a.length) wadah.scrollLeft = posisiTengah(a[0]);
+        ukurKartu();
         perbaruiSlider();
       });
     }

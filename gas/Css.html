@@ -229,7 +229,7 @@
   /* Kartu tutor muncul dari kanan saat bagian tutor pertama kali terlihat. */
   .tutor-geser.kartu-siap-muncul { opacity: 0; transform: translateX(40px); }
   .tutor-geser.kartu-siap-muncul.kartu-muncul { opacity: 1; transform: none; transition: opacity .6s ease-out, transform .6s ease-out; }
-  .tutor-kartu { flex: 0 0 var(--lebar-kartu); scroll-snap-align: center; display: flex; flex-direction: column; gap: 8px; min-width: 0; padding-bottom: 12px; border-radius: 24px; background: #fff; box-shadow: 0 6px 18px rgba(47, 55, 126, .12); transform-origin: center; }
+  .tutor-kartu { flex: 0 0 var(--lebar-kartu); scroll-snap-align: center; display: flex; flex-direction: column; gap: 8px; min-width: 0; padding-bottom: 12px; border-radius: 24px; background: #fff; box-shadow: 0 6px 18px rgba(47, 55, 126, .12); transform-origin: center; will-change: transform, opacity; }
   .tutor-poster { position: relative; height: 330px; border-radius: 24px; overflow: hidden; background: var(--muda); }
   .tutor-judul { position: absolute; left: 16px; right: 16px; top: 16px; z-index: 2; }
   .tutor-judul h3 { font-size: 19px; font-weight: 700; line-height: 1.15; background: var(--teks-nama); -webkit-background-clip: text; background-clip: text; color: transparent; }
