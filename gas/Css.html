@@ -213,15 +213,23 @@
   .bidang-ips { --blok: linear-gradient(135deg, var(--indigo), var(--cyan)); --muda: #EDF0F8; --teks-nama: linear-gradient(90deg, var(--indigo), var(--cyan)); --hias: var(--indigo); }
 
   /* Slider tutor: geser dengan snap; ponsel satu kartu dengan kartu berikutnya terlihat, desktop tiga kartu. */
-  .tutor-slider { position: relative; }
-  .tutor-geser { display: flex; column-gap: 12px; overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scrollbar-width: none; align-items: stretch; padding-bottom: 2px; }
+  /* Bingkai area geser (opsi A pemilik): panel biru lembut; kartu aktif di tengah, kiri-kanan terpotong. */
+  .tutor-slider { --lebar-kartu: 64%; position: relative; padding: 2px 0; border: 1px solid var(--garis); border-radius: 26px; background: var(--latar-lembut); }
+  .tutor-geser {
+    position: relative; display: flex; column-gap: 12px; overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory; scrollbar-width: none; align-items: stretch; padding: 14px 0 18px;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
+  }
   .tutor-geser::-webkit-scrollbar { display: none; }
-  /* Mode pita: snap dimatikan agar geseran halus dan kartu tidak melompat saat disentuh. */
-  .tutor-geser.mode-pita { scroll-snap-type: none; }
-  /* Kartu tutor muncul berurutan dari kanan saat bagian tutor pertama kali terlihat. */
-  .tutor-geser.kartu-siap-muncul .tutor-kartu { opacity: 0; transform: translateX(28px); }
-  .tutor-geser.kartu-siap-muncul.kartu-muncul .tutor-kartu { opacity: 1; transform: none; transition: opacity .5s ease-out, transform .5s ease-out; transition-delay: calc(min(var(--urut, 0), 4) * 110ms); }
-  .tutor-kartu { flex: 0 0 66%; scroll-snap-align: start; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  /* Tanpa putaran (satu tutor atau gerak dikurangi): ruang di kiri-kanan agar kartu bisa di tengah. */
+  .tutor-geser:not(.mode-putar) { padding-left: calc((100% - var(--lebar-kartu)) / 2); padding-right: calc((100% - var(--lebar-kartu)) / 2); }
+  /* Mode putar: snap dimatikan agar pita berjalan halus dan kartu tidak melompat saat disentuh. */
+  .tutor-geser.mode-putar { scroll-snap-type: none; }
+  /* Kartu tutor muncul dari kanan saat bagian tutor pertama kali terlihat. */
+  .tutor-geser.kartu-siap-muncul { opacity: 0; transform: translateX(40px); }
+  .tutor-geser.kartu-siap-muncul.kartu-muncul { opacity: 1; transform: none; transition: opacity .6s ease-out, transform .6s ease-out; }
+  .tutor-kartu { flex: 0 0 var(--lebar-kartu); scroll-snap-align: center; display: flex; flex-direction: column; gap: 8px; min-width: 0; padding-bottom: 12px; border-radius: 24px; background: #fff; box-shadow: 0 6px 18px rgba(47, 55, 126, .12); transform-origin: center; }
   .tutor-poster { position: relative; height: 330px; border-radius: 24px; overflow: hidden; background: var(--muda); }
   .tutor-judul { position: absolute; left: 16px; right: 16px; top: 16px; z-index: 2; }
   .tutor-judul h3 { font-size: 19px; font-weight: 700; line-height: 1.15; background: var(--teks-nama); -webkit-background-clip: text; background-clip: text; color: transparent; }
@@ -248,11 +256,11 @@
   .tutor-lagi { margin-top: auto; align-self: center; display: inline-flex; align-items: center; gap: 6px; font: inherit; font-size: 10.5px; font-weight: 600; color: #fff; border: 0; border-radius: 999px; padding: 5px 12px; background: var(--blok); text-shadow: 0 1px 2px rgba(0, 0, 0, .18); cursor: pointer; position: relative; }
   .tutor-lagi::before { content: ""; position: absolute; left: 0; right: 0; top: -8px; bottom: -8px; }
   .tutor-lagi svg { width: 10px; height: 10px; }
-  .tutor-panah { position: absolute; top: 147px; z-index: 3; width: 36px; height: 36px; padding: 0; border: 0; border-radius: 50%; background: #fff; color: var(--item); box-shadow: 0 4px 12px rgba(84, 86, 59, .2); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: opacity .2s; }
+  .tutor-panah { position: absolute; top: 163px; z-index: 3; width: 36px; height: 36px; padding: 0; border: 0; border-radius: 50%; background: #fff; color: var(--item); box-shadow: 0 4px 12px rgba(84, 86, 59, .2); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: opacity .2s; }
   .tutor-panah svg { width: 16px; height: 16px; }
   .tutor-panah[disabled] { opacity: .35; cursor: default; }
-  .tutor-panah.kiri { left: -10px; }
-  .tutor-panah.kanan { right: -10px; }
+  .tutor-panah.kiri { left: 8px; }
+  .tutor-panah.kanan { right: 8px; }
   .tutor-titik { display: flex; justify-content: center; gap: 6px; margin-top: 12px; }
   .tutor-titik span { width: 6px; height: 6px; border-radius: 3px; background: #C9D6E0; transition: width .2s; }
   .tutor-titik span.aktif { width: 18px; background: var(--gradien); }
@@ -362,9 +370,7 @@
   .ajakan-wa svg { width: 18px; height: 18px; flex-shrink: 0; }
 
   @media (min-width: 640px) {
-    .tutor-kartu { flex-basis: calc((100% - 24px) / 3); }
-    .tutor-panah.kiri { left: -18px; }
-    .tutor-panah.kanan { right: -18px; }
+    .tutor-slider { --lebar-kartu: 40%; }
     .testi-jalur { margin: 0 -28px; padding: 0 28px; }
     .bagian h2 + .bagian-sub { margin-top: -10px; }
   }

@@ -575,28 +575,77 @@
 
     var slider = { geser: null, siap: false };
 
+    function kartuAsli() {
+      return slider.geser.querySelectorAll('.tutor-kartu:not(.salinan)');
+    }
+
+    function modePutar() {
+      return slider.geser.classList.contains('mode-putar');
+    }
+
     function lebarLangkah() {
       var k = slider.geser.firstElementChild;
       var jarak = parseFloat(getComputedStyle(slider.geser).columnGap);
       return k ? k.getBoundingClientRect().width + (isNaN(jarak) ? 12 : jarak) : 1;
     }
 
+    /** scrollLeft yang membuat kartu k tepat di tengah. */
+    function posisiTengah(k) {
+      return k.offsetLeft + k.offsetWidth / 2 - slider.geser.clientWidth / 2;
+    }
+
+    /** Jarak satu putaran: dari kartu pertama salinan depan ke kartu asli pertama. */
+    function lebarSatuPutaran() {
+      var a = kartuAsli();
+      if (!modePutar() || !a.length) return 0;
+      return a[0].offsetLeft - slider.geser.firstElementChild.offsetLeft;
+    }
+
+    /** Menjaga posisi tetap di sekitar kartu asli; salinan di kiri dan kanan membuatnya tampak tanpa ujung. */
+    function rapikanPutaran(pos) {
+      var w = lebarSatuPutaran();
+      if (!w) return pos;
+      var awal = posisiTengah(kartuAsli()[0]);
+      while (pos > awal + w / 2) pos -= w;
+      while (pos < awal - w / 2) pos += w;
+      return pos;
+    }
+
+    /** Kartu di tengah utuh; makin jauh dari tengah makin kecil dan pudar. */
+    function perbaruiFokus() {
+      var g = slider.geser;
+      var tengah = g.scrollLeft + g.clientWidth / 2;
+      var kartu = Array.prototype.slice.call(g.children);
+      var jarak = kartu.map(function (k) {
+        return Math.min(1, Math.abs(k.offsetLeft + k.offsetWidth / 2 - tengah) / (k.offsetWidth + 12));
+      });
+      kartu.forEach(function (k, i) {
+        k.style.opacity = String(1 - jarak[i] * 0.45);
+        k.style.transform = 'scale(' + (1 - jarak[i] * 0.08).toFixed(4) + ')';
+      });
+    }
+
     function perbaruiSlider() {
       var g = slider.geser;
       if (!g || !g.firstElementChild) return;
-      var langkah = lebarLangkah();
-      var maks = g.scrollWidth - g.clientWidth;
-      var jumlah = maks > 4 ? Math.round(maks / langkah) + 1 : 1;
+      perbaruiFokus();
       var titik = $('tutor-titik');
+      if (modePutar()) {
+        titik.hidden = true;
+        $('tutor-kiri').disabled = $('tutor-kanan').disabled = false;
+        $('tutor-kiri').hidden = $('tutor-kanan').hidden = false;
+        return;
+      }
+      var jumlah = kartuAsli().length;
       if (titik.children.length !== jumlah) {
         titik.textContent = '';
         for (var i = 0; i < jumlah; i++) titik.appendChild(el('span'));
       }
-      var aktif = Math.min(jumlah - 1, Math.round(g.scrollLeft / langkah));
+      var aktif = Math.max(0, Math.min(jumlah - 1, Math.round(g.scrollLeft / lebarLangkah())));
       Array.prototype.forEach.call(titik.children, function (d, j) { d.classList.toggle('aktif', j === aktif); });
-      titik.hidden = jumlah < 2 || !!g.querySelector('.salinan');
-      $('tutor-kiri').disabled = g.scrollLeft < 4;
-      $('tutor-kanan').disabled = g.scrollLeft > maks - 4;
+      titik.hidden = jumlah < 2;
+      $('tutor-kiri').disabled = aktif === 0;
+      $('tutor-kanan').disabled = aktif === jumlah - 1;
       $('tutor-kiri').hidden = $('tutor-kanan').hidden = jumlah < 2;
     }
 
@@ -604,31 +653,40 @@
       slider.geser = $('daftar-tutor');
       if (slider.siap) return;
       slider.siap = true;
+      var g = slider.geser;
       var tunggu = false;
-      slider.geser.addEventListener('scroll', function () {
+      var tundaRapi = null;
+      g.addEventListener('scroll', function () {
+        if (otomatis.dijeda) otomatis.terakhir = Date.now();
+        clearTimeout(tundaRapi);
+        tundaRapi = setTimeout(function () {
+          // Setelah digeser tangan, posisi dikembalikan diam-diam ke putaran tengah (tampilan sama persis).
+          if (otomatis.bingkai || otomatis.sentuh || !modePutar()) return;
+          var p = rapikanPutaran(g.scrollLeft);
+          if (Math.abs(p - g.scrollLeft) > 1) g.scrollLeft = p;
+        }, 250);
         if (tunggu) return;
         tunggu = true;
         window.requestAnimationFrame(function () { tunggu = false; perbaruiSlider(); });
       }, { passive: true });
-      $('tutor-kiri').addEventListener('click', function () { slider.geser.scrollBy({ left: -lebarLangkah(), behavior: 'smooth' }); });
-      $('tutor-kanan').addEventListener('click', function () { slider.geser.scrollBy({ left: lebarLangkah(), behavior: 'smooth' }); });
-      window.addEventListener('resize', perbaruiSlider);
+      $('tutor-kiri').addEventListener('click', function () { g.scrollBy({ left: -lebarLangkah(), behavior: 'smooth' }); });
+      $('tutor-kanan').addEventListener('click', function () { g.scrollBy({ left: lebarLangkah(), behavior: 'smooth' }); });
+      window.addEventListener('resize', function () {
+        if (modePutar() && !otomatis.bingkai) g.scrollLeft = rapikanPutaran(g.scrollLeft);
+        perbaruiSlider();
+      });
       siapkanGeserOtomatis();
     }
 
     /*
-     * Pita berjalan (keputusan pemilik, opsi 1): kartu bergeser pelan terus-menerus dan menyambung
-     * tanpa ujung karena daftar kartu disalin sekali di belakangnya. Berhenti saat bagian tutor
-     * disentuh atau diklik, jalan lagi setelah pengunjung menyentuh bagian lain halaman.
-     * Hanya berjalan saat terlihat di layar. Kartu muncul berurutan saat pertama kali terlihat.
+     * Pita berjalan tanpa ujung (keputusan pemilik): kartu asli diapit salinan lengkap di kiri dan
+     * kanan, jadi saat pertama tampil tutor pertama di tengah dan tutor terakhir di kirinya.
+     * Berhenti saat bagian tutor disentuh; jalan lagi setelah bagian lain disentuh, atau setelah
+     * 6 detik tanpa sentuhan agar putaran tidak pernah berhenti lama. Hanya berjalan saat terlihat.
      */
     var KECEPATAN_PITA = 28; // px per detik
-    var otomatis = { dijeda: false, terlihat: false, bingkai: 0, waktu: 0, posisi: 0 };
-
-    function lebarSatuPutaran() {
-      var salinan = slider.geser.querySelector('.tutor-kartu.salinan');
-      return salinan ? salinan.offsetLeft - slider.geser.firstElementChild.offsetLeft : 0;
-    }
+    var DIAM_LANJUT_MS = 6000;
+    var otomatis = { dijeda: false, sentuh: false, terakhir: 0, terlihat: false, bingkai: 0, waktu: 0, posisi: 0 };
 
     function bolehJalan() {
       return !otomatis.dijeda && otomatis.terlihat && !document.hidden &&
@@ -638,21 +696,16 @@
     function bingkaiPita(t) {
       otomatis.bingkai = 0;
       if (!bolehJalan()) { hentikanPita(); return; }
-      var g = slider.geser;
       var dt = otomatis.waktu ? Math.min(0.05, (t - otomatis.waktu) / 1000) : 0;
       otomatis.waktu = t;
-      var putaran = lebarSatuPutaran();
-      otomatis.posisi += KECEPATAN_PITA * dt;
-      if (otomatis.posisi >= putaran) otomatis.posisi -= putaran;
-      g.scrollLeft = otomatis.posisi;
+      otomatis.posisi = rapikanPutaran(otomatis.posisi + KECEPATAN_PITA * dt);
+      slider.geser.scrollLeft = otomatis.posisi;
       otomatis.bingkai = window.requestAnimationFrame(bingkaiPita);
     }
 
     function jalankanPita() {
       if (otomatis.bingkai || !bolehJalan()) return;
-      var g = slider.geser;
-      var putaran = lebarSatuPutaran();
-      otomatis.posisi = g.scrollLeft >= putaran ? g.scrollLeft - putaran : g.scrollLeft;
+      otomatis.posisi = rapikanPutaran(slider.geser.scrollLeft);
       otomatis.waktu = 0;
       otomatis.bingkai = window.requestAnimationFrame(bingkaiPita);
     }
@@ -681,47 +734,58 @@
       document.addEventListener('pointerdown', function (e) {
         if (wadah.contains(e.target)) {
           otomatis.dijeda = true;
+          otomatis.sentuh = true;
+          otomatis.terakhir = Date.now();
           hentikanPita();
         } else if (otomatis.dijeda) {
           otomatis.dijeda = false;
           jalankanPita();
         }
       }, true);
-      // Setelah popup ditutup atau tab kembali aktif, pita dicoba jalan lagi.
+      function lepas() {
+        if (!otomatis.sentuh) return;
+        otomatis.sentuh = false;
+        otomatis.terakhir = Date.now();
+      }
+      document.addEventListener('pointerup', lepas, true);
+      document.addEventListener('pointercancel', lepas, true);
       document.addEventListener('visibilitychange', jalankanPita);
-      setInterval(jalankanPita, 1000);
-      jalankanPita();
-    }
-
-    /** Salinan kartu di belakang agar pita menyambung; hanya bila kartu lebih lebar dari layar. */
-    function tambahSalinanPita(daftar) {
-      var g = slider.geser;
-      if (gerakDikurangi() || g.scrollWidth <= g.clientWidth + 4) return;
-      daftar.forEach(function (t, i) {
-        var k = kartuTutor(t);
-        k.classList.add('salinan');
-        k.setAttribute('aria-hidden', 'true');
-        k.style.setProperty('--urut', String(daftar.length + i));
-        Array.prototype.forEach.call(k.querySelectorAll('button, a'), function (b) { b.tabIndex = -1; });
-        g.appendChild(k);
-      });
-      g.classList.add('mode-pita');
+      setInterval(function () {
+        if (otomatis.dijeda && !otomatis.sentuh && Date.now() - otomatis.terakhir > DIAM_LANJUT_MS) otomatis.dijeda = false;
+        jalankanPita();
+      }, 1000);
     }
 
     function renderTutor() {
       var daftar = konten && konten.tutor ? konten.tutor : [];
       $('bagian-tutor').hidden = !daftar.length;
       var wadah = $('daftar-tutor');
-      if (slider.geser) { hentikanPita(); slider.geser.classList.remove('mode-pita'); }
+      if (slider.geser) hentikanPita();
+      wadah.classList.remove('mode-putar');
       wadah.textContent = '';
-      daftar.forEach(function (t, i) {
+      var putar = daftar.length >= 2 && !gerakDikurangi();
+      function tambah(t, i, salinan) {
         var k = kartuTutor(t);
         k.style.setProperty('--urut', String(i));
+        if (salinan) {
+          k.classList.add('salinan');
+          k.setAttribute('aria-hidden', 'true');
+          Array.prototype.forEach.call(k.querySelectorAll('button, a'), function (b) { b.tabIndex = -1; });
+        }
         wadah.appendChild(k);
-      });
+      }
+      if (putar) daftar.forEach(function (t, i) { tambah(t, i, true); });
+      daftar.forEach(function (t, i) { tambah(t, i, false); });
+      if (putar) {
+        daftar.forEach(function (t, i) { tambah(t, i, true); });
+        wadah.classList.add('mode-putar');
+      }
       siapkanSlider();
-      tambahSalinanPita(daftar);
-      window.requestAnimationFrame(perbaruiSlider);
+      window.requestAnimationFrame(function () {
+        var a = kartuAsli();
+        if (a.length) wadah.scrollLeft = posisiTengah(a[0]);
+        perbaruiSlider();
+      });
     }
 
     /* ---------- Apa itu Genio ---------- */
