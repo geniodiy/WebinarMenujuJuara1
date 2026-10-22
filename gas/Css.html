@@ -309,6 +309,12 @@
   .ikon-bulat { position: relative; width: 30px; height: 30px; border-radius: 50%; border: 1.5px solid rgba(84, 86, 59, .35); display: flex; align-items: center; justify-content: center; color: var(--item); }
   .ikon-bulat::before { content: ""; position: absolute; inset: -7px; }
   .ikon-bulat svg { width: 15px; height: 15px; }
+  /* Warna merek tiap tautan cabang. */
+  .ikon-bulat.merek-maps, .ikon-bulat.merek-wa, .ikon-bulat.merek-ig { border: 0; color: #fff; box-shadow: 0 2px 6px rgba(0, 0, 0, .15); }
+  .ikon-bulat.merek-maps { background: #EA4335; }
+  .ikon-bulat.merek-wa { background: linear-gradient(135deg, #25D366, #12A150); }
+  .ikon-bulat.merek-wa svg { width: 17px; height: 17px; }
+  .ikon-bulat.merek-ig { background: radial-gradient(circle at 30% 107%, #FDF497 0%, #FDF497 5%, #FD5949 45%, #D6249F 60%, #285AEB 90%); }
 
   /* Prestasi: ringkasan medali, lalu jendela 5 baris yang bergulir pelan ke atas tanpa putus. */
   .prestasi-ringkas { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 10px; }

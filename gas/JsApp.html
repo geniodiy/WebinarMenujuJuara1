@@ -396,8 +396,7 @@
 
     var IKON = {
       maps: ['M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z', '@c,12,9.5,2.5'],
-      wa: ['M4 20l1.3-3.9A8 8 0 1 1 8 19z'],
-      ig: ['@r,4,4,16,5', '@c,12,12,3.6'],
+      ig: ['@r,4,4,16,5', '@c,12,12,3.6', '@c,16.9,7.1,.5'],
       kanan: ['M9 6l6 6-6 6']
     };
 
@@ -906,10 +905,12 @@
 
     /* ---------- Cabang ---------- */
 
-    function tautanIkon(href, label, ikon) {
-      var a = tautanLuar('', href, 'ikon-bulat');
+    /** Tombol ikon bulat berwarna merek: Maps merah, WhatsApp hijau, Instagram gradien. */
+    function tautanIkon(href, label, ikon, merek) {
+      var a = tautanLuar('', href, 'ikon-bulat ' + merek);
       a.setAttribute('aria-label', label);
-      a.appendChild(ikonGaris(ikon));
+      if (typeof ikon === 'string') a.innerHTML = ikon;
+      else a.appendChild(ikonGaris(ikon));
       return a;
     }
 
@@ -939,9 +940,9 @@
         if (c.alamat) kartu.appendChild(el('p', 'cabang-alamat', c.alamat));
         var aksi = el('div', 'cabang-aksi');
         var pendek = namaPendekCabang(c.nama);
-        if (/^https:\/\//.test(c.link_maps)) aksi.appendChild(tautanIkon(c.link_maps, 'Buka lokasi ' + pendek + ' di Google Maps', IKON.maps));
-        if (c.wa_admin) aksi.appendChild(tautanIkon(tautanWa(c.wa_admin), 'WhatsApp admin ' + pendek, IKON.wa));
-        if (c.instagram) aksi.appendChild(tautanIkon('https://www.instagram.com/' + encodeURIComponent(String(c.instagram).replace(/^@/, '')) + '/', 'Instagram ' + pendek, IKON.ig));
+        if (/^https:\/\//.test(c.link_maps)) aksi.appendChild(tautanIkon(c.link_maps, 'Buka lokasi ' + pendek + ' di Google Maps', IKON.maps, 'merek-maps'));
+        if (c.wa_admin) aksi.appendChild(tautanIkon(tautanWa(c.wa_admin), 'WhatsApp admin ' + pendek, FormDaftar.IKON_WA, 'merek-wa'));
+        if (c.instagram) aksi.appendChild(tautanIkon('https://www.instagram.com/' + encodeURIComponent(String(c.instagram).replace(/^@/, '')) + '/', 'Instagram ' + pendek, IKON.ig, 'merek-ig'));
         if (aksi.children.length) kartu.appendChild(aksi);
         wadah.appendChild(kartu);
       });
