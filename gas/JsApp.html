@@ -865,11 +865,17 @@
     }
 
     /** Digit diganti angka acak, lalu berhenti satu per satu ke nilai asli. Karakter lain (+, spasi) tetap. */
+    /* Nilai asli disimpan di data-nilai saat dirender, jadi animasi selalu berakhir di nilai yang benar
+       walaupun dijalankan dua kali atau timer browser diperlambat (misalnya di dalam iframe Blogger). */
     function acakAngka(dd, akhir, lama) {
       var mulai = Date.now();
-      var t = setInterval(function () {
+      clearInterval(dd._acak);
+      clearTimeout(dd._akhir);
+      function selesai() { clearInterval(t); dd.textContent = akhir; }
+      dd._akhir = setTimeout(selesai, lama + 150);
+      var t = dd._acak = setInterval(function () {
         var jalan = (Date.now() - mulai) / lama;
-        if (jalan >= 1) { clearInterval(t); dd.textContent = akhir; return; }
+        if (jalan >= 1) { selesai(); return; }
         var tetap = Math.floor(jalan * akhir.length);
         dd.textContent = akhir.replace(/\d/g, function (d, i) { return i < tetap ? d : String(Math.floor(Math.random() * 10)); });
       }, 45);
@@ -899,7 +905,7 @@
           setTimeout(function () {
             div.classList.add('tampil');
             var dd = div.querySelector('dd');
-            acakAngka(dd, dd.textContent, 700 + Math.random() * 600);
+            acakAngka(dd, dd.getAttribute('data-nilai') || dd.textContent, 700 + Math.random() * 600);
           }, i * 180 + Math.random() * 120);
         });
       }, { threshold: 0.4 });
@@ -926,7 +932,9 @@
         if (!p['angka_' + n]) return;
         var div = el('div');
         div.appendChild(el('dt', null, p['label_' + n] || ''));
-        div.appendChild(el('dd', null, p['angka_' + n]));
+        var dd = el('dd', null, String(p['angka_' + n]));
+        dd.setAttribute('data-nilai', String(p['angka_' + n]));
+        div.appendChild(dd);
         dl.appendChild(div);
       });
       dl.hidden = !dl.children.length;
@@ -1449,20 +1457,16 @@
 
     /* ---------- Muat ulang bila gagal ---------- */
 
+    function aman(fn) {
+      try { fn(); } catch (err) { if (window.console) console.error(err); }
+    }
+
     function renderSemua() {
       window.APP_CONFIG = config;
-      isiPembuka();
-      isiHitungMundur();
-      renderAgenda();
-      renderNarasumber();
-      renderTutor();
-      renderProfil();
-      renderCabang();
-      renderPrestasi();
-      renderTestimoni();
-      renderAjakan();
-      renderKaki();
-      renderBilah();
+      // Tiap bagian dijalankan terpisah: bila satu bagian gagal (misalnya data tak terduga), bagian lain,
+      // tombol Daftar, dan pintu panel admin tetap berfungsi.
+      [isiPembuka, isiHitungMundur, renderAgenda, renderNarasumber, renderTutor, renderProfil, renderCabang,
+        renderPrestasi, renderTestimoni, renderAjakan, renderKaki, renderBilah].forEach(aman);
       $('pita-contoh').hidden = !(konten && konten.ada_contoh);
       $('galat-konten').hidden = !!(konten && config);
     }
@@ -1483,17 +1487,17 @@
       google.script.run.withSuccessHandler(function (r) { if (r && r.ok) konten = r.data; selesai(); }).withFailureHandler(selesai).getContent();
     }
 
+    // Pintu panel admin disiapkan lebih dulu agar tetap bisa dibuka walau ada bagian halaman yang gagal.
+    aman(function () { siapkanLapisan('lapisan-admin'); siapkanAdmin(); });
     renderSemua();
-    siapkanMunculGulir();
-    pasTanggal();
+    aman(siapkanMunculGulir);
+    aman(pasTanggal);
     window.addEventListener('resize', pasTanggal);
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(pasTanggal);
     siapkanLapisan('lapisan-poster');
     siapkanLapisan('lapisan-detail');
     siapkanLapisan('lapisan-prestasi');
     $('tombol-prestasi').addEventListener('click', bukaPopupPrestasi);
-    siapkanLapisan('lapisan-admin');
-    siapkanAdmin();
     $('tombol-poster').addEventListener('click', function () {
       var besar = $('poster-besar');
       besar.src = urlGambar(konten.poster_url, 1600);
