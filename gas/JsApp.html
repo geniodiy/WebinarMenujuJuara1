@@ -1072,7 +1072,6 @@
     /* ---------- Prestasi siswa ---------- */
 
     var BATAS_PRESTASI_GULIR = 10;
-    var BARIS_JENDELA = 5;
 
     function teksPrestasi(p) {
       return p.prestasi || [p.lomba, p.bidang, p.jenjang, p.tingkat].filter(Boolean).join(' ');
@@ -1145,14 +1144,16 @@
       });
 
       $('prestasi-total').textContent = 'Total ' + daftar.length + ' prestasi';
+      var tahun = daftar.map(function (p) { return parseInt(p.tahun, 10); }).filter(function (t) { return !isNaN(t); });
+      var tMin = Math.min.apply(null, tahun);
+      var tMaks = Math.max.apply(null, tahun);
+      $('prestasi-tahun').textContent = !tahun.length ? '' : 'tahun ' + (tMin === tMaks ? tMaks : tMin + '–' + tMaks);
 
-      // Papan prestasi: daftar bernomor tanpa animasi. Bila lebih dari 5 baris, kotak digulir biasa;
-      // setelah mentok di bawah, guliran berlanjut ke halaman (keputusan pemilik).
+      // Daftar bernomor tanpa wadah dan tanpa gulir sendiri; judul dan kotak hitam di atasnya tetap diam
+      // selama daftar digulir bersama halaman (sticky).
       var teratas = daftar.slice(0, BATAS_PRESTASI_GULIR);
       var jendela = $('prestasi-jendela');
       jendela.textContent = '';
-      jendela.scrollTop = 0;
-      jendela.classList.toggle('bergulir', teratas.length > BARIS_JENDELA);
       var ul = el('ul', 'prestasi-daftar');
       teratas.forEach(function (p, i) { ul.appendChild(barisPrestasi(p, true, i + 1)); });
       jendela.appendChild(ul);
@@ -1403,7 +1404,7 @@
     /* ---------- Animasi muncul saat digulir ---------- */
 
     var SASARAN_MUNCUL = '.strip-tanggal, .info-kartu, .hitung-mundur, .narahubung, .bagian > h2, .agenda li, .narasumber, ' +
-      '.tutor-slider, .cabang-kartu, .papan, .testi-jalur, .ajakan, .kaki';
+      '.tutor-slider, .cabang-kartu, .prestasi-jendela, .testi-jalur, .ajakan, .kaki';
 
     /** Hanya elemen yang awalnya di luar layar yang dianimasikan; yang sudah terlihat dibiarkan. */
     function siapkanMunculGulir() {

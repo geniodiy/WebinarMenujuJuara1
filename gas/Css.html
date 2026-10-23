@@ -361,30 +361,33 @@
   .medali-kilau { transform: skewX(-18deg); animation: kilauMedali 3.5s ease-in-out infinite; animation-delay: calc(1s + var(--urut, 0) * .4s); }
   @keyframes kilauMedali { 0% { transform: translateX(0) skewX(-18deg); } 30%, 100% { transform: translateX(150px) skewX(-18deg); } }
   .medali-nama { font-size: 12px; color: var(--item); }
-  /* Papan prestasi (opsi 2 pemilik): kepala biru tua berisi judul dan medali, lalu daftar bernomor. */
-  .papan { border-radius: 20px; overflow: hidden; background: #fff; border: 1px solid rgba(0, 0, 0, .04); box-shadow: 0 12px 28px rgba(40, 44, 30, .16); }
-  .papan-kepala { padding: 14px 12px 12px; background: linear-gradient(135deg, var(--cyan), var(--teal)); }
-  .papan-judul { display: flex; flex-direction: column; align-items: center; gap: 2px; margin-bottom: 8px; color: #fff; text-align: center; }
-  .papan-judul span { font-size: 13px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; }
-  .papan-judul small { font-size: 11.5px; color: rgba(255, 255, 255, .75); }
-  .papan .medali-nama { color: #fff; }
+  /* Prestasi (keputusan pemilik): judul bagian dan kotak hitam palet ringkas tetap di atas layar (sticky)
+     selama daftar digulir; setelah daftar habis, semuanya ikut tergulir. Daftar tanpa wadah. */
+  .prestasi-lekat { position: sticky; top: 0; z-index: 4; margin: 0 -16px; padding: 10px 16px 10px; background: var(--latar); }
+  #bagian-prestasi .prestasi-lekat h2 { margin-bottom: 10px; }
+  .papan-kepala { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px; border-radius: 16px; background: var(--item); box-shadow: 0 8px 20px rgba(58, 60, 40, .22); }
+  .papan-judul { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; color: #fff; }
+  .papan-judul > span { font-size: 12.5px; font-weight: 700; line-height: 1.3; }
+  .papan-judul > span > span { white-space: nowrap; }
+  .papan-judul small { font-size: 10.5px; color: rgba(255, 255, 255, .75); }
+  .papan-kepala .prestasi-ringkas { flex: none; gap: 6px; justify-content: flex-end; }
+  .papan-kepala .medali svg { width: 34px; height: 38px; }
+  .papan-kepala .medali-nama { font-size: 9.5px; color: #fff; }
   .prestasi-jendela { position: relative; }
-  .prestasi-jendela.bergulir { height: 296px; overflow-y: auto; scrollbar-width: none; }
-  .prestasi-jendela.bergulir::-webkit-scrollbar { display: none; }
-  .prestasi-daftar li:nth-child(even) { background: #FAFBF7; }
+  .prestasi-daftar li:last-child { border-bottom: 0; }
   .peringkat { flex-shrink: 0; width: 22px; text-align: center; font-size: 13px; font-weight: 700; color: #9A9C86; font-variant-numeric: tabular-nums; }
   @media (min-width: 640px) {
-    .papan-kepala { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 22px 36px; }
-    .papan-judul { align-items: flex-start; gap: 6px; margin: 0; text-align: left; }
-    .papan-judul span { font-size: 22px; letter-spacing: 1px; }
-    .papan-judul small { font-size: 13px; }
-    .papan-judul::after { content: ""; width: 48px; height: 2px; margin-top: 4px; border-radius: 1px; background: var(--gold); }
-    .papan .prestasi-ringkas { justify-content: flex-end; gap: 40px; margin: 0; }
-    .papan .medali svg { width: 84px; height: 92px; }
-    .papan .medali-nama { font-size: 13px; }
+    .prestasi-lekat { margin: 0 -28px; padding: 12px 28px; }
+    .papan-kepala { gap: 20px; padding: 14px 28px; }
+    .papan-judul { gap: 5px; }
+    .papan-judul > span { font-size: 18px; }
+    .papan-judul small { font-size: 12.5px; }
+    .papan-kepala .prestasi-ringkas { gap: 28px; }
+    .papan-kepala .medali svg { width: 60px; height: 66px; }
+    .papan-kepala .medali-nama { font-size: 12px; }
   }
   .prestasi-daftar, .pp-daftar { list-style: none; margin: 0; padding: 0; }
-  .prestasi-daftar li { display: flex; gap: 10px; align-items: center; height: 59px; padding: 0 12px; border-bottom: 1px solid var(--garis); }
+  .prestasi-daftar li { display: flex; gap: 10px; align-items: center; height: 59px; padding: 0 4px; border-bottom: 1px solid var(--garis); }
   .prestasi-daftar li:last-child { border-bottom: 0; }
   .prestasi-daftar .ikon-jenis { width: 24px; height: 24px; }
   .pr-teks { flex: 1; min-width: 0; }
