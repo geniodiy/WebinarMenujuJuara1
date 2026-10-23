@@ -884,8 +884,6 @@
       var lambang = document.querySelector('.ajakan-ikon img');
       if (!logo.firstChild && lambang) logo.appendChild(lambang.cloneNode());
       if (p.contoh) { judul.appendChild(document.createTextNode(' ')); judul.appendChild(labelContoh()); }
-      $('profil-inti').textContent = p.paragraf_1 || '';
-      $('profil-inti').hidden = !p.paragraf_1;
       var dl = $('profil-angka');
       dl.textContent = '';
       [1, 2, 3, 4].forEach(function (n) {
@@ -898,8 +896,10 @@
       dl.hidden = !dl.children.length;
       dl.style.setProperty('--kolom', String(Math.max(1, dl.children.length)));
       animasiAngka(dl);
-      isiTeksTebal($('profil-teks'), p.paragraf_2 || '');
-      $('profil-teks').hidden = !p.paragraf_2;
+      // Paragraf inti dan paragraf lanjutan digabung menjadi satu paragraf (keputusan pemilik).
+      var teks = [p.paragraf_1, p.paragraf_2].filter(Boolean).join(' ');
+      isiTeksTebal($('profil-teks'), teks);
+      $('profil-teks').hidden = !teks;
     }
 
     /* ---------- Cabang ---------- */
@@ -1288,7 +1288,7 @@
     /* ---------- Animasi muncul saat digulir ---------- */
 
     var SASARAN_MUNCUL = '.strip-tanggal, .info-kartu, .hitung-mundur, .narahubung, .bagian > h2, .agenda li, .narasumber, ' +
-      '.tutor-slider, .profil-kepala, .profil-angka, .cabang-kartu, .papan, .testi-jalur, .ajakan, .kaki';
+      '.tutor-slider, .profil-kotak, .cabang-kartu, .papan, .testi-jalur, .ajakan, .kaki';
 
     /** Hanya elemen yang awalnya di luar layar yang dianimasikan; yang sudah terlihat dibiarkan. */
     function siapkanMunculGulir() {
