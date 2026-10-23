@@ -852,6 +852,19 @@
       }, 45);
     }
 
+    function animasiProfil() {
+      var kotak = document.querySelector('.profil-kotak');
+      if (!kotak || kotak.classList.contains('profil-tampil') || gerakDikurangi() || !('IntersectionObserver' in window)) return;
+      kotak.classList.add('profil-siap');
+      var pengamat = new IntersectionObserver(function (e) {
+        if (!e[0].isIntersecting) return;
+        pengamat.disconnect();
+        kotak.classList.add('profil-tampil');
+        kotak.classList.remove('profil-siap');
+      }, { threshold: 0.2 });
+      pengamat.observe(kotak);
+    }
+
     function animasiAngka(dl) {
       if (gerakDikurangi() || !('IntersectionObserver' in window) || !dl.children.length) return;
       dl.classList.add('angka-siap');
@@ -895,6 +908,7 @@
       });
       dl.hidden = !dl.children.length;
       dl.style.setProperty('--kolom', String(Math.max(1, dl.children.length)));
+      animasiProfil();
       animasiAngka(dl);
       // Paragraf inti dan paragraf lanjutan digabung menjadi satu paragraf (keputusan pemilik).
       var teks = [p.paragraf_1, p.paragraf_2].filter(Boolean).join(' ');
@@ -1288,7 +1302,7 @@
     /* ---------- Animasi muncul saat digulir ---------- */
 
     var SASARAN_MUNCUL = '.strip-tanggal, .info-kartu, .hitung-mundur, .narahubung, .bagian > h2, .agenda li, .narasumber, ' +
-      '.tutor-slider, .profil-kotak, .cabang-kartu, .papan, .testi-jalur, .ajakan, .kaki';
+      '.tutor-slider, .cabang-kartu, .papan, .testi-jalur, .ajakan, .kaki';
 
     /** Hanya elemen yang awalnya di luar layar yang dianimasikan; yang sudah terlihat dibiarkan. */
     function siapkanMunculGulir() {
