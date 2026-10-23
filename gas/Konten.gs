@@ -268,6 +268,58 @@ function isiLogoCabang_(konten) {
 
 var BATAS_BYTE_FOTO_TUTOR_ = 3 * 1024 * 1024;
 
+var POTONGAN_CACHE_ = 90000;
+
+/** Memecah teks menjadi potongan sepanjang n karakter. Murni. */
+function pecahTeks_(teks, n) {
+  var hasil = [];
+  for (var i = 0; i < teks.length; i += n) hasil.push(teks.slice(i, i + n));
+  return hasil;
+}
+
+/** Simpan teks panjang di CacheService (batas 100 KB per kunci) dengan memecahnya ke beberapa kunci. */
+function simpanCacheBesar_(kunci, teks, detik) {
+  var bagian = pecahTeks_(teks, POTONGAN_CACHE_);
+  var isi = {};
+  isi[kunci] = String(bagian.length);
+  bagian.forEach(function (p, i) { isi[kunci + '_' + i] = p; });
+  try { CacheService.getScriptCache().putAll(isi, detik); } catch (err) { console.warn('Cache foto gagal: ' + err); }
+}
+
+/** Kebalikan simpanCacheBesar_; null bila tidak ada atau ada potongan yang hilang. */
+function ambilCacheBesar_(kunci) {
+  var cache = CacheService.getScriptCache();
+  var jumlah = parseInt(cache.get(kunci), 10);
+  if (!jumlah) return null;
+  var kunciBagian = [];
+  for (var i = 0; i < jumlah; i++) kunciBagian.push(kunci + '_' + i);
+  var semua = cache.getAll(kunciBagian);
+  var teks = '';
+  for (var j = 0; j < jumlah; j++) {
+    if (semua[kunciBagian[j]] == null) return null;
+    teks += semua[kunciBagian[j]];
+  }
+  return teks;
+}
+
+/** Data URI satu foto tutor dari cache, atau dibaca dari Drive lalu disimpan ke cache. '' bila gagal. */
+function dataFotoTutor_(id) {
+  var kunci = 'fotoT_' + id;
+  var tersimpan = ambilCacheBesar_(kunci);
+  if (tersimpan) return tersimpan;
+  try {
+    var file = DriveApp.getFileById(id);
+    if (file.getSize() > BATAS_BYTE_FOTO_TUTOR_) return '';
+    var blob = file.getBlob();
+    var data = 'data:' + blob.getContentType() + ';base64,' + Utilities.base64Encode(blob.getBytes());
+    simpanCacheBesar_(kunci, data, DETIK_CACHE_LOGO_);
+    return data;
+  } catch (err) {
+    console.warn('Foto tutor ' + id + ' tidak bisa dibaca: ' + err);
+    return '';
+  }
+}
+
 /**
  * Foto tutor sebagai data URI, dibaca langsung dari Drive agar latar PNG tetap transparan
  * (layanan gambar Drive mengubahnya menjadi hitam). Hanya foto tutor yang sedang tampil yang dilayani.
@@ -276,16 +328,19 @@ function getFotoTutor(id) {
   return jalankanAman_(function () {
     var dikenal = (ambilKonten_().tutor || []).some(function (t) { return t.foto_id && t.foto_id === id; });
     if (!dikenal) return gagal_('TIDAK_DIKENAL', 'Foto tidak ditemukan.');
-    var cache = CacheService.getScriptCache();
-    var kunci = 'foto_' + id;
-    var tersimpan = cache.get(kunci);
-    if (tersimpan) return ok_(tersimpan);
-    var file = DriveApp.getFileById(id);
-    if (file.getSize() > BATAS_BYTE_FOTO_TUTOR_) return gagal_('TERLALU_BESAR', 'Foto terlalu besar.');
-    var blob = file.getBlob();
-    var data = 'data:' + blob.getContentType() + ';base64,' + Utilities.base64Encode(blob.getBytes());
-    try { cache.put(kunci, data, DETIK_CACHE_LOGO_); } catch (err) { /* lebih dari 100 KB, tidak di-cache */ }
-    return ok_(data);
+    var data = dataFotoTutor_(id);
+    return data ? ok_(data) : gagal_('GAGAL', 'Foto tidak bisa dibaca.');
+  });
+}
+
+/** Semua foto tutor yang tampil dalam satu panggilan: { id: dataUri }. Lebih cepat daripada satu per satu. */
+function getFotoTutorSemua() {
+  return jalankanAman_(function () {
+    var hasil = {};
+    (ambilKonten_().tutor || []).forEach(function (t) {
+      if (t.foto_id && !(t.foto_id in hasil)) hasil[t.foto_id] = dataFotoTutor_(t.foto_id);
+    });
+    return ok_(hasil);
   });
 }
 

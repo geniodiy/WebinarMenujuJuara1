@@ -488,6 +488,28 @@
         .getFotoTutor(id);
     }
 
+    /** Minta semua foto tutor sekaligus begitu halaman dirender; kartu menunggu hasil yang sama. */
+    function muatSemuaFotoTutor(daftar) {
+      if (!(window.google && google.script && google.script.run)) return;
+      var ids = [];
+      daftar.forEach(function (t) { if (t.foto_id && !fotoMemo[t.foto_id] && ids.indexOf(t.foto_id) < 0) ids.push(t.foto_id); });
+      if (!ids.length) return;
+      ids.forEach(function (id) { fotoMemo[id] = { selesai: false, data: '', tunggu: [] }; });
+      function beres(peta) {
+        ids.forEach(function (id) {
+          var m = fotoMemo[id];
+          m.selesai = true;
+          m.data = (peta && peta[id]) || '';
+          m.tunggu.forEach(function (fn) { fn(m.data); });
+          m.tunggu = [];
+        });
+      }
+      google.script.run
+        .withSuccessHandler(function (r) { beres(r && r.ok ? r.data : null); })
+        .withFailureHandler(function () { beres(null); })
+        .getFotoTutorSemua();
+    }
+
     function fotoTutor(t, wadah, sizes) {
       if (t.foto_url) {
         var img = el('img');
@@ -800,6 +822,7 @@
     function renderTutor() {
       var daftar = konten && konten.tutor ? konten.tutor : [];
       $('bagian-tutor').hidden = !daftar.length;
+      muatSemuaFotoTutor(daftar);
       var wadah = $('daftar-tutor');
       if (slider.geser) hentikanPita();
       wadah.classList.remove('mode-putar');

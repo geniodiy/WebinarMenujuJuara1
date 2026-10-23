@@ -99,3 +99,11 @@ test('prestasi sorotan YA di atas, sisanya tetap urut', () => {
   const d = [{ n: 1, sorotan: 'TIDAK' }, { n: 2, sorotan: 'YA' }, { n: 3, sorotan: '' }, { n: 4, sorotan: 'ya' }];
   assert.deepStrictEqual(g.urutkanSorotan_(d).map((x) => x.n), [2, 4, 1, 3]);
 });
+
+test('teks dipecah dan disambung kembali utuh', () => {
+  const t = 'a'.repeat(250);
+  const p = g.pecahTeks_(t, 100);
+  assert.deepStrictEqual(polos(p.map((x) => x.length)), [100, 100, 50]);
+  assert.strictEqual(p.join(''), t);
+  assert.deepStrictEqual(polos(g.pecahTeks_('', 100)), []);
+});
