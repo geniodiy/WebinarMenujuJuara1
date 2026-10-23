@@ -978,7 +978,7 @@
       jalur.forEach(function (d) { html += '<path d="' + d + '" fill="none" stroke="#DDE5EC" stroke-width="4" stroke-linecap="round"/>'; });
       jalur.forEach(function (d) { html += '<path class="isi-cabang" d="' + d + '" fill="none" stroke="url(#gradasi-cabang)" stroke-width="4" stroke-linecap="round"/>'; });
       jalur.forEach(function () {
-        html += '<g class="titik-cabang"><circle r="9" fill="rgba(255,138,91,.55)" filter="url(#cahaya-cabang)"/><circle r="8" fill="rgba(255,138,91,.25)"/><circle r="5" fill="#FF8A5B"/></g>';
+        html += '<g class="titik-cabang"><circle r="7" fill="rgba(255,138,91,.55)" filter="url(#cahaya-cabang)"/><circle r="6.5" fill="rgba(255,138,91,.25)"/><circle r="4" fill="#FF8A5B"/></g>';
       });
       svg.innerHTML = html;
       var isi = svg.querySelectorAll('.isi-cabang');

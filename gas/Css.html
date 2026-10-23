@@ -323,7 +323,7 @@
      setengah masuk di bawah kotak profil dan di atas tiap kartu cabang (keputusan pemilik). */
   #bagian-cabang { position: relative; padding-top: 60px; }
   .cabang-garis { position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none; }
-  .simpul { position: absolute; left: 50%; z-index: 2; width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 50%; background-color: #C9D6E0; box-shadow: 0 0 0 3px #fff; transition: background-color .3s ease, box-shadow .3s ease; }
+  .simpul { position: absolute; left: 50%; z-index: 2; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; background-color: #C9D6E0; box-shadow: 0 0 0 3px #fff; transition: background-color .3s ease, box-shadow .3s ease; }
   /* Sama seperti nomor agenda: menyala, timbul, dan memancarkan gelombang saat garis mencapainya. */
   .simpul.aktif { background-image: linear-gradient(135deg, var(--cyan), var(--teal)); box-shadow: 0 0 0 3px #fff, 0 0 0 5px rgba(19, 153, 216, .35); animation: timbul .45s ease-out; }
   .simpul.aktif::after { content: ""; position: absolute; inset: 0; border-radius: 50%; border: 3px solid var(--teal); opacity: 0; animation: gelombang 1s ease-out; }
@@ -331,11 +331,13 @@
   .cabang-garis.mulai .titik-cabang { opacity: 1; }
   .profil-kotak { position: relative; }
   .simpul-profil { top: 100%; display: none; }
-  .profil-kotak.ada-cabang { padding-bottom: 26px; }
+  .profil-kotak.ada-cabang { padding-bottom: 24px; }
   .profil-kotak.ada-cabang .simpul-profil { display: block; }
   .cabang-kisi { position: relative; display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; }
-  .cabang-kartu { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 20px 12px 12px; border-radius: 16px; background: #EAF7FA; }
+  .cabang-kartu { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 18px 12px 12px; border-radius: 16px; background: #EAF7FA; }
   .cabang-kartu > .simpul { top: 0; }
+  /* Kartu cabang kedua muncul sedikit setelah yang pertama. */
+  .cabang-kartu.gulir-muncul:nth-child(2) { transition-delay: .15s; }
   .cabang-logo { width: 100%; max-width: 160px; height: auto; box-sizing: border-box; padding: 6px 12px; border-radius: 12px; background: #fff; box-shadow: 0 2px 6px rgba(0, 0, 0, .05); }
   .cabang-kartu h3 { font-size: 14px; font-weight: 700; }
   .cabang-alamat { font-size: 11px; line-height: 1.5; color: var(--redup); }
