@@ -1038,7 +1038,9 @@
     /* Perubahan posisi dan tinggi popup dianimasikan (teknik FLIP): ukur sebelum, ubah, ukur sesudah, lalu
        mulai dari ukuran lama dan meluncur halus ke ukuran baru. */
     function transisiPopup(ubah) {
-      if (!akar || akar.hidden || (gerakDikurangi && gerakDikurangi.matches)) { ubah(); return; }
+      // KEPUTUSAN: hanya di ponsel. Di tablet/desktop popup di tengah layar, dan animasi tinggi+posisi
+      // membuat Safari iPad tampak membesar lalu mengecil saat pindah langkah; di sana cukup isi yang memudar.
+      if (!akar || akar.hidden || (gerakDikurangi && gerakDikurangi.matches) || !(ponsel && ponsel.matches)) { ubah(); return; }
       var a = akar.getBoundingClientRect();
       selesaikanTransisi();
       akar.style.transition = 'none';
