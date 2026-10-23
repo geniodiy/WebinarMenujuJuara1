@@ -938,6 +938,56 @@
       return String(nama || '').replace(/^genio( institute)?\s*/i, '') || nama;
     }
 
+    /*
+     * Garis bergradasi dari bulatan di bawah kotak Apa itu Genio, turun lalu bercabang ke bulatan di atas
+     * tiap kartu cabang (sudut membulat). Digambar ulang saat ukuran layar atau posisi kartu berubah.
+     */
+    function gambarGarisCabang() {
+      var sec = $('bagian-cabang');
+      var svg = $('cabang-garis');
+      var kotak = document.querySelector('.profil-kotak');
+      var kartu = sec.querySelectorAll('.cabang-kartu');
+      var aktif = !sec.hidden && kotak && !$('bagian-profil').hidden && kartu.length > 0;
+      if (kotak) kotak.classList.toggle('ada-cabang', !!aktif);
+      svg.style.display = aktif ? '' : 'none';
+      if (!aktif) return;
+      var s = sec.getBoundingClientRect();
+      var k = kotak.getBoundingClientRect();
+      var x0 = k.left + k.width / 2 - s.left;
+      var y0 = k.bottom - s.top;
+      var ys = kartu[0].getBoundingClientRect().top - s.top;
+      var ym = (y0 + ys) / 2;
+      var d = '';
+      Array.prototype.forEach.call(kartu, function (c) {
+        var b = c.getBoundingClientRect();
+        var x = b.left + b.width / 2 - s.left;
+        var arah = x < x0 ? -1 : 1;
+        var r = Math.min(14, Math.abs(x - x0) / 2, (ys - ym) - 1);
+        if (Math.abs(x - x0) < 2) { d += 'M' + x0 + ',' + y0 + ' V' + ys + ' '; return; }
+        d += 'M' + x0 + ',' + y0 + ' V' + (ym - r) + ' Q' + x0 + ',' + ym + ' ' + (x0 + arah * r) + ',' + ym +
+          ' H' + (x - arah * r) + ' Q' + x + ',' + ym + ' ' + x + ',' + (ym + r) + ' V' + ys + ' ';
+      });
+      svg.setAttribute('width', s.width);
+      svg.setAttribute('height', Math.max(1, ys));
+      svg.innerHTML = '<defs><linearGradient id="gradasi-cabang" gradientUnits="userSpaceOnUse" x1="0" y1="' + y0 + '" x2="0" y2="' + ys + '">' +
+        '<stop offset="0" stop-color="#1399D8"/><stop offset="1" stop-color="#16C7B8"/></linearGradient></defs>' +
+        '<path d="' + d + '" fill="none" stroke="url(#gradasi-cabang)" stroke-width="4" stroke-linecap="round"/>';
+    }
+
+    var garisCabangSiap = false;
+    function siapkanGarisCabang() {
+      window.requestAnimationFrame(gambarGarisCabang);
+      setTimeout(gambarGarisCabang, 1300);
+      if (garisCabangSiap) return;
+      garisCabangSiap = true;
+      window.addEventListener('resize', gambarGarisCabang);
+      // Kartu dan kotak profil punya animasi muncul (geser); gambar ulang setelah animasinya selesai.
+      document.addEventListener('transitionend', function (e) {
+        if (e.target.closest && (e.target.closest('#bagian-cabang') || e.target.closest('#bagian-profil'))) gambarGarisCabang();
+      });
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(gambarGarisCabang);
+    }
+
     function renderCabang() {
       var daftar = (konten && konten.cabang ? konten.cabang : []).filter(function (c) { return c.nama && (c.alamat || c.link_maps || c.wa_admin || c.instagram); });
       if (!bagianTampil('cabang')) daftar = [];
@@ -946,6 +996,9 @@
       wadah.textContent = '';
       daftar.forEach(function (c) {
         var kartu = el('article', 'cabang-kartu');
+        var simpul = el('span', 'simpul');
+        simpul.setAttribute('aria-hidden', 'true');
+        kartu.appendChild(simpul);
         if (c.logo_data || c.logo_url) {
           var img = el('img', 'cabang-logo');
           img.alt = c.nama;
@@ -966,6 +1019,7 @@
         if (aksi.children.length) kartu.appendChild(aksi);
         wadah.appendChild(kartu);
       });
+      siapkanGarisCabang();
     }
 
     /* ---------- Prestasi siswa ---------- */

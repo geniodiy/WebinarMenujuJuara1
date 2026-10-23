@@ -319,9 +319,18 @@
   .profil-teks b { font-weight: 600; }
 
   /* Cabang: dua kartu sebaris, ikon bulat bergaris satu warna. */
-  .cabang-kisi { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; }
-  .cabang-kartu { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 12px; border: 1px solid var(--garis); border-radius: 16px; }
-  .cabang-logo { width: 100%; max-width: 140px; height: auto; }
+  /* Cabang tersambung ke kotak Apa itu Genio: garis bergradasi bercabang, bulatan seperti nomor agenda
+     setengah masuk di bawah kotak profil dan di atas tiap kartu cabang (keputusan pemilik). */
+  #bagian-cabang { position: relative; padding-top: 60px; }
+  .cabang-garis { position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none; }
+  .simpul { position: absolute; left: 50%; z-index: 2; width: 22px; height: 22px; border-radius: 50%; background: linear-gradient(135deg, var(--cyan), var(--teal)); box-shadow: 0 0 0 3px #fff, 0 0 0 5px rgba(19, 153, 216, .35); transform: translate(-50%, -50%); }
+  .profil-kotak { position: relative; }
+  .simpul-profil { top: 100%; display: none; }
+  .profil-kotak.ada-cabang .simpul-profil { display: block; }
+  .cabang-kisi { position: relative; display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; }
+  .cabang-kartu { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 20px 12px 12px; border-radius: 16px; background: #EAF7FA; }
+  .cabang-kartu > .simpul { top: 0; }
+  .cabang-logo { width: 100%; max-width: 160px; height: auto; box-sizing: border-box; padding: 6px 12px; border-radius: 999px; background: #fff; box-shadow: 0 2px 6px rgba(0, 0, 0, .05); }
   .cabang-kartu h3 { font-size: 14px; font-weight: 700; }
   .cabang-alamat { font-size: 11px; line-height: 1.5; color: var(--redup); }
   .cabang-aksi { display: flex; gap: 6px; margin-top: auto; }
