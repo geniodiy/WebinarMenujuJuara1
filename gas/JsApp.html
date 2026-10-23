@@ -939,9 +939,12 @@
     }
 
     /*
-     * Garis bergradasi dari bulatan di bawah kotak Apa itu Genio, turun lalu bercabang ke bulatan di atas
-     * tiap kartu cabang (sudut membulat). Digambar ulang saat ukuran layar atau posisi kartu berubah.
+     * Garis dari bulatan di bawah kotak Apa itu Genio, turun lalu bercabang ke bulatan di atas tiap kartu cabang.
+     * Seperti alur agenda: garis abu-abu terisi gradasi cyan mengikuti scroll, titik coral bercahaya bergerak
+     * bersamaan di tiap cabang, dan bulatan menyala saat tercapai (keputusan pemilik).
      */
+    var garisCabang = { cabang: [], awal: 0, akhir: 0, menunggu: false };
+
     function gambarGarisCabang() {
       var sec = $('bagian-cabang');
       var svg = $('cabang-garis');
@@ -950,6 +953,7 @@
       var aktif = !sec.hidden && kotak && !$('bagian-profil').hidden && kartu.length > 0;
       if (kotak) kotak.classList.toggle('ada-cabang', !!aktif);
       svg.style.display = aktif ? '' : 'none';
+      garisCabang.cabang = [];
       if (!aktif) return;
       var s = sec.getBoundingClientRect();
       var k = kotak.getBoundingClientRect();
@@ -957,21 +961,58 @@
       var y0 = k.bottom - s.top;
       var ys = kartu[0].getBoundingClientRect().top - s.top;
       var ym = (y0 + ys) / 2;
-      var d = '';
-      Array.prototype.forEach.call(kartu, function (c) {
+      var jalur = Array.prototype.map.call(kartu, function (c) {
         var b = c.getBoundingClientRect();
         var x = b.left + b.width / 2 - s.left;
         var arah = x < x0 ? -1 : 1;
         var r = Math.min(14, Math.abs(x - x0) / 2, (ys - ym) - 1);
-        if (Math.abs(x - x0) < 2) { d += 'M' + x0 + ',' + y0 + ' V' + ys + ' '; return; }
-        d += 'M' + x0 + ',' + y0 + ' V' + (ym - r) + ' Q' + x0 + ',' + ym + ' ' + (x0 + arah * r) + ',' + ym +
-          ' H' + (x - arah * r) + ' Q' + x + ',' + ym + ' ' + x + ',' + (ym + r) + ' V' + ys + ' ';
+        if (Math.abs(x - x0) < 2) return 'M' + x0 + ',' + y0 + ' V' + ys;
+        return 'M' + x0 + ',' + y0 + ' V' + (ym - r) + ' Q' + x0 + ',' + ym + ' ' + (x0 + arah * r) + ',' + ym +
+          ' H' + (x - arah * r) + ' Q' + x + ',' + ym + ' ' + x + ',' + (ym + r) + ' V' + ys;
       });
       svg.setAttribute('width', s.width);
       svg.setAttribute('height', Math.max(1, ys));
-      svg.innerHTML = '<defs><linearGradient id="gradasi-cabang" gradientUnits="userSpaceOnUse" x1="0" y1="' + y0 + '" x2="0" y2="' + ys + '">' +
-        '<stop offset="0" stop-color="#1399D8"/><stop offset="1" stop-color="#16C7B8"/></linearGradient></defs>' +
-        '<path d="' + d + '" fill="none" stroke="url(#gradasi-cabang)" stroke-width="4" stroke-linecap="round"/>';
+      var html = '<defs><linearGradient id="gradasi-cabang" gradientUnits="userSpaceOnUse" x1="0" y1="' + y0 + '" x2="0" y2="' + ys + '">' +
+        '<stop offset="0" stop-color="#1399D8"/><stop offset="1" stop-color="#16C7B8"/></linearGradient>' +
+        '<filter id="cahaya-cabang" x="-2" y="-2" width="5" height="5"><feGaussianBlur stdDeviation="3"/></filter></defs>';
+      jalur.forEach(function (d) { html += '<path d="' + d + '" fill="none" stroke="#DDE5EC" stroke-width="4" stroke-linecap="round"/>'; });
+      jalur.forEach(function (d) { html += '<path class="isi-cabang" d="' + d + '" fill="none" stroke="url(#gradasi-cabang)" stroke-width="4" stroke-linecap="round"/>'; });
+      jalur.forEach(function () {
+        html += '<g class="titik-cabang"><circle r="9" fill="rgba(255,138,91,.55)" filter="url(#cahaya-cabang)"/><circle r="8" fill="rgba(255,138,91,.25)"/><circle r="5" fill="#FF8A5B"/></g>';
+      });
+      svg.innerHTML = html;
+      var isi = svg.querySelectorAll('.isi-cabang');
+      var titik = svg.querySelectorAll('.titik-cabang');
+      garisCabang.svg = svg;
+      garisCabang.simpulAwal = kotak.querySelector('.simpul-profil');
+      garisCabang.cabang = Array.prototype.map.call(isi, function (p, i) {
+        var panjang = p.getTotalLength();
+        p.style.strokeDasharray = panjang + ' ' + panjang;
+        return { isi: p, titik: titik[i], panjang: panjang, simpul: kartu[i].querySelector('.simpul') };
+      });
+      garisCabang.awal = y0;
+      garisCabang.akhir = ys;
+      perbaruiGarisCabang();
+    }
+
+    function perbaruiGarisCabang() {
+      garisCabang.menunggu = false;
+      var g = garisCabang;
+      if (!g.cabang.length) return;
+      var atas = $('bagian-cabang').getBoundingClientRect().top;
+      // Titik acuan sedikit di bawah tengah layar, sama dengan alur agenda.
+      var acuan = gerakDikurangi() ? Infinity : window.innerHeight * 0.6 - atas;
+      var maju = Math.max(0, Math.min(1, (acuan - g.awal) / Math.max(1, g.akhir - g.awal)));
+      g.svg.classList.toggle('mulai', maju > 0 && maju < 1);
+      if (g.simpulAwal && (acuan >= g.awal) !== g.simpulAwal.classList.contains('aktif')) g.simpulAwal.classList.toggle('aktif', acuan >= g.awal);
+      g.cabang.forEach(function (c) {
+        var jarak = c.panjang * maju;
+        c.isi.style.strokeDashoffset = String(c.panjang - jarak);
+        var t = c.isi.getPointAtLength(jarak);
+        c.titik.setAttribute('transform', 'translate(' + t.x + ',' + t.y + ')');
+        var sampai = maju >= 1;
+        if (c.simpul && sampai !== c.simpul.classList.contains('aktif')) c.simpul.classList.toggle('aktif', sampai);
+      });
     }
 
     var garisCabangSiap = false;
@@ -981,9 +1022,15 @@
       if (garisCabangSiap) return;
       garisCabangSiap = true;
       window.addEventListener('resize', gambarGarisCabang);
+      window.addEventListener('scroll', function () {
+        if (garisCabang.menunggu) return;
+        garisCabang.menunggu = true;
+        window.requestAnimationFrame(perbaruiGarisCabang);
+      }, { passive: true });
       // Kartu dan kotak profil punya animasi muncul (geser); gambar ulang setelah animasinya selesai.
       document.addEventListener('transitionend', function (e) {
-        if (e.target.closest && (e.target.closest('#bagian-cabang') || e.target.closest('#bagian-profil'))) gambarGarisCabang();
+        var t = e.target;
+        if (e.propertyName === 'transform' && t.classList && (t.classList.contains('cabang-kartu') || t.classList.contains('profil-kotak'))) gambarGarisCabang();
       });
       if (document.fonts && document.fonts.ready) document.fonts.ready.then(gambarGarisCabang);
     }
