@@ -19,7 +19,9 @@ var PENGATURAN_AWAL_ = [
   ['kuota_smp_matematika', '0', '0 berarti tanpa batas'],
   ['kuota_smp_ipa', '0', '0 berarti tanpa batas'],
   ['kuota_smp_ips', '0', '0 berarti tanpa batas'],
-  ['mode_uji', 'YA', 'Selama YA, semua kiriman ditandai data uji']
+  ['mode_uji', 'YA', 'Selama YA, semua kiriman ditandai data uji'],
+  ['form_presensi', 'TUTUP', 'BUKA saat presensi dan feedback boleh diisi (hari H), selain itu TUTUP'],
+  ['form_pertanyaan', 'BUKA', 'BUKA selama pertanyaan dihimpun; TUTUP sebelum materi disampaikan']
 ];
 
 /** "YYYY-MM-DD" atau "YYYY-MM-DD HH:mm" (WIB) menjadi milidetik. NaN bila tidak sah. */
@@ -59,7 +61,11 @@ function hitungStatus_(peng, sekarang) {
 
   return {
     fase: fase,
-    form: { pendaftaran: terbuka ? 'BUKA' : 'TUTUP' },
+    form: {
+      pendaftaran: terbuka ? 'BUKA' : 'TUTUP',
+      presensi: String(peng.form_presensi || '').trim().toUpperCase() === 'BUKA' ? 'BUKA' : 'TUTUP',
+      pertanyaan: String(peng.form_pertanyaan || '').trim().toUpperCase() === 'BUKA' ? 'BUKA' : 'TUTUP'
+    },
     pendaftaran_buka: isNaN(buka) ? null : buka,
     pendaftaran_tutup: isNaN(tutup) ? null : tutup,
     tanggal_hari_h: String(peng.tanggal_hari_h || ''),

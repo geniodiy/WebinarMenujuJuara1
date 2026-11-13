@@ -45,7 +45,7 @@ function atributPoster_(url) {
   };
 }
 
-/** Parameter URL yang dipakai halaman: ?form=daftar, ?admin=1, ?ref=..., ?utm_source=... */
+/** Parameter URL yang dipakai halaman: ?form=daftar|presensi|pertanyaan, ?admin=1, ?ref=..., ?utm_source=... */
 function paramAman_(p) {
   p = p || {};
   var hasil = {};

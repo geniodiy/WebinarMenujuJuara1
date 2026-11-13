@@ -136,7 +136,7 @@
 
     /* ---------- Kerangka panel ---------- */
 
-    var TAB = [['ringkasan', 'Ringkasan'], ['pengaturan', 'Pengaturan'], ['pendaftar', 'Pendaftar'], ['tutor', 'Tutor'], ['prestasi', 'Prestasi'], ['lihat', 'Lihat data']];
+    var TAB = [['ringkasan', 'Ringkasan'], ['pengaturan', 'Pengaturan'], ['pendaftar', 'Pendaftar'], ['harih', 'Hari H'], ['tutor', 'Tutor'], ['prestasi', 'Prestasi'], ['lihat', 'Lihat data']];
 
     function renderPanel(tab) {
       A.tab = tab;
@@ -172,6 +172,7 @@
       else if (tab === 'pendaftar') tabPendaftar(isi);
       else if (tab === 'tutor') tabTutor(isi);
       else if (tab === 'prestasi') tabPrestasi(isi);
+      else if (tab === 'harih') tabHariH(isi);
       else tabLihat(isi);
     }
 
@@ -239,6 +240,167 @@
         isi.appendChild(el('p', 'admin-catatan', A.sertakanUji ? 'Data uji ikut dihitung (hanya di tampilan ini; lembar Rekap tetap tanpa data uji).' : 'Data uji tidak dihitung.'));
         isi.appendChild(tombol('Muat ulang', 'tombol-garis', function () { tabRingkasan(isi); }));
       }, function (e) { galat(isi, e.message, function () { tabRingkasan(isi); }); });
+    }
+
+    /* ---------- Hari H: presensi, feedback, pertanyaan ---------- */
+
+    var HH = { bagian: 'presensi', filter: 'semua' };
+
+    function angkaKartu(nilai, label) {
+      var k = el('div', 'admin-angka-kartu');
+      k.appendChild(el('strong', null, nilai == null ? '-' : String(nilai)));
+      k.appendChild(el('span', null, label));
+      return k;
+    }
+
+    function tandai(jenis, b, nilai, selesai) {
+      panggil('adminTandaiHariH', [A.token, jenis, b._baris, b.waktu, nilai], function () { selesai(true); }, function (e) {
+        selesai(false, e.message);
+      });
+    }
+
+    function tabHariH(isi) {
+      memuat(isi);
+      panggil('adminGetHariH', [A.token, A.sertakanUji], function (d) {
+        isi.textContent = '';
+        var pilih = el('div', 'pp-tahun');
+        [['presensi', 'Presensi (' + d.presensi.length + ')'], ['feedback', 'Feedback'], ['pertanyaan', 'Pertanyaan (' + d.pertanyaan.length + ')']].forEach(function (p) {
+          var b = el('button', 'pp-pil', p[1]);
+          b.type = 'button';
+          b.setAttribute('aria-pressed', String(HH.bagian === p[0]));
+          b.addEventListener('click', function () { HH.bagian = p[0]; HH.filter = 'semua'; tabHariH(isi); });
+          pilih.appendChild(b);
+        });
+        isi.appendChild(pilih);
+        var pesan = el('p', 'pesan-admin');
+        pesan.setAttribute('role', 'status');
+
+        if (HH.bagian === 'feedback') {
+          var r = d.ringkasan;
+          var angka = el('div', 'admin-angka');
+          angka.appendChild(angkaKartu(r.jumlah, 'Total presensi'));
+          angka.appendChild(angkaKartu(r.tidak_cocok, 'Tidak cocok dengan data pendaftar'));
+          angka.appendChild(angkaKartu(r.materi, 'Rata-rata materi strategi (1-5)'));
+          angka.appendChild(angkaKartu(r.sinergi, 'Rata-rata Ruang Sinergi (1-5)'));
+          angka.appendChild(angkaKartu(r.teknis, 'Rata-rata kelancaran teknis (1-5)'));
+          angka.appendChild(angkaKartu(r.materi_terkirim + ' / ' + r.jumlah, 'Materi sudah dikirim'));
+          isi.appendChild(angka);
+          isi.appendChild(el('h3', 'admin-subjudul', 'Kelas simulasi (penilaian siswa)'));
+          var t = el('table', 'admin-tabel');
+          var hr = el('tr');
+          ['Kelas', 'Siswa', 'Manfaat kelas', 'Kejelasan tutor'].forEach(function (j) { hr.appendChild(el('th', null, j)); });
+          var th = el('thead');
+          th.appendChild(hr);
+          t.appendChild(th);
+          var tb = el('tbody');
+          Object.keys(r.per_kelas).forEach(function (k) {
+            var v = r.per_kelas[k];
+            var tr = el('tr');
+            [k, v.jumlah, v.kelas == null ? '-' : v.kelas, v.tutor == null ? '-' : v.tutor].forEach(function (x) { tr.appendChild(el('td', null, String(x))); });
+            tb.appendChild(tr);
+          });
+          t.appendChild(tb);
+          isi.appendChild(t);
+          isi.appendChild(el('p', 'admin-catatan', 'Jenjang tiap siswa bisa dilihat di lembar Pendaftar lewat ID peserta. Jawaban teks lengkap ada di lembar Presensi.'));
+          var teks = d.presensi.filter(function (b) { return b.bagian_bermanfaat || b.topik_berikutnya || b.kritik_saran; });
+          if (teks.length) {
+            isi.appendChild(el('h3', 'admin-subjudul', 'Jawaban teks'));
+            var ul = el('ul', 'hh-admin-daftar');
+            teks.slice().reverse().forEach(function (b) {
+              var li = el('li');
+              li.appendChild(el('strong', null, b.nama_lengkap + ' · ' + b.kategori));
+              if (b.bagian_bermanfaat) li.appendChild(el('p', null, 'Paling bermanfaat: ' + b.bagian_bermanfaat));
+              if (b.topik_berikutnya) li.appendChild(el('p', null, 'Topik berikutnya: ' + b.topik_berikutnya));
+              if (b.kritik_saran) li.appendChild(el('p', null, 'Kritik dan saran: ' + b.kritik_saran));
+              ul.appendChild(li);
+            });
+            isi.appendChild(ul);
+          }
+        } else if (HH.bagian === 'presensi') {
+          var saringP = el('select', 'fd-input hh-admin-saring');
+          [['semua', 'Semua'], ['belum', 'Materi belum dikirim'], ['sudah', 'Materi sudah dikirim'], ['tidak', 'Tidak cocok dengan pendaftar']].forEach(function (o) {
+            var op = el('option', null, o[1]);
+            op.value = o[0];
+            saringP.appendChild(op);
+          });
+          saringP.value = HH.filter;
+          saringP.setAttribute('aria-label', 'Saring presensi');
+          saringP.addEventListener('change', function () { HH.filter = saringP.value; tabHariH(isi); });
+          isi.appendChild(saringP);
+          isi.appendChild(el('p', 'admin-catatan', 'Kirim materi lewat WhatsApp ke nomor peserta, lalu centang "Materi dikirim".'));
+          var daftarP = d.presensi.slice().reverse().filter(function (b) {
+            if (HH.filter === 'belum') return b.materi_dikirim !== 'YA';
+            if (HH.filter === 'sudah') return b.materi_dikirim === 'YA';
+            if (HH.filter === 'tidak') return b.status_cocok !== 'Cocok';
+            return true;
+          });
+          if (!daftarP.length) isi.appendChild(el('p', 'admin-info', 'Belum ada presensi.'));
+          var ulP = el('ul', 'hh-admin-daftar');
+          daftarP.forEach(function (b) {
+            var li = el('li');
+            li.appendChild(el('strong', null, b.nama_lengkap));
+            li.appendChild(el('p', null, b.kategori + (b.kelas_simulasi ? ' · ' + b.kelas_simulasi : '') + ' · ' + b.waktu));
+            var baris = el('p');
+            var wa = el('a', null, b.wa);
+            wa.href = 'https://wa.me/' + encodeURIComponent(b.wa);
+            wa.target = '_blank';
+            wa.rel = 'noopener';
+            baris.appendChild(wa);
+            baris.appendChild(document.createTextNode(' · ' + (b.status_cocok === 'Cocok' ? 'Cocok (' + b.id_peserta + ')' : 'Tidak ditemukan di pendaftar')));
+            li.appendChild(baris);
+            var c = kotakCentang('materi-' + b._baris, 'Materi dikirim', b.materi_dikirim === 'YA');
+            var input = c.querySelector('input');
+            input.addEventListener('change', function () {
+              input.disabled = true;
+              tandai('presensi', b, input.checked ? 'YA' : 'TIDAK', function (ok, m) {
+                input.disabled = false;
+                if (ok) b.materi_dikirim = input.checked ? 'YA' : 'TIDAK';
+                else { input.checked = !input.checked; pesan.textContent = m; }
+              });
+            });
+            li.appendChild(c);
+            ulP.appendChild(li);
+          });
+          isi.appendChild(ulP);
+        } else {
+          var saringQ = el('select', 'fd-input hh-admin-saring');
+          [['semua', 'Semua'], ['Belum dibahas', 'Belum dibahas'], ['Sudah dibahas', 'Sudah dibahas'], ['Siswa', 'Penanya siswa'], ['Orang Tua', 'Penanya orang tua'], ['Guru Pembina', 'Penanya guru']].forEach(function (o) {
+            var op = el('option', null, o[1]);
+            op.value = o[0];
+            saringQ.appendChild(op);
+          });
+          saringQ.value = HH.filter;
+          saringQ.setAttribute('aria-label', 'Saring pertanyaan');
+          saringQ.addEventListener('change', function () { HH.filter = saringQ.value; tabHariH(isi); });
+          isi.appendChild(saringQ);
+          var daftarQ = d.pertanyaan.filter(function (b) {
+            return HH.filter === 'semua' || b.status === HH.filter || b.kategori === HH.filter;
+          });
+          if (!daftarQ.length) isi.appendChild(el('p', 'admin-info', 'Belum ada pertanyaan.'));
+          var ulQ = el('ul', 'hh-admin-daftar');
+          daftarQ.forEach(function (b, i) {
+            var li = el('li', b.status === 'Sudah dibahas' ? 'hh-dibahas' : '');
+            li.appendChild(el('strong', null, (i + 1) + '. ' + (b.nama || 'Anonim') + ' · ' + b.kategori + ' · ' + b.jenjang));
+            li.appendChild(el('p', 'hh-admin-tanya', b.pertanyaan));
+            var c = kotakCentang('bahas-' + b._baris, 'Sudah dibahas', b.status === 'Sudah dibahas');
+            var input = c.querySelector('input');
+            input.addEventListener('change', function () {
+              input.disabled = true;
+              tandai('pertanyaan', b, input.checked ? 'Sudah dibahas' : 'Belum dibahas', function (ok, m) {
+                input.disabled = false;
+                if (ok) { b.status = input.checked ? 'Sudah dibahas' : 'Belum dibahas'; li.classList.toggle('hh-dibahas', input.checked); }
+                else { input.checked = !input.checked; pesan.textContent = m; }
+              });
+            });
+            li.appendChild(c);
+            ulQ.appendChild(li);
+          });
+          isi.appendChild(ulQ);
+          isi.appendChild(el('p', 'admin-catatan', 'Urutan sesuai waktu kirim (yang pertama masuk di atas).'));
+        }
+        isi.appendChild(pesan);
+        isi.appendChild(tombol('Muat ulang', 'tombol-garis', function () { tabHariH(isi); }));
+      }, function (e) { galat(isi, e.message, function () { tabHariH(isi); }); });
     }
 
     /* ---------- Pengaturan ---------- */
@@ -374,6 +536,17 @@
 
         var g2 = grup('Hari H');
         g2.appendChild(isianPengaturan('tanggal_hari_h', 'Tanggal hari H', inputTeks('date', p.tanggal_hari_h)));
+        [['form_presensi', 'Form presensi dan feedback', 'Buka saat menjelang akhir acara. Tombol Isi Presensi muncul di halaman.'],
+          ['form_pertanyaan', 'Form pertanyaan', 'Tutup sebelum materi disampaikan. Saat acara peserta bertanya lewat mikrofon atau chat Zoom.']].forEach(function (f) {
+          var pilih = el('select', 'fd-input');
+          [['BUKA', 'Buka'], ['TUTUP', 'Tutup']].forEach(function (o) {
+            var op = el('option', null, o[1]);
+            op.value = o[0];
+            pilih.appendChild(op);
+          });
+          pilih.value = p[f[0]] === 'BUKA' ? 'BUKA' : 'TUTUP';
+          g2.appendChild(isianPengaturan(f[0], f[1], pilih, f[2]));
+        });
         form.appendChild(g2);
 
         var g3 = grup('Tautan');

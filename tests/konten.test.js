@@ -107,3 +107,44 @@ test('teks dipecah dan disambung kembali utuh', () => {
   assert.strictEqual(p.join(''), t);
   assert.deepStrictEqual(polos(g.pecahTeks_('', 100)), []);
 });
+
+const h = muatGas(['Util.gs', 'Config.gs', 'HariH.gs']);
+test('presensi: percabangan siswa dan dewasa, nilai 1-5, minat program', () => {
+  const s = h.rapikanPresensi_({ wa: '0812 3456 7890', nama_lengkap: ' Budi ', kategori: 'Siswa SD', kelas_simulasi: 'IPA',
+    nilai_materi: 5, nilai_kelas: 4, nilai_tutor: '3', nilai_sinergi: 5, nilai_teknis: 2, bagian_bermanfaat: 'x', minat_program: ['Tidak, terima kasih'] });
+  assert.deepStrictEqual(polos(s.galat), {});
+  assert.strictEqual(s.data.wa, '6281234567890');
+  assert.strictEqual(s.data.nilai_sinergi, '');
+  const o = h.rapikanPresensi_({ wa: '081234567890', nama_lengkap: 'Ani', kategori: 'Orang Tua', nilai_materi: 9, kelas_simulasi: 'IPA',
+    minat_program: ['Tidak, terima kasih', 'Ya, program kerja sama sekolah'] });
+  assert.ok(o.galat.nilai_materi && o.galat.nilai_sinergi && o.galat.nilai_teknis && o.galat.bagian_bermanfaat && o.galat.minat_program);
+  assert.strictEqual(o.galat.kelas_simulasi, undefined);
+  assert.strictEqual(o.data.kelas_simulasi, '');
+});
+
+test('presensi: pencocokan dengan pendaftar memakai WA kunci dan nama kunci', () => {
+  const p = [{ wa_kunci: '6281234567890', nama_kunci: 'budi santoso', id_peserta: 'MJ-0001' }];
+  assert.strictEqual(h.cariPendaftar_(p, '6281234567890', '  Budi   SANTOSO ').id_peserta, 'MJ-0001');
+  assert.strictEqual(h.cariPendaftar_(p, '6281234567890', 'Budi Santosa'), null);
+  assert.strictEqual(h.cariPendaftar_(p, '6281111111111', 'Budi Santoso'), null);
+});
+
+test('pertanyaan dan ringkasan feedback', () => {
+  assert.deepStrictEqual(polos(h.rapikanPertanyaan_({ kategori: 'Siswa', jenjang: 'SD', pertanyaan: 'Apa itu OSN?' }).galat), {});
+  assert.ok(h.rapikanPertanyaan_({ kategori: 'Murid', jenjang: 'SMA', pertanyaan: '' }).galat.pertanyaan);
+  const r = h.ringkasPresensi_([
+    { kategori: 'Siswa SD', kelas_simulasi: 'IPA', nilai_materi: '5', nilai_kelas: '4', nilai_tutor: '5', nilai_teknis: '4', status_cocok: 'Cocok', materi_dikirim: 'YA' },
+    { kategori: 'Orang Tua', nilai_materi: '4', nilai_sinergi: '3', nilai_teknis: '5', status_cocok: 'Tidak ditemukan', materi_dikirim: 'TIDAK' }
+  ]);
+  assert.strictEqual(r.jumlah, 2);
+  assert.strictEqual(r.tidak_cocok, 1);
+  assert.strictEqual(r.materi_terkirim, 1);
+  assert.strictEqual(r.materi, 4.5);
+  assert.strictEqual(r.per_kelas.IPA.kelas, 4);
+  assert.strictEqual(r.per_kelas.Matematika.kelas, null);
+});
+
+test('status form presensi dan pertanyaan dari pengaturan', () => {
+  const s = h.hitungStatus_({ form_pendaftaran: 'TUTUP', form_presensi: 'buka', form_pertanyaan: 'TUTUP' }, Date.now());
+  assert.deepStrictEqual(polos(s.form), { pendaftaran: 'TUTUP', presensi: 'BUKA', pertanyaan: 'TUTUP' });
+});

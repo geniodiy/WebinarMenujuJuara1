@@ -493,6 +493,7 @@
   .bilah-info a { font-weight: 600; }
   .bilah .tombol { flex-shrink: 0; }
   .tombol-daftar { min-width: 132px; font-size: 17px; }
+  .tombol-tanya { border: 0; background: linear-gradient(90deg, var(--cyan), var(--teal)); color: #fff; font-weight: 700; text-shadow: 0 1px 2px rgba(0, 0, 0, .15); }
 
   /* Lapisan: poster besar, detail narasumber, masuk admin */
   .lapisan { position: fixed; inset: 0; z-index: 60; background: rgba(20, 24, 50, .55); display: flex; align-items: flex-end; justify-content: center; }
@@ -934,6 +935,39 @@
     .tutor-judul h3 { font-size: 17px; }
     .kaki a { font-size: 13px; }
   }
+
+  /* Form presensi dan pertanyaan (popup tengah). */
+  .kotak-hari-h { max-width: 480px; }
+  .kotak-hari-h h2 { font-size: 17px; font-weight: 700; margin-bottom: 6px; padding-right: 36px; }
+  .hh-info { font-size: 13px; color: var(--redup); margin: 0 0 10px; }
+  .hh-form { display: flex; flex-direction: column; gap: 14px; margin-top: 8px; }
+  .hh-grup { display: flex; flex-direction: column; gap: 14px; }
+  .hh-bagian { margin: 6px 0 -4px; font-size: 13px; font-weight: 700; color: var(--item); }
+  .hh-jebakan { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+  .hh-skala { display: flex; gap: 6px; }
+  .hh-skala-pilih { flex: 1; position: relative; }
+  .hh-skala-pilih input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+  .hh-skala-pilih span { display: flex; align-items: center; justify-content: center; height: 40px; border: 1.5px solid var(--garis); border-radius: 12px; font-weight: 600; color: var(--item); background: #fff; }
+  .hh-skala-pilih input:checked + span { border-color: transparent; color: #fff; background: linear-gradient(135deg, var(--cyan), var(--teal)); }
+  .hh-skala-pilih input:focus-visible + span { outline: 3px solid rgba(84, 86, 59, .2); }
+  .hh-skala-ket { display: flex; justify-content: space-between; margin-top: 4px; font-size: 11px; color: var(--redup); }
+  .hh-peringatan { padding: 12px; border-radius: 12px; background: #FFF4E5; color: #7A4B00; font-size: 13px; }
+  .hh-peringatan p { margin: 0 0 10px; }
+  .hh-peringatan-aksi { display: flex; gap: 8px; }
+  .hh-peringatan-aksi .fd-tombol { flex: 1; }
+  .hh-selesai { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 8px 0; text-align: center; }
+  .hh-selesai h2 { padding: 0; }
+  .hh-selesai-ikon { display: flex; align-items: center; justify-content: center; width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(135deg, var(--cyan), var(--teal)); }
+  .hh-selesai-ikon svg { width: 26px; height: 26px; }
+
+  /* Tab Hari H di panel admin. */
+  .hh-admin-saring { max-width: 280px; margin: 10px 0 4px; }
+  .hh-admin-daftar { list-style: none; margin: 8px 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+  .hh-admin-daftar li { padding: 10px 12px; border: 1px solid var(--garis); border-radius: 12px; background: #fff; }
+  .hh-admin-daftar li p { margin: 2px 0; font-size: 13px; }
+  .hh-admin-daftar .admin-isian { margin-top: 6px; }
+  .hh-admin-tanya { font-size: 14px !important; color: var(--item); }
+  .hh-dibahas { opacity: .55; }
 
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }

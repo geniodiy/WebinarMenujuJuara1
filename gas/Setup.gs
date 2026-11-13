@@ -112,6 +112,11 @@ function siapkanLembar() {
   tambahKunci_(pengaturan, PENGATURAN_AWAL_, false);
   pastikanLembar_(db, 'Rekap', KOLOM_REKAP_);
   pastikanLembar_(db, 'Log_Admin', KOLOM_LOG_ADMIN_);
+  var presensi = pastikanLembar_(db, 'Presensi', KOLOM_PRESENSI_);
+  formatTeks_(presensi, ['wa', 'wa_kunci']);
+  aturPilihan_(presensi, 'materi_dikirim', ['YA', 'TIDAK']);
+  var pertanyaan = pastikanLembar_(db, 'Pertanyaan', KOLOM_PERTANYAAN_);
+  aturPilihan_(pertanyaan, 'status', STATUS_PERTANYAAN_);
   hapusLembarKosongBawaan_(db);
 
   var konten = bukaKonten_();
@@ -334,13 +339,16 @@ function perbaruiDaftarGambar() {
 function hapusDataUji() {
   penjagaPanitia_();
   var jumlah = denganKunci_(function () {
-    var lembar = bukaDb_().getSheetByName('Pendaftar');
+    var db = bukaDb_();
+    var lembar = db.getSheetByName('Pendaftar');
     var n = hapusBarisUji_(lembar);
     tulisRekap_(bacaLembar_(lembar), bacaPengaturan_());
+    n += hapusBarisUji_(db.getSheetByName('Presensi'));
+    n += hapusBarisUji_(db.getSheetByName('Pertanyaan'));
     return n;
   });
   bersihkanCache_();
-  return lapor_(jumlah + ' baris data uji dihapus dari lembar Pendaftar.');
+  return lapor_(jumlah + ' baris data uji dihapus dari lembar Pendaftar, Presensi, dan Pertanyaan.');
 }
 
 function hapusBarisUji_(lembar) {

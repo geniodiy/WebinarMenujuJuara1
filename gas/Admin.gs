@@ -9,7 +9,7 @@ var JENDELA_GAGAL_MS_ = 15 * 60 * 1000;
 var KUNCI_PENGATURAN_ADMIN_ = [
   'form_pendaftaran', 'pendaftaran_buka', 'pendaftaran_tutup', 'tanggal_hari_h', 'link_grup_wa',
   'kuota_sd_matematika', 'kuota_sd_ipa', 'kuota_sd_ips', 'kuota_smp_matematika', 'kuota_smp_ipa', 'kuota_smp_ips',
-  'mode_uji', 'tampilkan_data_contoh',
+  'mode_uji', 'form_presensi', 'form_pertanyaan', 'tampilkan_data_contoh',
   'tampil_tutor', 'tampil_profil', 'tampil_cabang', 'tampil_prestasi', 'tampil_ajakan'
 ];
 // Kunci yang disimpan di lembar Pengaturan_Konten (spreadsheet Konten Website), bukan Pengaturan.
@@ -122,7 +122,7 @@ function rapikanPerubahan_(perubahan) {
     if (!perubahan || perubahan[k] == null) return;
     var v = String(perubahan[k]).trim();
     if (k === 'pendaftaran_buka' || k === 'pendaftaran_tutup') v = v.replace('T', ' ').slice(0, 16);
-    if (k === 'form_pendaftaran' || KUNCI_YA_TIDAK_.indexOf(k) >= 0) v = v.toUpperCase();
+    if (k === 'form_pendaftaran' || k === 'form_presensi' || k === 'form_pertanyaan' || KUNCI_YA_TIDAK_.indexOf(k) >= 0) v = v.toUpperCase();
     hasil[k] = v.slice(0, 500);
   });
   return hasil;
@@ -132,6 +132,9 @@ function rapikanPerubahan_(perubahan) {
 function validasiPengaturan_(p) {
   var g = {};
   if (['OTOMATIS', 'BUKA', 'TUTUP'].indexOf(p.form_pendaftaran) < 0) g.form_pendaftaran = 'Pilih salah satu mode.';
+  ['form_presensi', 'form_pertanyaan'].forEach(function (k) {
+    if (p[k] != null && ['BUKA', 'TUTUP'].indexOf(p[k]) < 0) g[k] = 'Pilih BUKA atau TUTUP.';
+  });
   var buka = parseWaktuWib_(p.pendaftaran_buka);
   var tutup = parseWaktuWib_(p.pendaftaran_tutup);
   if (isNaN(buka)) g.pendaftaran_buka = 'Isi tanggal dan jam buka.';

@@ -10,7 +10,7 @@ const { chromium } = require('playwright');
 const muatGas = require('./muat-gas');
 
 const DIR_KELUAR = fs.mkdtempSync(path.join(os.tmpdir(), 'e2e-form-'));
-const g = muatGas(['Util.gs', 'Config.gs', 'Konten.gs', 'Setup.gs', 'Pendaftaran.gs', 'Admin.gs', 'Laporan.gs']);
+const g = muatGas(['Util.gs', 'Config.gs', 'Konten.gs', 'Setup.gs', 'Pendaftaran.gs', 'Admin.gs', 'Laporan.gs', 'HariH.gs']);
 const SANDI = 'sandi-uji-panjang-123';
 
 function lembarTiruan(judul) {
@@ -26,6 +26,7 @@ function lembarTiruan(judul) {
       getDisplayValues: () => data.map((r) => Array.from({ length: lebar() }, (_, i) => String(r[i] == null ? '' : r[i])))
     }),
     getRange: (r, c, nr = 1, nc = 1) => ({
+      getDisplayValues() { return this.getValues().map((b) => b.map((v) => String(v))); },
       getValues() {
         const hasil = [];
         for (let i = 0; i < nr; i++) hasil.push(Array.from({ length: nc }, (_, j) => (data[r - 1 + i] || [])[c - 1 + j] ?? ''));
@@ -58,7 +59,9 @@ function reset() {
     Pendaftar: lembarTiruan(g.KOLOM_PENDAFTAR_),
     Rekap: lembarTiruan(g.KOLOM_REKAP_),
     Log_Admin: lembarTiruan(g.KOLOM_LOG_ADMIN_),
-    Pengaturan: peng
+    Pengaturan: peng,
+    Presensi: lembarTiruan(g.KOLOM_PRESENSI_),
+    Pertanyaan: lembarTiruan(g.KOLOM_PERTANYAAN_)
   };
   const pk = lembarTiruan(['kunci', 'nilai', 'keterangan']);
   pk.appendRow(['tampilkan_data_contoh', 'TIDAK', '']);
@@ -90,6 +93,7 @@ g.Utilities = {
   sleep() {}
 };
 g.DURASI_MINIMUM_MS_ = 0;
+g.DURASI_MINIMUM_HARI_H_MS_ = 0;
 
 function barisPendaftar() {
   const [judul, ...isi] = lembar.Pendaftar.data;
@@ -98,6 +102,10 @@ function barisPendaftar() {
 
 const berkasHtml = path.join(DIR_KELUAR, 'form.html');
 fs.writeFileSync(berkasHtml, execFileSync('node', [path.join(__dirname, 'pratinjau.js'), 'daftar', 'form']));
+const berkasPresensi = path.join(DIR_KELUAR, 'presensi.html');
+fs.writeFileSync(berkasPresensi, execFileSync('node', [path.join(__dirname, 'pratinjau.js'), 'tutup', 'presensi']));
+const berkasTanya = path.join(DIR_KELUAR, 'tanya.html');
+fs.writeFileSync(berkasTanya, execFileSync('node', [path.join(__dirname, 'pratinjau.js'), 'tutup', 'pertanyaan']));
 const berkasAdmin = path.join(DIR_KELUAR, 'halaman.html');
 fs.writeFileSync(berkasAdmin, execFileSync('node', [path.join(__dirname, 'pratinjau.js'), 'daftar']));
 
@@ -506,7 +514,6 @@ async function uji(nama, fn) {
     await page.screenshot({ path: path.join(DIR_KELUAR, 'admin-ringkasan.png') });
     await page.click('.admin-tab-tombol:has-text("Pengaturan")');
     await page.waitForSelector('#ap-pendaftaran_tutup');
-    const sisaLama = g.getConfig().data.sisa_hari;
     await page.fill('#ap-pendaftaran_tutup', '2026-11-20T23:59');
     await page.selectOption('#ap-form_pendaftaran', 'OTOMATIS');
     await page.click('text=Simpan pengaturan');
@@ -514,7 +521,7 @@ async function uji(nama, fn) {
     assert.strictEqual(nilaiPeng('pendaftaran_tutup'), '2026-11-20 23:59');
     const log = lembar.Log_Admin.data.find((r) => r[3] === 'pendaftaran_tutup');
     assert.deepStrictEqual([log[4], log[5]], ['2026-11-07 23:59', '2026-11-20 23:59']);
-    assert.strictEqual(g.getConfig().data.sisa_hari, sisaLama + 13);
+    assert.strictEqual(g.getConfig().data.sisa_hari, g.hariWib_(g.parseWaktuWib_('2026-11-20 23:59')) - g.hariWib_(Date.now()));
     await page.screenshot({ path: path.join(DIR_KELUAR, 'admin-pengaturan.png'), fullPage: true });
   });
 
@@ -603,6 +610,152 @@ async function uji(nama, fn) {
     const [prospek] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('text=Unduh daftar prospek (.xlsx)')]);
     assert.ok(prospek.suggestedFilename().startsWith('MenujuJuara-Eps1_prospek_'));
     assert.ok(lembar.Log_Admin.data.some((r) => r[2] === 'unduh data' && r[3] === 'semua'));
+  });
+
+  // ---------- Fase 6 dan 7 ----------
+  function tambahPendaftar(nama, wa, id) {
+    const judul = lembar.Pendaftar.data[0];
+    const o = { id_peserta: id, nama_lengkap: nama, nama_kunci: nama.toLowerCase(), wa, wa_kunci: wa, kategori: 'Siswa SMP', uji: 'TIDAK' };
+    lembar.Pendaftar.appendRow(judul.map((j) => o[j] || ''));
+  }
+  const skala = (page, nama, n) => page.locator('input[name="' + nama + '"][value="' + n + '"]').check({ force: true });
+  async function isiPresensiSiswa(page, nama, wa) {
+    await page.fill('input[name=wa]', wa);
+    await page.fill('input[name=nama_lengkap]', nama);
+    await pilih(page, 'Siswa SMP');
+    await pilih(page, 'IPA');
+    await skala(page, 'nilai_materi_s', 5);
+    await skala(page, 'nilai_kelas', 4);
+    await skala(page, 'nilai_tutor', 5);
+    await skala(page, 'nilai_teknis', 3);
+    await page.fill('textarea[name=bagian_bermanfaat]', 'Strategi menjawab soal');
+    await pilih(page, 'Ya, program Olimpiade untuk siswa');
+  }
+  const barisLembar = (n) => { const [j, ...isi] = lembar[n].data; return isi.map((r) => Object.fromEntries(j.map((k, i) => [k, r[i]]))); };
+
+  await uji('U9: presensi sebelum dibuka ditolak server dan halaman menampilkan pesan', async () => {
+    const r = g.submitPresensi({ kode_kiriman: 'kode-uji-001', durasi_ms: 9999, wa: '081234567890', nama_lengkap: 'Ani' });
+    assert.strictEqual(r.error.code, 'TUTUP');
+    const { page } = await halamanBaru(browser, { berkas: berkasTanya });
+    await page.evaluate(() => { FormHariH.presensi(document.getElementById('hh-isi'), { form: { presensi: 'TUTUP' } }); });
+    assert.ok(await page.locator('text=Presensi belum dibuka atau sudah ditutup').isVisible());
+    assert.strictEqual(await page.locator('#hh-isi input[name=wa]').count(), 0);
+  });
+
+  await uji('U12 + presensi siswa cocok: bagian 2A tampil, 2B tidak, konfirmasi materi 1x24 jam', async () => {
+    aturPeng('form_presensi', 'BUKA');
+    tambahPendaftar('Budi Santoso', '6281234567890', 'MJ-0007');
+    const { page, galatHalaman } = await halamanBaru(browser, { berkas: berkasPresensi });
+    await page.waitForSelector('#lapisan-hari-h:not([hidden])');
+    await page.fill('input[name=wa]', '0812-3456-7890');
+    await page.fill('input[name=nama_lengkap]', 'budi  santoso');
+    await pilih(page, 'Siswa SMP');
+    assert.ok(await page.locator('.fd-label:text-is("Kelas simulasi yang kamu ikuti")').isVisible());
+    assert.ok(!(await page.locator('text=Ruang Sinergi').isVisible()));
+    await pilih(page, 'IPA');
+    await skala(page, 'nilai_materi_s', 5);
+    await skala(page, 'nilai_kelas', 4);
+    await skala(page, 'nilai_tutor', 5);
+    await skala(page, 'nilai_teknis', 3);
+    await page.fill('textarea[name=bagian_bermanfaat]', 'Strategi menjawab soal');
+    await pilih(page, 'Ya, program Olimpiade untuk siswa');
+    await page.screenshot({ path: path.join(DIR_KELUAR, 'presensi-isi.png'), fullPage: true });
+    await page.click('#hh-isi button[type=submit]');
+    await page.waitForSelector('text=Presensi tercatat');
+    assert.ok((await page.locator('#hh-isi').textContent()).includes('1×24 jam'));
+    await page.screenshot({ path: path.join(DIR_KELUAR, 'presensi-selesai.png') });
+    const b = barisLembar('Presensi')[0];
+    assert.strictEqual(b.status_cocok, 'Cocok');
+    assert.strictEqual(b.id_peserta, 'MJ-0007');
+    assert.strictEqual(b.nilai_kelas, '4');
+    assert.strictEqual(b.nilai_sinergi, '');
+    assert.deepStrictEqual(galatHalaman, []);
+  });
+
+  await uji('U10: presensi dua kali dengan nama dan nomor sama ditolak', async () => {
+    aturPeng('form_presensi', 'BUKA');
+    tambahPendaftar('Budi Santoso', '6281234567890', 'MJ-0007');
+    const { page } = await halamanBaru(browser, { berkas: berkasPresensi });
+    await isiPresensiSiswa(page, 'Budi Santoso', '081234567890');
+    await page.click('#hh-isi button[type=submit]');
+    await page.waitForSelector('text=Presensi tercatat');
+    await page.click('text=Isi presensi untuk peserta lain');
+    await isiPresensiSiswa(page, 'Budi Santoso', '081234567890');
+    await page.click('#hh-isi button[type=submit]');
+    await page.waitForSelector('text=Presensi untuk nama ini sudah tercatat.');
+    assert.strictEqual(barisLembar('Presensi').length, 1);
+  });
+
+  await uji('U11: nama sedikit berbeda memberi peringatan; Tetap kirim tersimpan sebagai tidak ditemukan', async () => {
+    aturPeng('form_presensi', 'BUKA');
+    tambahPendaftar('Budi Santoso', '6281234567890', 'MJ-0007');
+    const { page } = await halamanBaru(browser, { berkas: berkasPresensi });
+    await isiPresensiSiswa(page, 'Budi Santosa', '081234567890');
+    await page.click('#hh-isi button[type=submit]');
+    await page.waitForSelector('text=Nama atau nomor tidak ditemukan di data pendaftar.');
+    assert.strictEqual(barisLembar('Presensi').length, 0);
+    await page.screenshot({ path: path.join(DIR_KELUAR, 'presensi-peringatan.png') });
+    await page.click('text=Tetap kirim');
+    await page.waitForSelector('text=Presensi tercatat');
+    assert.strictEqual(barisLembar('Presensi')[0].status_cocok, 'Tidak ditemukan');
+  });
+
+  await uji('presensi orang tua: bagian 2B tampil, isian wajib diperiksa', async () => {
+    aturPeng('form_presensi', 'BUKA');
+    const { page } = await halamanBaru(browser, { berkas: berkasPresensi });
+    await pilih(page, 'Orang Tua');
+    assert.ok(await page.locator('text=Ruang Sinergi').isVisible());
+    assert.ok(!(await page.locator('.fd-label:text-is("Kelas simulasi yang kamu ikuti")').isVisible()));
+    await page.click('#hh-isi button[type=submit]');
+    assert.ok(await page.locator('text=Isi nomor WhatsApp yang benar').first().isVisible());
+    assert.strictEqual(barisLembar('Presensi').length, 0);
+  });
+
+  await uji('form pertanyaan terkirim, lalu ditolak setelah ditutup admin', async () => {
+    const { page } = await halamanBaru(browser, { berkas: berkasTanya });
+    await page.waitForSelector('#lapisan-hari-h:not([hidden])');
+    await pilih(page, 'Orang Tua');
+    await pilih(page, 'SD dan SMP');
+    await page.fill('textarea[name=pertanyaan]', 'Bagaimana membagi waktu belajar olimpiade dan sekolah?');
+    await page.screenshot({ path: path.join(DIR_KELUAR, 'pertanyaan-isi.png') });
+    await page.click('#hh-isi button[type=submit]');
+    await page.waitForSelector('text=Pertanyaan terkirim');
+    const b = barisLembar('Pertanyaan')[0];
+    assert.strictEqual(b.kategori, 'Orang Tua');
+    assert.strictEqual(b.nama, '');
+    assert.strictEqual(b.status, 'Belum dibahas');
+    aturPeng('form_pertanyaan', 'TUTUP');
+    const r = g.submitPertanyaan({ kode_kiriman: 'kode-uji-tutup', durasi_ms: 9999, kategori: 'Siswa', jenjang: 'SD', pertanyaan: 'Pertanyaan lain?' });
+    assert.strictEqual(r.error.code, 'TUTUP');
+  });
+
+  await uji('admin tab Hari H: tandai materi dikirim dan pertanyaan dibahas, tercatat di Log_Admin', async () => {
+    aturPeng('form_presensi', 'BUKA');
+    aturPeng('mode_uji', 'TIDAK');
+    tambahPendaftar('Budi Santoso', '6281234567890', 'MJ-0007');
+    assert.ok(g.submitPresensi({ kode_kiriman: 'kode-uji-002', durasi_ms: 9999, wa: '081234567890', nama_lengkap: 'Budi Santoso', kategori: 'Siswa SMP',
+      kelas_simulasi: 'IPA', nilai_materi: 5, nilai_kelas: 4, nilai_tutor: 5, nilai_teknis: 3, bagian_bermanfaat: 'Strategi', minat_program: ['Tidak, terima kasih'] }).ok);
+    assert.ok(g.submitPertanyaan({ kode_kiriman: 'kode-uji-003', durasi_ms: 9999, nama: 'Bu Ani', kategori: 'Orang Tua', jenjang: 'SD', pertanyaan: 'Bagaimana memulai?' }).ok);
+    const { page } = await halamanBaru(browser, { berkas: berkasAdmin });
+    await masukAdmin(page, SANDI);
+    await page.click('.admin-tab-tombol:has-text("Hari H")');
+    await page.waitForSelector('text=Budi Santoso');
+    await page.click('label:has-text("Materi dikirim")');
+    await page.waitForFunction(() => { const i = document.querySelector('[id^="ap-materi-"]'); return i && !i.disabled; });
+    assert.strictEqual(barisLembar('Presensi')[0].materi_dikirim, 'YA');
+    await page.click('.pp-pil:has-text("Feedback")');
+    await page.waitForSelector('text=Total presensi');
+    await page.screenshot({ path: path.join(DIR_KELUAR, 'admin-feedback.png'), fullPage: true });
+    await page.click('.pp-pil:has-text("Pertanyaan")');
+    await page.waitForSelector('text=Bagaimana memulai?');
+    await page.screenshot({ path: path.join(DIR_KELUAR, 'admin-pertanyaan.png'), fullPage: true });
+    await page.click('label:has-text("Sudah dibahas")');
+    await page.waitForFunction(() => { const i = document.querySelector('[id^="ap-bahas-"]'); return i && !i.disabled; });
+    assert.strictEqual(barisLembar('Pertanyaan')[0].status, 'Sudah dibahas');
+    assert.ok(lembar.Log_Admin.data.some((r) => r[2] === 'tandai pertanyaan'));
+    await page.click('.admin-tab-tombol:has-text("Pengaturan")');
+    await page.waitForSelector('#ap-form_presensi');
+    assert.strictEqual(await page.inputValue('#ap-form_presensi'), 'BUKA');
   });
 
   await uji('akses data admin tanpa token ditolak server', async () => {

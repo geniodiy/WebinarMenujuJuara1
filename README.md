@@ -26,7 +26,7 @@ npm run e2e         # form dan panel admin diuji di Chromium dengan spreadsheet 
 | 2 | Form pendaftaran | Kode selesai, U1-U8 dan U27-U30 lolos di uji lokal; menunggu uji di ponsel |
 | 3 | Halaman utama Rilis 1 | Kode selesai, dicek di 360 px dan 1280 px secara lokal; menunggu uji di ponsel |
 | 4 | Panel admin pendaftaran | Kode selesai, U20-U25 lolos di uji lokal; menunggu uji di ponsel |
-| 5 | Konten Rilis 2 | Belum |
-| 6 | Presensi dan feedback | Belum |
-| 7 | Pertanyaan dan moderator | Belum |
-| 8 | Uji menyeluruh | Belum |
+| 5 | Konten Rilis 2 | Kode selesai, sudah tayang |
+| 6 | Presensi dan feedback | Kode selesai (materi dikirim manual oleh admin dalam 1x24 jam), U9-U12 lolos di uji lokal |
+| 7 | Form pertanyaan | Kode selesai: pertanyaan dihimpun sebelum acara, ditandai dibahas di tab Hari H; tanpa halaman moderator langsung |
+| 8 | Uji menyeluruh | Tidak dikerjakan (keputusan pemilik) |

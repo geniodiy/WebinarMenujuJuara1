@@ -1,0 +1,424 @@
+<script>
+  /**
+   * Form presensi dan feedback (Form 2) serta form pertanyaan (Form 3), tampil di popup tengah.
+   * Aturan isian diperiksa lagi di server (HariH.gs); di sini hanya untuk pesan cepat.
+   */
+  var FormHariH = (function () {
+    'use strict';
+
+    var KATEGORI = ['Siswa SD', 'Siswa SMP', 'Orang Tua', 'Guru Pembina'];
+    var KELAS = ['Matematika', 'IPA', 'IPS'];
+    var MINAT = ['Ya, program Olimpiade untuk siswa', 'Ya, program kerja sama sekolah', 'Tidak, terima kasih'];
+    var PENANYA = ['Siswa', 'Orang Tua', 'Guru Pembina'];
+    var JENJANG = ['SD', 'SMP', 'SD dan SMP'];
+    var urut = 0;
+
+    function el(tag, kelas, teks) {
+      var e = document.createElement(tag);
+      if (kelas) e.className = kelas;
+      if (teks != null) e.textContent = teks;
+      return e;
+    }
+
+    function kodeKiriman() {
+      return 'k' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
+    }
+
+    function isian(nama, label, kontrol, bantuan, wajib) {
+      var w = el('div', 'fd-isian');
+      w.setAttribute('data-isian', nama);
+      var l = el('label', 'fd-label', label + (wajib === false ? ' (opsional)' : ''));
+      if (kontrol.id) l.htmlFor = kontrol.id;
+      w.appendChild(l);
+      if (bantuan) w.appendChild(el('p', 'fd-bantuan', bantuan));
+      w.appendChild(kontrol);
+      var g = el('p', 'fd-galat');
+      g.setAttribute('role', 'alert');
+      w.appendChild(g);
+      return w;
+    }
+
+    function teks(nama, opsi) {
+      var i = el(opsi.panjang ? 'textarea' : 'input', 'fd-input');
+      if (!opsi.panjang) i.type = opsi.type || 'text';
+      if (opsi.panjang) i.rows = 3;
+      i.id = 'hh-' + nama + '-' + (++urut);
+      i.name = nama;
+      if (opsi.inputmode) i.setAttribute('inputmode', opsi.inputmode);
+      if (opsi.autocomplete) i.autocomplete = opsi.autocomplete;
+      if (opsi.placeholder) i.placeholder = opsi.placeholder;
+      i.maxLength = opsi.panjang ? 1000 : 120;
+      return i;
+    }
+
+    /** Pilihan berbentuk kartu (radio atau checkbox), sama dengan form pendaftaran. */
+    function pilihan(nama, daftar, jenis) {
+      var f = el('div', 'fd-kartu-daftar');
+      f.setAttribute('role', jenis === 'checkbox' ? 'group' : 'radiogroup');
+      daftar.forEach(function (p) {
+        var k = el('label', 'fd-kartu');
+        var i = el('input');
+        i.type = jenis || 'radio';
+        i.name = nama;
+        i.value = p;
+        i.addEventListener('change', function () {
+          Array.prototype.forEach.call(f.querySelectorAll('.fd-kartu'), function (x) {
+            x.classList.toggle('terpilih', x.querySelector('input').checked);
+          });
+        });
+        var t = el('span', 'fd-kartu-teks');
+        t.appendChild(el('span', 'fd-kartu-judul', p));
+        k.appendChild(i);
+        k.appendChild(t);
+        f.appendChild(k);
+      });
+      return f;
+    }
+
+    /** Skala 1 sampai 5 berupa lima tombol bulat, dengan keterangan ujung kiri dan kanan. */
+    function skala(nama, kiri, kanan) {
+      var w = el('div', 'hh-skala-wadah');
+      var f = el('div', 'hh-skala');
+      f.setAttribute('role', 'radiogroup');
+      for (var n = 1; n <= 5; n++) {
+        var k = el('label', 'hh-skala-pilih');
+        var i = el('input');
+        i.type = 'radio';
+        i.name = nama;
+        i.value = String(n);
+        i.setAttribute('aria-label', n + (n === 1 ? ' (' + kiri + ')' : n === 5 ? ' (' + kanan + ')' : ''));
+        k.appendChild(i);
+        k.appendChild(el('span', null, String(n)));
+        f.appendChild(k);
+      }
+      w.appendChild(f);
+      var ket = el('div', 'hh-skala-ket');
+      ket.appendChild(el('span', null, '1 = ' + kiri));
+      ket.appendChild(el('span', null, '5 = ' + kanan));
+      w.appendChild(ket);
+      return w;
+    }
+
+    function nilai(form, nama) {
+      var e = form.elements[nama];
+      if (!e) return '';
+      if (e.length != null && !e.tagName) {
+        var hasil = [];
+        Array.prototype.forEach.call(e, function (x) { if (x.checked) hasil.push(x.value); });
+        return e[0] && e[0].type === 'checkbox' ? hasil : (hasil[0] || '');
+      }
+      if (e.type === 'checkbox' || e.type === 'radio') return e.checked ? e.value : '';
+      return String(e.value || '').trim();
+    }
+
+    function tampilkanGalat(form, galat) {
+      var pertama = null;
+      Array.prototype.forEach.call(form.querySelectorAll('[data-isian]'), function (w) {
+        var pesan = galat[w.getAttribute('data-isian')] || '';
+        w.querySelector('.fd-galat').textContent = pesan;
+        if (pesan && !pertama && !w.closest('[hidden]')) pertama = w;
+      });
+      if (pertama) {
+        pertama.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        var f = pertama.querySelector('input, textarea');
+        if (f) f.focus({ preventScroll: true });
+      }
+      return !pertama;
+    }
+
+    function tombolKirim(teksTombol) {
+      var b = el('button', 'fd-tombol fd-tombol-utama fd-lebar', teksTombol);
+      b.type = 'submit';
+      return b;
+    }
+
+    function jebakan() {
+      // Isian tersembunyi untuk menyaring bot; manusia tidak melihat atau mengisinya.
+      var i = el('input', 'hh-jebakan');
+      i.name = 'hp';
+      i.tabIndex = -1;
+      i.autocomplete = 'off';
+      i.setAttribute('aria-hidden', 'true');
+      return i;
+    }
+
+    function kirim(namaFungsi, data, berhasil, gagal) {
+      if (!(window.google && google.script && google.script.run)) {
+        gagal({ code: 'SERVER', message: 'Form hanya bisa dikirim dari halaman web resmi.' });
+        return;
+      }
+      google.script.run
+        .withSuccessHandler(function (r) { if (r && r.ok) berhasil(r.data); else gagal((r && r.error) || {}); })
+        .withFailureHandler(function () { gagal({ code: 'JARINGAN', message: 'Koneksi terputus. Periksa internet lalu kirim lagi.' }); })[namaFungsi](data);
+    }
+
+    function pesanTutup(wadah, judul, teksPesan) {
+      wadah.textContent = '';
+      var h = el('h2', null, judul);
+      h.id = 'hh-judul';
+      wadah.appendChild(h);
+      wadah.appendChild(el('p', 'hh-info', teksPesan));
+    }
+
+    function layarSelesai(wadah, judul, baris, ulang) {
+      wadah.textContent = '';
+      var k = el('div', 'hh-selesai');
+      var ikon = el('span', 'hh-selesai-ikon');
+      ikon.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+      k.appendChild(ikon);
+      var h = el('h2', null, judul);
+      h.id = 'hh-judul';
+      h.tabIndex = -1;
+      k.appendChild(h);
+      baris.forEach(function (t) { k.appendChild(el('p', 'hh-info', t)); });
+      if (ulang) {
+        var b = el('button', 'fd-tombol fd-tombol-garis', ulang.teks);
+        b.type = 'button';
+        b.addEventListener('click', ulang.aksi);
+        k.appendChild(b);
+      }
+      wadah.appendChild(k);
+      h.focus();
+    }
+
+    /* ---------- Presensi dan feedback ---------- */
+
+    function presensi(wadah, config) {
+      if (!config || !config.form || config.form.presensi !== 'BUKA') {
+        pesanTutup(wadah, 'Presensi', 'Presensi belum dibuka atau sudah ditutup. Presensi dibuka panitia menjelang akhir acara pada hari H.');
+        return;
+      }
+      wadah.textContent = '';
+      var mulai = Date.now();
+      var kode = kodeKiriman();
+      var h = el('h2', null, 'Presensi dan feedback');
+      h.id = 'hh-judul';
+      wadah.appendChild(h);
+      wadah.appendChild(el('p', 'hh-info', 'Isi sekali untuk tiap peserta. Materi Kelas OSN dikirim admin setelah presensi tercatat.'));
+
+      var form = el('form', 'hh-form');
+      form.noValidate = true;
+      form.appendChild(jebakan());
+
+      form.appendChild(el('h3', 'hh-bagian', 'Presensi'));
+      form.appendChild(isian('wa', 'Nomor WhatsApp', teks('wa', { type: 'tel', inputmode: 'tel', autocomplete: 'tel' }),
+        'Gunakan nomor yang sama dengan saat pendaftaran. Siswa yang didaftarkan pendamping tanpa nomor sendiri memakai nomor pendamping.'));
+      form.appendChild(isian('nama_lengkap', 'Nama Lengkap', teks('nama_lengkap', { autocomplete: 'name' }), 'Ditulis sama seperti saat pendaftaran.'));
+      form.appendChild(isian('kategori', 'Kategori Peserta', pilihan('kategori', KATEGORI)));
+
+      var bagianSiswa = el('div', 'hh-grup');
+      bagianSiswa.appendChild(el('h3', 'hh-bagian', 'Penilaian siswa'));
+      bagianSiswa.appendChild(isian('kelas_simulasi', 'Kelas simulasi yang kamu ikuti', pilihan('kelas_simulasi', KELAS)));
+      bagianSiswa.appendChild(isian('nilai_materi', 'Seberapa bermanfaat materi strategi dari Mas Indro?', skala('nilai_materi_s', 'Sangat kurang', 'Sangat baik')));
+      bagianSiswa.appendChild(isian('nilai_kelas', 'Seberapa bermanfaat kelas simulasi yang kamu ikuti?', skala('nilai_kelas', 'Sangat kurang', 'Sangat baik')));
+      bagianSiswa.appendChild(isian('nilai_tutor', 'Seberapa jelas cara tutor menjelaskan di kelas simulasi?', skala('nilai_tutor', 'Sangat tidak jelas', 'Sangat jelas')));
+      bagianSiswa.hidden = true;
+      form.appendChild(bagianSiswa);
+
+      var bagianDewasa = el('div', 'hh-grup');
+      bagianDewasa.appendChild(el('h3', 'hh-bagian', 'Penilaian orang tua dan guru'));
+      bagianDewasa.appendChild(isian('nilai_materi', 'Seberapa bermanfaat materi strategi dari Mas Indro?', skala('nilai_materi_d', 'Sangat kurang', 'Sangat baik')));
+      bagianDewasa.appendChild(isian('nilai_sinergi', 'Seberapa bermanfaat diskusi di Ruang Sinergi (diskusi khusus orang tua dan guru)?', skala('nilai_sinergi', 'Sangat kurang', 'Sangat baik')));
+      bagianDewasa.hidden = true;
+      form.appendChild(bagianDewasa);
+
+      var bagianAkhir = el('div', 'hh-grup');
+      bagianAkhir.appendChild(el('h3', 'hh-bagian', 'Masukan dan tindak lanjut'));
+      bagianAkhir.appendChild(isian('nilai_teknis', 'Seberapa lancar acara secara teknis (suara, gambar, perpindahan room)?', skala('nilai_teknis', 'Banyak kendala', 'Sangat lancar')));
+      bagianAkhir.appendChild(isian('bagian_bermanfaat', 'Bagian acara mana yang paling bermanfaat untuk persiapan Anda?', teks('bagian_bermanfaat', { panjang: true, placeholder: 'Contoh: Cara menyusun jadwal belajar' })));
+      bagianAkhir.appendChild(isian('topik_berikutnya', 'Topik apa yang ingin Anda pelajari di webinar berikutnya?', teks('topik_berikutnya', { panjang: true }), null, false));
+      bagianAkhir.appendChild(isian('kritik_saran', 'Kritik, saran, atau kendala selama acara', teks('kritik_saran', { panjang: true }), null, false));
+      bagianAkhir.appendChild(isian('minat_program', 'Apakah Anda ingin dihubungi untuk informasi program Genio?', pilihan('minat_program', MINAT, 'checkbox'), 'Boleh pilih lebih dari satu.'));
+      bagianAkhir.hidden = true;
+      form.appendChild(bagianAkhir);
+
+      var peringatan = el('div', 'hh-peringatan');
+      peringatan.hidden = true;
+      peringatan.setAttribute('role', 'alert');
+      var kirimBtn = tombolKirim('Kirim presensi');
+      var pesan = el('p', 'fd-galat');
+      pesan.setAttribute('role', 'status');
+      form.appendChild(peringatan);
+      form.appendChild(pesan);
+      form.appendChild(kirimBtn);
+      wadah.appendChild(form);
+
+      function kategori() { return nilai(form, 'kategori'); }
+      function siswa() { return kategori() === 'Siswa SD' || kategori() === 'Siswa SMP'; }
+
+      form.addEventListener('change', function (e) {
+        if (e.target.name === 'kategori') {
+          bagianSiswa.hidden = !siswa();
+          bagianDewasa.hidden = siswa();
+          bagianAkhir.hidden = false;
+        }
+        if (e.target.name === 'minat_program' && e.target.checked) {
+          // "Tidak, terima kasih" tidak bisa digabung dengan pilihan lain.
+          var tidak = e.target.value === MINAT[2];
+          Array.prototype.forEach.call(form.querySelectorAll('input[name="minat_program"]'), function (i) {
+            if (i !== e.target && (tidak || i.value === MINAT[2]) && i.checked) {
+              i.checked = false;
+              i.closest('.fd-kartu').classList.remove('terpilih');
+            }
+          });
+        }
+        var w = e.target.closest('[data-isian]');
+        if (w) w.querySelector('.fd-galat').textContent = '';
+      });
+
+      function data() {
+        return {
+          wa: nilai(form, 'wa'),
+          nama_lengkap: nilai(form, 'nama_lengkap'),
+          kategori: kategori(),
+          kelas_simulasi: nilai(form, 'kelas_simulasi'),
+          nilai_materi: siswa() ? nilai(form, 'nilai_materi_s') : nilai(form, 'nilai_materi_d'),
+          nilai_kelas: nilai(form, 'nilai_kelas'),
+          nilai_tutor: nilai(form, 'nilai_tutor'),
+          nilai_sinergi: nilai(form, 'nilai_sinergi'),
+          nilai_teknis: nilai(form, 'nilai_teknis'),
+          bagian_bermanfaat: nilai(form, 'bagian_bermanfaat'),
+          topik_berikutnya: nilai(form, 'topik_berikutnya'),
+          kritik_saran: nilai(form, 'kritik_saran'),
+          minat_program: nilai(form, 'minat_program'),
+          hp: nilai(form, 'hp'),
+          kode_kiriman: kode,
+          durasi_ms: Date.now() - mulai
+        };
+      }
+
+      function periksa(d) {
+        var g = {};
+        var wa = String(d.wa).replace(/[^\d]/g, '').replace(/^0/, '62');
+        if (!/^628\d{7,11}$/.test(wa)) g.wa = 'Isi nomor WhatsApp yang benar, misalnya 081234567890.';
+        if (d.nama_lengkap.length < 2) g.nama_lengkap = 'Isi nama lengkap.';
+        if (!d.kategori) g.kategori = 'Pilih kategori peserta.';
+        else {
+          if (!d.nilai_materi) g.nilai_materi = 'Pilih nilai 1 sampai 5.';
+          if (siswa()) {
+            if (!d.kelas_simulasi) g.kelas_simulasi = 'Pilih kelas simulasi yang diikuti.';
+            if (!d.nilai_kelas) g.nilai_kelas = 'Pilih nilai 1 sampai 5.';
+            if (!d.nilai_tutor) g.nilai_tutor = 'Pilih nilai 1 sampai 5.';
+          } else if (!d.nilai_sinergi) g.nilai_sinergi = 'Pilih nilai 1 sampai 5.';
+          if (!d.nilai_teknis) g.nilai_teknis = 'Pilih nilai 1 sampai 5.';
+          if (!d.bagian_bermanfaat) g.bagian_bermanfaat = 'Isi bagian acara yang paling bermanfaat.';
+          if (!d.minat_program.length) g.minat_program = 'Pilih minimal satu jawaban.';
+        }
+        return g;
+      }
+
+      function aktifkan(aktif, teksTombol) {
+        kirimBtn.disabled = !aktif;
+        kirimBtn.textContent = teksTombol;
+      }
+
+      function kirimData(tetap) {
+        var d = data();
+        if (!tampilkanGalat(form, periksa(d))) return;
+        d.tetap_kirim = !!tetap;
+        peringatan.hidden = true;
+        pesan.textContent = '';
+        aktifkan(false, 'Mengirim…');
+        kirim('submitPresensi', d, function (hasil) {
+          layarSelesai(wadah, 'Presensi tercatat', [
+            'Terima kasih, ' + hasil.nama + '. Presensi dan feedback Anda sudah kami terima.',
+            'Materi Kelas OSN akan dikirim admin ke nomor WhatsApp Anda dalam 1×24 jam.'
+          ], { teks: 'Isi presensi untuk peserta lain', aksi: function () { presensi(wadah, config); } });
+        }, function (e) {
+          aktifkan(true, 'Kirim presensi');
+          if (e.code === 'TIDAK_DITEMUKAN') {
+            peringatan.textContent = '';
+            peringatan.appendChild(el('p', null, e.message));
+            var aksi = el('div', 'hh-peringatan-aksi');
+            var cek = el('button', 'fd-tombol fd-tombol-garis', 'Periksa lagi');
+            cek.type = 'button';
+            cek.addEventListener('click', function () {
+              peringatan.hidden = true;
+              var f = form.elements.wa;
+              f.scrollIntoView({ block: 'center', behavior: 'smooth' });
+              f.focus({ preventScroll: true });
+            });
+            var tetapBtn = el('button', 'fd-tombol fd-tombol-utama', 'Tetap kirim');
+            tetapBtn.type = 'button';
+            tetapBtn.addEventListener('click', function () { kirimData(true); });
+            aksi.appendChild(cek);
+            aksi.appendChild(tetapBtn);
+            peringatan.appendChild(aksi);
+            peringatan.hidden = false;
+            peringatan.scrollIntoView({ block: 'center', behavior: 'smooth' });
+          } else if (e.code === 'VALIDASI' && e.kolom) {
+            tampilkanGalat(form, e.kolom);
+          } else {
+            pesan.textContent = e.message || 'Presensi belum terkirim. Silakan coba lagi.';
+          }
+        });
+      }
+
+      form.addEventListener('submit', function (e) { e.preventDefault(); kirimData(false); });
+    }
+
+    /* ---------- Pertanyaan ---------- */
+
+    function pertanyaan(wadah, config) {
+      if (!config || !config.form || config.form.pertanyaan !== 'BUKA') {
+        pesanTutup(wadah, 'Kirim pertanyaan', 'Form pertanyaan sudah ditutup. Silakan bertanya langsung saat acara lewat mikrofon atau chat Zoom.');
+        return;
+      }
+      wadah.textContent = '';
+      var mulai = Date.now();
+      var kode = kodeKiriman();
+      var h = el('h2', null, 'Kirim pertanyaan');
+      h.id = 'hh-judul';
+      wadah.appendChild(h);
+      wadah.appendChild(el('p', 'hh-info', 'Pertanyaan dihimpun panitia lalu disampaikan ke narasumber saat acara. Pada hari H Anda juga bisa bertanya langsung lewat mikrofon atau chat Zoom.'));
+
+      var form = el('form', 'hh-form');
+      form.noValidate = true;
+      form.appendChild(jebakan());
+      form.appendChild(isian('nama', 'Nama atau inisial', teks('nama', { autocomplete: 'name' }), 'Kosongkan jika ingin bertanya secara anonim.', false));
+      form.appendChild(isian('kategori', 'Kategori penanya', pilihan('kategori', PENANYA)));
+      form.appendChild(isian('jenjang', 'Jenjang siswa', pilihan('jenjang', JENJANG), 'Untuk orang tua dan guru: jenjang anak atau siswa binaan.'));
+      form.appendChild(isian('pertanyaan', 'Pertanyaan Anda', teks('pertanyaan', { panjang: true, placeholder: 'Contoh: Bagaimana mendampingi anak yang mudah menyerah saat menemui soal sulit?' })));
+      var pesan = el('p', 'fd-galat');
+      pesan.setAttribute('role', 'status');
+      var kirimBtn = tombolKirim('Kirim pertanyaan');
+      form.appendChild(pesan);
+      form.appendChild(kirimBtn);
+      wadah.appendChild(form);
+
+      form.addEventListener('change', function (e) {
+        var w = e.target.closest('[data-isian]');
+        if (w) w.querySelector('.fd-galat').textContent = '';
+      });
+
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var d = {
+          nama: nilai(form, 'nama'), kategori: nilai(form, 'kategori'), jenjang: nilai(form, 'jenjang'),
+          pertanyaan: nilai(form, 'pertanyaan'), hp: nilai(form, 'hp'), kode_kiriman: kode, durasi_ms: Date.now() - mulai
+        };
+        var g = {};
+        if (!d.kategori) g.kategori = 'Pilih kategori penanya.';
+        if (!d.jenjang) g.jenjang = 'Pilih jenjang.';
+        if (d.pertanyaan.length < 5) g.pertanyaan = 'Tulis pertanyaan Anda.';
+        if (!tampilkanGalat(form, g)) return;
+        kirimBtn.disabled = true;
+        kirimBtn.textContent = 'Mengirim…';
+        pesan.textContent = '';
+        kirim('submitPertanyaan', d, function () {
+          layarSelesai(wadah, 'Pertanyaan terkirim', [
+            'Terima kasih. Pertanyaan Anda akan disampaikan ke narasumber saat acara.',
+            'Pada hari H Anda juga bisa bertanya langsung lewat mikrofon atau chat Zoom.'
+          ], { teks: 'Kirim pertanyaan lain', aksi: function () { pertanyaan(wadah, config); } });
+        }, function (err) {
+          kirimBtn.disabled = false;
+          kirimBtn.textContent = 'Kirim pertanyaan';
+          if (err.code === 'VALIDASI' && err.kolom) tampilkanGalat(form, err.kolom);
+          else pesan.textContent = err.message || 'Pertanyaan belum terkirim. Silakan coba lagi.';
+        });
+      });
+    }
+
+    return { presensi: presensi, pertanyaan: pertanyaan };
+  })();
+</script>

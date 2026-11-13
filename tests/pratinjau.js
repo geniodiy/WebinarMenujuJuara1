@@ -6,7 +6,9 @@ const path = require('path');
 const muatGas = require('./muat-gas');
 
 const g = muatGas(['Util.gs', 'Config.gs', 'Konten.gs', 'Setup.gs', 'DataContoh.gs']);
-const param = process.argv[3] === 'form' ? { form: 'daftar' } : {};
+// Argumen kedua "presensi" atau "pertanyaan" membuka form itu (presensi sekaligus dibuka di pengaturan).
+const arg2 = process.argv[3];
+const param = arg2 === 'form' ? { form: 'daftar' } : arg2 === 'presensi' || arg2 === 'pertanyaan' ? { form: arg2 } : {};
 const fase = process.argv[2] || 'daftar';
 const dir = path.join(__dirname, '..', 'gas');
 const baca = (n) => fs.readFileSync(path.join(dir, n + '.html'), 'utf8');
@@ -14,6 +16,7 @@ const baca = (n) => fs.readFileSync(path.join(dir, n + '.html'), 'utf8');
 const sekarang = { belum_buka: '2026-10-18 10:00', daftar: '2026-10-20 17:00', tutup: '2026-11-09 10:00' }[fase] || '2026-10-20 17:00';
 const peng = {};
 g.PENGATURAN_AWAL_.forEach((b) => { peng[b[0]] = b[1]; });
+if (arg2 === 'presensi' || process.env.PRATINJAU_PRESENSI) peng.form_presensi = 'BUKA';
 const config = Object.assign(g.hitungStatus_(peng, g.parseWaktuWib_(sekarang)), { jam_server: g.parseWaktuWib_(sekarang) });
 
 const pengKonten = {};

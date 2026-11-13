@@ -1337,7 +1337,26 @@
       return b;
     }
 
-    /** Fase belum_buka, daftar, dan tutup. Fase hari_h dan selesai dibuat di Fase 6. */
+    function formTerbuka(nama) {
+      return !!(config && config.form && config.form[nama] === 'BUKA');
+    }
+
+    /* Presensi dan pertanyaan (Fase 6 dan 7) memakai satu popup tengah. */
+    function bukaHariH(jenis, pemicu) {
+      try {
+        FormHariH[jenis]($('hh-isi'), config);
+        bukaLapisan('lapisan-hari-h', pemicu);
+        var j = $('hh-judul');
+        if (j) { j.tabIndex = -1; j.focus(); }
+      } catch (err) {
+        if (window.console) console.error(err);
+      }
+    }
+
+    /**
+     * Bilah bawah. Urutan prioritas: presensi dibuka (hari H) > pendaftaran > form pertanyaan dibuka >
+     * pendaftaran ditutup.
+     */
     function renderBilah() {
       var wadah = $('bilah');
       wadah.textContent = '';
@@ -1350,6 +1369,13 @@
         info.appendChild(el('strong', null, 'Status pendaftaran belum terbaca'));
         info.appendChild(el('span', null, 'Hubungi narahubung bila ada kendala.'));
         aksi = tautanLuar('Hubungi narahubung', tautanWa(peng('narahubung_wa')), 'tombol tombol-utama');
+      } else if (formTerbuka('presensi')) {
+        info.appendChild(el('strong', null, 'Terima kasih sudah hadir'));
+        info.appendChild(el('span', null, 'Isi presensi untuk mendapatkan ' + peng('bonus_teks')));
+        aksi = tombolBilah('Isi Presensi', true);
+        aksi.classList.remove('tombol-utama');
+        aksi.classList.add('tombol-detak', 'tombol-daftar');
+        aksi.addEventListener('click', function () { bukaHariH('presensi', aksi); });
       } else if (config.fase === 'belum_buka') {
         info.appendChild(el('strong', null, 'Gratis'));
         info.appendChild(el('span', null, 'Bonus ' + peng('bonus_teks')));
@@ -1362,6 +1388,13 @@
         aksi.classList.remove('tombol-utama');
         aksi.classList.add('tombol-detak', 'tombol-daftar');
         aksi.addEventListener('click', bukaForm);
+      } else if (formTerbuka('pertanyaan')) {
+        info.appendChild(el('strong', null, 'Punya pertanyaan?'));
+        info.appendChild(el('span', null, 'Kirim sekarang, akan disampaikan ke narasumber saat acara.'));
+        aksi = tombolBilah('Kirim Pertanyaan', true);
+        aksi.classList.remove('tombol-utama');
+        aksi.classList.add('tombol-tanya');
+        aksi.addEventListener('click', function () { bukaHariH('pertanyaan', aksi); });
       } else {
         info.appendChild(el('strong', null, 'Pendaftaran Ditutup'));
         var kecil = el('span', null, 'Sudah daftar tapi belum masuk grup? ');
@@ -1498,6 +1531,7 @@
     siapkanLapisan('lapisan-detail');
     siapkanLapisan('lapisan-prestasi');
     $('tombol-prestasi').addEventListener('click', bukaPopupPrestasi);
+    siapkanLapisan('lapisan-hari-h');
     $('tombol-poster').addEventListener('click', function () {
       var besar = $('poster-besar');
       besar.src = urlGambar(konten.poster_url, 1600);
@@ -1507,6 +1541,8 @@
     $('tombol-muat-ulang').addEventListener('click', muatUlang);
 
     if (param.form === 'daftar') bukaForm();
+    else if (param.form === 'presensi') bukaHariH('presensi');
+    else if (param.form === 'pertanyaan') bukaHariH('pertanyaan');
     else if (param.admin === '1') bukaAdmin();
   })();
 </script>
