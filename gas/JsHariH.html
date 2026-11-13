@@ -119,7 +119,7 @@
         if (pesan && !pertama && !w.closest('[hidden]')) pertama = w;
       });
       if (pertama) {
-        pertama.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        pertama.scrollIntoView({ block: 'center', behavior: 'auto' });
         var f = pertama.querySelector('input, textarea');
         if (f) f.focus({ preventScroll: true });
       }
@@ -130,6 +130,14 @@
       var b = el('button', 'fd-tombol fd-tombol-utama fd-lebar', teksTombol);
       b.type = 'submit';
       return b;
+    }
+
+    /** Tombol kirim dan pesan galat yang selalu menempel di bawah popup, seperti form pendaftaran. */
+    function kakiForm(pesan, kirimBtn) {
+      var k = el('div', 'hh-kaki');
+      k.appendChild(pesan);
+      k.appendChild(kirimBtn);
+      return k;
     }
 
     function jebakan() {
@@ -239,8 +247,7 @@
       var pesan = el('p', 'fd-galat');
       pesan.setAttribute('role', 'status');
       form.appendChild(peringatan);
-      form.appendChild(pesan);
-      form.appendChild(kirimBtn);
+      form.appendChild(kakiForm(pesan, kirimBtn));
       wadah.appendChild(form);
 
       function kategori() { return nilai(form, 'kategori'); }
@@ -335,7 +342,7 @@
             cek.addEventListener('click', function () {
               peringatan.hidden = true;
               var f = form.elements.wa;
-              f.scrollIntoView({ block: 'center', behavior: 'smooth' });
+              f.scrollIntoView({ block: 'center', behavior: 'auto' });
               f.focus({ preventScroll: true });
             });
             var tetapBtn = el('button', 'fd-tombol fd-tombol-utama', 'Tetap kirim');
@@ -345,7 +352,7 @@
             aksi.appendChild(tetapBtn);
             peringatan.appendChild(aksi);
             peringatan.hidden = false;
-            peringatan.scrollIntoView({ block: 'center', behavior: 'smooth' });
+            peringatan.scrollIntoView({ block: 'center', behavior: 'auto' });
           } else if (e.code === 'VALIDASI' && e.kolom) {
             tampilkanGalat(form, e.kolom);
           } else {
@@ -382,8 +389,7 @@
       var pesan = el('p', 'fd-galat');
       pesan.setAttribute('role', 'status');
       var kirimBtn = tombolKirim('Kirim pertanyaan');
-      form.appendChild(pesan);
-      form.appendChild(kirimBtn);
+      form.appendChild(kakiForm(pesan, kirimBtn));
       wadah.appendChild(form);
 
       form.addEventListener('change', function (e) {

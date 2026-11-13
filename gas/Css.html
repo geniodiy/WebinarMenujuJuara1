@@ -937,7 +937,15 @@
   }
 
   /* Form presensi dan pertanyaan (popup tengah). */
-  .kotak-hari-h { max-width: 480px; }
+  .kotak-hari-h { max-width: 480px; padding-bottom: 0; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+  /* Tombol kirim selalu terlihat di bawah popup (sticky), tidak ikut tergulir. */
+  .hh-kaki { position: sticky; bottom: 0; z-index: 2; display: flex; flex-direction: column; gap: 6px; margin: 4px -16px 0; padding: 10px 16px calc(14px + env(safe-area-inset-bottom)); background: #fff; border-top: 1px solid var(--garis); box-shadow: 0 -6px 14px rgba(47, 55, 126, .06); }
+  .hh-kaki .fd-galat { text-align: center; }
+  .hh-selesai { padding-bottom: 18px; }
+  #hh-isi > .hh-info:last-child { margin-bottom: 18px; }
+  #hh-judul:focus { outline: none; }
+  /* Selama popup terbuka, animasi di halaman belakang dijeda agar popup tidak tersendat (terutama iPad). */
+  html.fd-terbuka .halaman *, html.fd-terbuka .halaman *::before, html.fd-terbuka .halaman *::after, html.fd-terbuka #bilah * { animation-play-state: paused !important; }
   .kotak-hari-h h2 { font-size: 17px; font-weight: 700; margin-bottom: 6px; padding-right: 36px; }
   .hh-info { font-size: 13px; color: var(--redup); margin: 0 0 10px; }
   .hh-form { display: flex; flex-direction: column; gap: 14px; margin-top: 8px; }
