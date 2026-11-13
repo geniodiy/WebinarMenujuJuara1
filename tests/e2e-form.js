@@ -661,8 +661,9 @@ async function uji(nama, fn) {
     await pilih(page, 'Ya, program Olimpiade untuk siswa');
     await page.screenshot({ path: path.join(DIR_KELUAR, 'presensi-isi.png'), fullPage: true });
     await page.click('#hh-isi button[type=submit]');
-    await page.waitForSelector('text=Presensi tercatat');
-    assert.ok((await page.locator('#hh-isi').textContent()).includes('1×24 jam'));
+    await page.waitForSelector('.hh-selesai');
+    const teksSelesai = await page.locator('#hh-isi').textContent();
+    assert.ok(teksSelesai.includes('1×24 jam'), teksSelesai.slice(0, 300));
     await page.screenshot({ path: path.join(DIR_KELUAR, 'presensi-selesai.png') });
     const b = barisLembar('Presensi')[0];
     assert.strictEqual(b.status_cocok, 'Cocok');
@@ -678,7 +679,7 @@ async function uji(nama, fn) {
     const { page } = await halamanBaru(browser, { berkas: berkasPresensi });
     await isiPresensiSiswa(page, 'Budi Santoso', '081234567890');
     await page.click('#hh-isi button[type=submit]');
-    await page.waitForSelector('text=Presensi tercatat');
+    await page.waitForSelector('.hh-selesai');
     await page.click('text=Isi presensi untuk peserta lain');
     await isiPresensiSiswa(page, 'Budi Santoso', '081234567890');
     await page.click('#hh-isi button[type=submit]');
@@ -696,7 +697,7 @@ async function uji(nama, fn) {
     assert.strictEqual(barisLembar('Presensi').length, 0);
     await page.screenshot({ path: path.join(DIR_KELUAR, 'presensi-peringatan.png') });
     await page.click('text=Tetap kirim');
-    await page.waitForSelector('text=Presensi tercatat');
+    await page.waitForSelector('.hh-selesai');
     assert.strictEqual(barisLembar('Presensi')[0].status_cocok, 'Tidak ditemukan');
   });
 
@@ -719,7 +720,7 @@ async function uji(nama, fn) {
     await page.fill('textarea[name=pertanyaan]', 'Bagaimana membagi waktu belajar olimpiade dan sekolah?');
     await page.screenshot({ path: path.join(DIR_KELUAR, 'pertanyaan-isi.png') });
     await page.click('#hh-isi button[type=submit]');
-    await page.waitForSelector('text=Pertanyaan terkirim');
+    await page.waitForSelector('.hh-selesai');
     const b = barisLembar('Pertanyaan')[0];
     assert.strictEqual(b.kategori, 'Orang Tua');
     assert.strictEqual(b.nama, '');
