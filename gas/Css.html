@@ -937,7 +937,13 @@
   }
 
   /* Form presensi dan pertanyaan (popup tengah). */
-  .kotak-hari-h { max-width: 480px; padding-bottom: 0; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; scroll-padding-bottom: 96px; }
+  /* Popup presensi dan pertanyaan muncul dari bawah, melayang seperti form pendaftaran. */
+  #lapisan-hari-h { align-items: flex-end; padding: 0 12px calc(12px + env(safe-area-inset-bottom)); animation: pudarMasuk .25s ease-out; }
+  #lapisan-hari-h .kotak-hari-h { max-width: 600px; max-height: calc(88vh - 12px); max-height: calc(88dvh - 12px); animation: naikBawah .35s cubic-bezier(.2, .8, .3, 1); box-shadow: 0 -8px 30px rgba(20, 24, 50, .18); }
+  #lapisan-hari-h.keluar { animation: pudarKeluar .24s ease-in forwards; pointer-events: none; }
+  #lapisan-hari-h.keluar .kotak-hari-h { animation: turunKeluar .24s ease-in forwards; }
+  #lapisan-hari-h [data-tutup]:focus, #hh-judul:focus { outline: none; }
+  .kotak-hari-h { padding-bottom: 0; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; scroll-padding-bottom: 96px; }
   /* Tombol kirim selalu terlihat di bawah popup (sticky), tidak ikut tergulir. */
   .hh-kaki { position: sticky; bottom: 0; z-index: 2; display: flex; flex-direction: column; gap: 6px; margin: 4px -16px 0; padding: 10px 16px calc(14px + env(safe-area-inset-bottom)); background: #fff; border-top: 1px solid var(--garis); box-shadow: 0 -6px 14px rgba(47, 55, 126, .06); }
   .hh-kaki .fd-galat { text-align: center; }

@@ -1345,9 +1345,11 @@
     function bukaHariH(jenis, pemicu) {
       try {
         FormHariH[jenis]($('hh-isi'), config);
-        bukaLapisan('lapisan-hari-h', pemicu);
+        // Fokus ke judul, bukan ke isian pertama, agar keyboard ponsel tidak langsung muncul.
+        bukaLapisan('lapisan-hari-h', pemicu, true);
+        $('lapisan-hari-h').querySelector('.kotak-hari-h').scrollTop = 0;
         var j = $('hh-judul');
-        if (j) { j.tabIndex = -1; j.focus(); }
+        if (j) { j.tabIndex = -1; j.focus({ preventScroll: true }); }
       } catch (err) {
         if (window.console) console.error(err);
       }
@@ -1424,18 +1426,28 @@
 
     var pemicuLapisan = {};
 
-    function bukaLapisan(id, pemicu) {
+    function bukaLapisan(id, pemicu, tanpaFokus) {
       var l = $(id);
+      clearTimeout(l._tutup);
+      l.classList.remove('keluar');
       pemicuLapisan[id] = pemicu || document.activeElement;
       l.hidden = false;
       document.documentElement.classList.add('fd-terbuka');
+      if (tanpaFokus) return;
       var fokus = l.querySelector('input, [data-tutup]');
       if (fokus) fokus.focus();
     }
 
-    function tutupLapisan(id) {
+    function tutupLapisan(id, langsung) {
       var l = $(id);
-      if (l.hidden) return;
+      if (l.hidden || (!langsung && l.classList.contains('keluar'))) return;
+      // Popup bawah (presensi dan pertanyaan) turun sambil memudar seperti form pendaftaran.
+      if (!langsung && l.classList.contains('lapisan-bawah') && !gerakDikurangi()) {
+        l.classList.add('keluar');
+        l._tutup = setTimeout(function () { tutupLapisan(id, true); }, 240);
+        return;
+      }
+      l.classList.remove('keluar');
       l.hidden = true;
       document.documentElement.classList.remove('fd-terbuka');
       var p = pemicuLapisan[id];
